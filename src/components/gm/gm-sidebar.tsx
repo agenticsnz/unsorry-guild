@@ -11,7 +11,10 @@ import {
   FileText,
   LayoutDashboard,
   Sparkles,
-  Megaphone
+  Megaphone,
+  Mail,
+  Quote,
+  Trophy
 } from 'lucide-react'
 
 interface SidebarItem {
@@ -62,6 +65,21 @@ const sidebarItems: SidebarItem[] = [
     href: '/gm/templates',
     label: 'Templates',
     icon: <FileText className="h-5 w-5" />,
+  },
+  {
+    href: '/gm/emails',
+    label: 'Emails',
+    icon: <Mail className="h-5 w-5" />,
+  },
+  {
+    href: '/gm/quotes',
+    label: 'Quotes',
+    icon: <Quote className="h-5 w-5" />,
+  },
+  {
+    href: '/gm/tiers',
+    label: 'Tiers',
+    icon: <Trophy className="h-5 w-5" />,
   },
 ]
 
