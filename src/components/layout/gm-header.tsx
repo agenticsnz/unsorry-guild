@@ -128,8 +128,8 @@ export function GMHeader() {
           </nav>
         </div>
 
-        {/* Desktop right-side actions */}
-        <nav className="hidden md:flex items-center gap-4">
+        {/* Desktop right-side actions - visible when horizontal nav is visible */}
+        <nav className="hidden xl:flex items-center gap-4">
           <Link
             href="/dashboard"
             className="text-sm text-muted-foreground hover:text-foreground"
@@ -144,8 +144,8 @@ export function GMHeader() {
           )}
         </nav>
 
-        {/* Mobile navigation */}
-        <div className="flex md:hidden items-center gap-2">
+        {/* Mobile/tablet navigation - visible when horizontal nav is hidden */}
+        <div className="flex xl:hidden items-center gap-2">
           {/* Gear menu for Exit GM/Notifications/Sign out */}
           {user && (
             <DropdownMenu>

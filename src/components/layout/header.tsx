@@ -116,8 +116,8 @@ export function Header() {
           </nav>
         </div>
 
-        {/* Desktop right-side actions */}
-        <nav className="hidden md:flex items-center gap-4">
+        {/* Desktop right-side actions - visible when horizontal nav is visible */}
+        <nav className="hidden lg:flex items-center gap-4">
           {isGm && (
             <Link
               href="/gm"
@@ -156,8 +156,8 @@ export function Header() {
           )}
         </nav>
 
-        {/* Mobile navigation */}
-        <div className="flex md:hidden items-center gap-2">
+        {/* Mobile/tablet navigation - visible when horizontal nav is hidden */}
+        <div className="flex lg:hidden items-center gap-2">
           {/* Gear menu for GM/Settings/Notifications */}
           {user && (
             <DropdownMenu>
