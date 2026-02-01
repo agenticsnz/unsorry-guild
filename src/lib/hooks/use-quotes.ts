@@ -10,7 +10,8 @@ import type { PhilosophyQuote } from '@/lib/types/engagement'
 async function fetchAllQuotes(): Promise<PhilosophyQuote[]> {
   const supabase = createClient()
 
-  const { data, error } = await supabase
+  // Cast to any because philosophy_quotes table isn't in generated types yet
+  const { data, error } = await (supabase as any)
     .from('philosophy_quotes')
     .select('*')
     .order('display_order', { ascending: true, nullsLast: true })
@@ -39,7 +40,7 @@ async function createQuote(
 ): Promise<PhilosophyQuote> {
   const supabase = createClient()
 
-  const { data: newQuote, error } = await supabase
+  const { data: newQuote, error } = await (supabase as any)
     .from('philosophy_quotes')
     .insert({
       quote: data.quote,
@@ -72,7 +73,7 @@ async function updateQuote(
 ): Promise<PhilosophyQuote> {
   const supabase = createClient()
 
-  const { data: updated, error } = await supabase
+  const { data: updated, error } = await (supabase as any)
     .from('philosophy_quotes')
     .update({
       ...(data.quote !== undefined && { quote: data.quote }),
@@ -105,7 +106,7 @@ export function useUpdateQuote() {
 async function deleteQuote(id: string): Promise<void> {
   const supabase = createClient()
 
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('philosophy_quotes')
     .delete()
     .eq('id', id)

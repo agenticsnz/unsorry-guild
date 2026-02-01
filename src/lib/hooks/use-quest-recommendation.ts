@@ -33,13 +33,15 @@ async function fetchQuestRecommendation(userId: string): Promise<QuestRecommenda
   )
 
   // Strategy 1: Featured quests not yet accepted
-  const { data: featuredQuests } = await supabase
+  const { data: featuredQuestsData } = await supabase
     .from('quests')
     .select('id, title, category_id')
     .eq('status', 'published')
     .eq('featured', true)
     .not('id', 'in', `(${acceptedQuestIds.length > 0 ? acceptedQuestIds.map(id => `'${id}'`).join(',') : "''"})`)
     .limit(5)
+
+  const featuredQuests = featuredQuestsData as Array<{ id: string; title: string; category_id: string }> | null
 
   if (featuredQuests && featuredQuests.length > 0) {
     // Prefer featured quests in familiar categories
@@ -66,13 +68,15 @@ async function fetchQuestRecommendation(userId: string): Promise<QuestRecommenda
   // Strategy 2: Quests in familiar categories
   if (completedCategories.size > 0) {
     const categoryIds = Array.from(completedCategories)
-    const { data: categoryQuests } = await supabase
+    const { data: categoryQuestsData } = await supabase
       .from('quests')
       .select('id, title')
       .eq('status', 'published')
       .in('category_id', categoryIds)
       .not('id', 'in', `(${acceptedQuestIds.length > 0 ? acceptedQuestIds.map(id => `'${id}'`).join(',') : "''"})`)
       .limit(3)
+
+    const categoryQuests = categoryQuestsData as Array<{ id: string; title: string }> | null
 
     if (categoryQuests && categoryQuests.length > 0) {
       return {
@@ -85,13 +89,15 @@ async function fetchQuestRecommendation(userId: string): Promise<QuestRecommenda
   }
 
   // Strategy 3: Popular quests (most accepted)
-  const { data: popularQuests } = await supabase
+  const { data: popularQuestsData } = await supabase
     .from('quests')
     .select('id, title')
     .eq('status', 'published')
     .not('id', 'in', `(${acceptedQuestIds.length > 0 ? acceptedQuestIds.map(id => `'${id}'`).join(',') : "''"})`)
     .order('created_at', { ascending: true }) // Older quests likely more popular
     .limit(3)
+
+  const popularQuests = popularQuestsData as Array<{ id: string; title: string }> | null
 
   if (popularQuests && popularQuests.length > 0) {
     return {

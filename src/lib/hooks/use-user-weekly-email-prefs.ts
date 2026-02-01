@@ -10,7 +10,8 @@ import type { UserWeeklyEmailPrefs } from '@/lib/types/engagement'
 async function fetchUserWeeklyEmailPrefs(userId: string): Promise<UserWeeklyEmailPrefs | null> {
   const supabase = createClient()
 
-  const { data, error } = await supabase
+  // Cast to any because user_weekly_email_prefs table isn't in generated types yet
+  const { data, error } = await (supabase as any)
     .from('user_weekly_email_prefs')
     .select('*')
     .eq('user_id', userId)
@@ -42,7 +43,8 @@ async function updateUserWeeklyEmailPrefs(
 
   const { user_id, ...updateData } = data
 
-  const { data: updated, error } = await supabase
+  // Cast to any because user_weekly_email_prefs table isn't in generated types yet
+  const { data: updated, error } = await (supabase as any)
     .from('user_weekly_email_prefs')
     .upsert({
       user_id,

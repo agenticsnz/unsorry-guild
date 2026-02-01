@@ -10,7 +10,8 @@ import type { GMEmailPreferences } from '@/lib/types/engagement'
 async function fetchGMEmailPreferences(userId: string): Promise<GMEmailPreferences | null> {
   const supabase = createClient()
 
-  const { data, error } = await supabase
+  // Cast to any because gm_email_preferences table isn't in generated types yet
+  const { data, error } = await (supabase as any)
     .from('gm_email_preferences')
     .select('*')
     .eq('user_id', userId)
@@ -42,7 +43,8 @@ async function updateGMEmailPreferences(
 
   const { user_id, ...updateData } = data
 
-  const { data: updated, error } = await supabase
+  // Cast to any because gm_email_preferences table isn't in generated types yet
+  const { data: updated, error } = await (supabase as any)
     .from('gm_email_preferences')
     .upsert({
       user_id,

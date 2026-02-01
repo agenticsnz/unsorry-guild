@@ -12,7 +12,8 @@ async function updateTierConfig(
 ): Promise<TierConfig> {
   const supabase = createClient()
 
-  const { data: updated, error } = await supabase
+  // Cast to any because skill_tier_config table isn't in generated types yet
+  const { data: updated, error } = await (supabase as any)
     .from('skill_tier_config')
     .update({
       ...(data.name !== undefined && { name: data.name }),
@@ -46,7 +47,8 @@ async function updateAllTiers(tiers: TierConfig[]): Promise<void> {
   const supabase = createClient()
 
   for (const tier of tiers) {
-    const { error } = await supabase
+    // Cast to any because skill_tier_config table isn't in generated types yet
+    const { error } = await (supabase as any)
       .from('skill_tier_config')
       .update({
         name: tier.name,

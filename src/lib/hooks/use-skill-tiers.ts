@@ -10,7 +10,8 @@ import type { TierConfig, TierInfo } from '@/lib/types/engagement'
 async function fetchSkillTiers(): Promise<TierConfig[]> {
   const supabase = createClient()
 
-  const { data, error } = await supabase
+  // Cast to any because skill_tier_config table isn't in generated types yet
+  const { data, error } = await (supabase as any)
     .from('skill_tier_config')
     .select('*')
     .order('tier_level', { ascending: true })

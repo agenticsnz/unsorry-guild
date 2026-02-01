@@ -73,7 +73,8 @@ function calculateStreakRisk(streak: UserStreak | null): boolean {
 async function fetchUserStreak(userId: string): Promise<StreakInfo | null> {
   const supabase = createClient()
 
-  const { data, error } = await supabase
+  // Cast to any because user_streaks table isn't in generated types yet
+  const { data, error } = await (supabase as any)
     .from('user_streaks')
     .select('*')
     .eq('user_id', userId)
@@ -127,7 +128,7 @@ async function updateWeekendBehavior(
 ): Promise<void> {
   const supabase = createClient()
 
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('user_streaks')
     .update({ weekend_behavior: behavior })
     .eq('user_id', userId)

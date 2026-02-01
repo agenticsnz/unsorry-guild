@@ -30,7 +30,8 @@ async function fetchTodaysQuote(): Promise<PhilosophyQuote | null> {
   const supabase = createClient()
 
   // First, check for fixed-order quotes
-  const { data: orderedQuotes } = await supabase
+  // Cast to any because philosophy_quotes table isn't in generated types yet
+  const { data: orderedQuotes } = await (supabase as any)
     .from('philosophy_quotes')
     .select('*')
     .eq('is_active', true)
@@ -45,7 +46,7 @@ async function fetchTodaysQuote(): Promise<PhilosophyQuote | null> {
   }
 
   // Otherwise, use random rotation based on date hash
-  const { data: randomQuotes, error } = await supabase
+  const { data: randomQuotes, error } = await (supabase as any)
     .from('philosophy_quotes')
     .select('*')
     .eq('is_active', true)
@@ -87,7 +88,7 @@ export function usePhilosophyQuote() {
 async function fetchAllQuotes(): Promise<PhilosophyQuote[]> {
   const supabase = createClient()
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('philosophy_quotes')
     .select('*')
     .order('created_at', { ascending: false })

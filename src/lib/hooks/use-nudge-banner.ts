@@ -174,7 +174,8 @@ async function fetchNudgeContext(userId: string): Promise<NudgeContext> {
     featuredQuestsQuery = featuredQuestsQuery.not('id', 'in', `(${userQuestIds.map(id => `'${id}'`).join(',')})`)
   }
 
-  const { data: featuredQuests } = await featuredQuestsQuery.limit(1)
+  const { data: featuredQuestsData } = await featuredQuestsQuery.limit(1)
+  const featuredQuests = featuredQuestsData as Array<{ id: string; title: string }> | null
 
   const upcomingDeadlines = (deadlines || []).map((d: any) => ({
     quest_id: d.quest_id,
