@@ -17,13 +17,13 @@ CREATE POLICY "GMs can create prerequisites"
   ON quest_prerequisites
   FOR INSERT
   TO authenticated
-  WITH CHECK (is_gm(auth.uid()));
+  WITH CHECK (is_gm());
 
 -- Only GMs can delete prerequisites
 CREATE POLICY "GMs can delete prerequisites"
   ON quest_prerequisites
   FOR DELETE
   TO authenticated
-  USING (is_gm(auth.uid()));
+  USING (is_gm());
 
 -- No update needed - delete and recreate instead

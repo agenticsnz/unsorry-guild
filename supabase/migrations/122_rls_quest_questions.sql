@@ -28,29 +28,29 @@ CREATE POLICY "GMs can read all questions"
   ON quest_questions
   FOR SELECT
   TO authenticated
-  USING (is_gm(auth.uid()));
+  USING (is_gm());
 
 -- GMs can create questions
 CREATE POLICY "GMs can create questions"
   ON quest_questions
   FOR INSERT
   TO authenticated
-  WITH CHECK (is_gm(auth.uid()));
+  WITH CHECK (is_gm());
 
 -- GMs can update questions
 CREATE POLICY "GMs can update questions"
   ON quest_questions
   FOR UPDATE
   TO authenticated
-  USING (is_gm(auth.uid()))
-  WITH CHECK (is_gm(auth.uid()));
+  USING (is_gm())
+  WITH CHECK (is_gm());
 
 -- GMs can delete questions
 CREATE POLICY "GMs can delete questions"
   ON quest_questions
   FOR DELETE
   TO authenticated
-  USING (is_gm(auth.uid()));
+  USING (is_gm());
 
 -- ===========================================
 -- USER QUEST ANSWERS POLICIES
@@ -110,4 +110,4 @@ CREATE POLICY "GMs can read all answers"
   ON user_quest_answers
   FOR SELECT
   TO authenticated
-  USING (is_gm(auth.uid()));
+  USING (is_gm());
