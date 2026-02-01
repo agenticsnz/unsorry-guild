@@ -1,5 +1,4 @@
 import { Header } from '@/components/layout/header'
-import { UserSidebar } from '@/components/layout/user-sidebar'
 import { BannerDisplay } from '@/components/banners'
 
 export default function DashboardLayout({
@@ -10,13 +9,10 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      <div className="flex flex-1">
-        <UserSidebar />
-        <main className="flex-1 px-4 py-8 lg:px-8">
-          <BannerDisplay />
-          {children}
-        </main>
-      </div>
+      <main className="flex-1 container mx-auto px-4 py-8 lg:px-8">
+        <BannerDisplay />
+        {children}
+      </main>
     </div>
   )
 }

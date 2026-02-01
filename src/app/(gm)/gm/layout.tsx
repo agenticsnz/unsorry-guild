@@ -1,5 +1,4 @@
 import { GMHeader } from '@/components/layout/gm-header'
-import { GMSidebar } from '@/components/gm/gm-sidebar'
 import { GMAuthGuard } from '@/components/gm/gm-auth-guard'
 
 export default function GMLayout({
@@ -11,12 +10,9 @@ export default function GMLayout({
     <GMAuthGuard>
       <div className="min-h-screen bg-background flex flex-col">
         <GMHeader />
-        <div className="flex flex-1">
-          <GMSidebar />
-          <main className="flex-1 px-4 py-8 lg:px-8">
-            {children}
-          </main>
-        </div>
+        <main className="flex-1 container mx-auto px-4 py-8 lg:px-8">
+          {children}
+        </main>
       </div>
     </GMAuthGuard>
   )
