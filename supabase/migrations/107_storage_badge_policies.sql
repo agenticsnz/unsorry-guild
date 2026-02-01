@@ -1,6 +1,12 @@
 -- Storage policies for quest badge uploads
 -- Allows GMs to upload/manage badges in the avatars bucket under badges/ path
 
+-- Drop existing policies if they exist (for idempotent re-runs)
+DROP POLICY IF EXISTS "GMs can upload quest badges" ON storage.objects;
+DROP POLICY IF EXISTS "GMs can update quest badges" ON storage.objects;
+DROP POLICY IF EXISTS "GMs can delete quest badges" ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can view quest badges" ON storage.objects;
+
 -- Allow GMs to upload quest badges
 CREATE POLICY "GMs can upload quest badges"
 ON storage.objects FOR INSERT
