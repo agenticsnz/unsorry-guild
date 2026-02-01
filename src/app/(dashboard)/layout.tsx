@@ -1,5 +1,6 @@
 import { Header } from '@/components/layout/header'
 import { UserSidebar } from '@/components/layout/user-sidebar'
+import { BannerDisplay } from '@/components/banners'
 
 export default function DashboardLayout({
   children,
@@ -12,6 +13,7 @@ export default function DashboardLayout({
       <div className="flex flex-1">
         <UserSidebar />
         <main className="flex-1 px-4 py-8 lg:px-8">
+          <BannerDisplay />
           {children}
         </main>
       </div>

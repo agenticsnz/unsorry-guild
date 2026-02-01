@@ -1,12 +1,12 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Clock, Award, Play, CheckCircle2, Hourglass, CircleDot } from 'lucide-react'
+import { Clock, Award, Play, CheckCircle2, Hourglass, CircleDot, Lock } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { QuestStatusBadge } from './quest-status-badge'
 import { CategoryBadge } from './category-badge'
 import { DifficultyBadge } from './difficulty-badge'
-import type { Quest, QuestStatus, QuestDifficulty, Category } from '@/lib/types/quest'
+import type { Quest, QuestStatus, QuestDifficulty, Category, QuestPrerequisite } from '@/lib/types/quest'
 import { cn } from '@/lib/utils'
 
 type UserQuestStatus = 'accepted' | 'in_progress' | 'ready_to_claim' | 'awaiting_final_approval' | 'completed' | 'abandoned' | 'expired'
@@ -36,6 +36,10 @@ interface QuestCardProps {
   userQuestId?: string
   /** User's quest status - shows status tag on the card */
   userQuestStatus?: UserQuestStatus
+  /** If true, quest is locked due to unmet prerequisites */
+  isLocked?: boolean
+  /** Incomplete prerequisites (for showing "Complete X first" message) */
+  incompletePrerequisites?: QuestPrerequisite[]
 }
 
 /**
@@ -110,7 +114,7 @@ function getFirstParagraph(text: string): string {
   return text.trim()
 }
 
-export function QuestCard({ quest, className, userQuestId, userQuestStatus }: QuestCardProps) {
+export function QuestCard({ quest, className, userQuestId, userQuestStatus, isLocked, incompletePrerequisites }: QuestCardProps) {
   // Use short_description if available, otherwise show first paragraph of description
   const displayDescription =
     quest.short_description ||
@@ -122,12 +126,18 @@ export function QuestCard({ quest, className, userQuestId, userQuestStatus }: Qu
   // If user is actively taking this quest, link to their quest progress page
   const href = userQuestId ? `/my-quests/${userQuestId}` : `/quests/${quest.id}`
 
+  // Build lock message from incomplete prerequisites
+  const lockMessage = incompletePrerequisites && incompletePrerequisites.length > 0
+    ? `Complete first: ${incompletePrerequisites.map(p => p.prerequisite_title).join(', ')}`
+    : 'Complete prerequisites first'
+
   return (
     <Link href={href} className="block">
       <Card
         className={cn(
           'h-full transition-all hover:shadow-md hover:border-primary/50',
           userQuestId && 'border-primary/30 bg-primary/5',
+          isLocked && 'opacity-75 border-muted',
           className
         )}
       >
@@ -155,7 +165,13 @@ export function QuestCard({ quest, className, userQuestId, userQuestStatus }: Qu
                     </Badge>
                   )}
                 </div>
-                {!userQuestId && !userQuestStatus && (
+                {isLocked && (
+                  <Badge variant="outline" className="text-muted-foreground border-muted-foreground/50">
+                    <Lock className="h-3 w-3 mr-1" />
+                    Locked
+                  </Badge>
+                )}
+                {!userQuestId && !userQuestStatus && !isLocked && (
                   <QuestStatusBadge
                     status={displayStatus}
                     isExclusive={'is_exclusive' in quest ? quest.is_exclusive : false}
@@ -198,6 +214,12 @@ export function QuestCard({ quest, className, userQuestId, userQuestStatus }: Qu
                   </div>
                 )}
               </div>
+              {isLocked && (
+                <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                  <Lock className="h-3 w-3" />
+                  {lockMessage}
+                </p>
+              )}
             </div>
           </div>
         </CardContent>

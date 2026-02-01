@@ -144,9 +144,24 @@ export function AcceptQuestModal({
               <Input
                 id="exclusive-code"
                 type="text"
+                inputMode="text"
+                enterKeyHint="done"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
                 placeholder="Enter the secret code"
                 value={exclusiveCode}
                 onChange={(e) => setExclusiveCode(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && exclusiveCode.trim() && !isPending) {
+                    e.preventDefault()
+                    acceptQuest({
+                      questId: quest.id,
+                      exclusiveCode: exclusiveCode,
+                    })
+                  }
+                }}
                 className="font-mono"
                 disabled={isPending}
               />

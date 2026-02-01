@@ -2,9 +2,13 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Trash2, Ban, KeyRound, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
+import { Trash2, Ban, KeyRound, Loader2, CheckCircle, AlertCircle, MessageSquare, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,8 +19,25 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { deleteUser, setUserDisabled, forcePasswordReset } from '@/lib/actions/gm-users'
+import { useCreateBanner } from '@/lib/hooks/use-banners'
 import type { UserWithRole } from '@/lib/hooks/use-all-users'
+import type { BannerVariant } from '@/lib/types/banner'
 
 interface UserActionsProps {
   user: UserWithRole
@@ -30,9 +51,39 @@ export function UserActions({ user, isCurrentUser }: UserActionsProps) {
   const [confirmAction, setConfirmAction] = useState<ActionType>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showMessageDialog, setShowMessageDialog] = useState(false)
+  const [messageForm, setMessageForm] = useState({
+    title: '',
+    message: '',
+    variant: 'info' as BannerVariant,
+    also_send_email: false,
+  })
+
+  const { mutate: createBanner, isPending: sendingMessage } = useCreateBanner()
 
   const isDisabled = user.is_disabled ?? false
   const forceReset = user.force_password_reset ?? false
+
+  const handleSendMessage = () => {
+    createBanner({
+      target_type: 'user',
+      target_user_id: user.id,
+      title: messageForm.title || null,
+      message: messageForm.message,
+      variant: messageForm.variant,
+      also_send_email: messageForm.also_send_email,
+    }, {
+      onSuccess: () => {
+        setShowMessageDialog(false)
+        setMessageForm({
+          title: '',
+          message: '',
+          variant: 'info',
+          also_send_email: false,
+        })
+      },
+    })
+  }
 
   const handleAction = async () => {
     if (!confirmAction) return
@@ -128,6 +179,25 @@ export function UserActions({ user, isCurrentUser }: UserActionsProps) {
 
   return (
     <>
+      {/* Send Private Message */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Send Message
+          </CardTitle>
+          <CardDescription>
+            Send a private banner message to this user
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={() => setShowMessageDialog(true)}>
+            <MessageSquare className="mr-2 h-4 w-4" />
+            Send Private Message
+          </Button>
+        </CardContent>
+      </Card>
+
       <Card className="border-destructive/50">
         {error && (
           <div className="mx-6 mt-6 p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center gap-2 text-sm text-destructive">
@@ -238,6 +308,95 @@ export function UserActions({ user, isCurrentUser }: UserActionsProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Send Message Dialog */}
+      <Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Send Private Message</DialogTitle>
+            <DialogDescription>
+              Send a private message to {user.display_name || user.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="msg-variant">Style</Label>
+              <Select
+                value={messageForm.variant}
+                onValueChange={(value: BannerVariant) =>
+                  setMessageForm(prev => ({ ...prev, variant: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="info">Info (Blue)</SelectItem>
+                  <SelectItem value="success">Success (Green)</SelectItem>
+                  <SelectItem value="warning">Warning (Amber)</SelectItem>
+                  <SelectItem value="celebration">Celebration (Gold)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="msg-title">Title (Optional)</Label>
+              <Input
+                id="msg-title"
+                value={messageForm.title}
+                onChange={(e) => setMessageForm(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Message title"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="msg-message">Message</Label>
+              <Textarea
+                id="msg-message"
+                value={messageForm.message}
+                onChange={(e) => setMessageForm(prev => ({ ...prev, message: e.target.value }))}
+                placeholder="Your message..."
+                required
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <Label htmlFor="msg-email" className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Also send email
+              </Label>
+              <Switch
+                id="msg-email"
+                checked={messageForm.also_send_email}
+                onCheckedChange={(checked) =>
+                  setMessageForm(prev => ({ ...prev, also_send_email: checked }))
+                }
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowMessageDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSendMessage}
+              disabled={sendingMessage || !messageForm.message}
+            >
+              {sendingMessage ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  Send Message
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
