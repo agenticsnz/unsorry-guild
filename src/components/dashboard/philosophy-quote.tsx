@@ -14,7 +14,7 @@ export function PhilosophyQuote({ quote, className }: PhilosophyQuoteProps) {
     <figure className={cn('relative', className)}>
       <Quote className="absolute -top-2 -left-2 h-6 w-6 text-muted-foreground/30" />
       <blockquote className="pl-6 italic text-muted-foreground">
-        "{quote.quote}"
+        &ldquo;{quote.quote}&rdquo;
       </blockquote>
       {quote.attribution && (
         <figcaption className="pl-6 mt-2 text-sm text-muted-foreground/70">

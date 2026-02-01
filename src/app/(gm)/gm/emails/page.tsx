@@ -135,7 +135,7 @@ export default function GMEmailsPage() {
           <div>
             <h4 className="font-medium mb-1">Banner Email Notifications</h4>
             <p className="text-sm text-muted-foreground">
-              When creating banners with "Also send email" enabled, users receive
+              When creating banners with &ldquo;Also send email&rdquo; enabled, users receive
               email notifications if they have email notifications enabled.
             </p>
           </div>

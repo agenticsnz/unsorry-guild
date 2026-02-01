@@ -232,7 +232,7 @@ export default function QuotesPage() {
                         </Badge>
                       )}
                     </div>
-                    <p className="italic text-sm">"{quote.quote}"</p>
+                    <p className="italic text-sm">&ldquo;{quote.quote}&rdquo;</p>
                     {quote.attribution && (
                       <p className="text-sm text-muted-foreground mt-1">
                         — {quote.attribution}

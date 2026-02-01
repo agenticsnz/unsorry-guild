@@ -35,7 +35,7 @@ export function YourPathSection({
             Your Path
           </CardTitle>
           <CardDescription>
-            You've completed all available quests! Check back soon for new adventures.
+            You&apos;ve completed all available quests! Check back soon for new adventures.
           </CardDescription>
         </CardHeader>
       </Card>
