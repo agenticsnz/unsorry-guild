@@ -21,11 +21,12 @@ async function fetchQuestRecommendation(userId: string): Promise<QuestRecommenda
   const supabase = createClient()
 
   // Get user's quest history to determine preferences
-  const { data: userQuests } = await supabase
+  const { data: userQuestsData } = await supabase
     .from('user_quests')
     .select('quest_id, quests!inner(category_id)')
     .eq('user_id', userId)
 
+  const userQuests = userQuestsData as Array<{ quest_id: string; quests: { category_id: string } }> | null
   const acceptedQuestIds = userQuests?.map(uq => uq.quest_id) || []
   const completedCategories = new Set(
     userQuests?.map((uq: any) => uq.quests?.category_id).filter(Boolean)

@@ -116,18 +116,25 @@ async function fetchNudgeContext(userId: string): Promise<NudgeContext> {
   const now = new Date()
   const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000)
 
+  // Fetch user's active quest IDs first
+  const { data: activeQuestsData } = await supabase
+    .from('user_quests')
+    .select('id')
+    .eq('user_id', userId)
+    .in('status', ['accepted', 'in_progress'])
+
+  const activeQuestIds = (activeQuestsData as Array<{ id: string }> | null)?.map(q => q.id) ?? []
+
   // Fetch approved objectives count
-  const { count: approvedCount } = await supabase
-    .from('user_objectives')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'approved')
-    .in('user_quest_id',
-      supabase
-        .from('user_quests')
-        .select('id')
-        .eq('user_id', userId)
-        .in('status', ['accepted', 'in_progress'])
-    )
+  let approvedCount = 0
+  if (activeQuestIds.length > 0) {
+    const { count } = await supabase
+      .from('user_objectives')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'approved')
+      .in('user_quest_id', activeQuestIds)
+    approvedCount = count ?? 0
+  }
 
   // Fetch upcoming deadlines
   const { data: deadlines } = await supabase
@@ -148,19 +155,26 @@ async function fetchNudgeContext(userId: string): Promise<NudgeContext> {
     .eq('user_id', userId)
     .in('status', ['accepted', 'in_progress'])
 
+  // Fetch user's accepted quest IDs to exclude
+  const { data: userQuestsData } = await supabase
+    .from('user_quests')
+    .select('quest_id')
+    .eq('user_id', userId)
+
+  const userQuestIds = (userQuestsData as Array<{ quest_id: string }> | null)?.map(q => q.quest_id) ?? []
+
   // Fetch recommended quest (featured quest user hasn't accepted)
-  const { data: featuredQuests } = await supabase
+  let featuredQuestsQuery = supabase
     .from('quests')
     .select('id, title')
     .eq('status', 'published')
     .eq('featured', true)
-    .not('id', 'in',
-      supabase
-        .from('user_quests')
-        .select('quest_id')
-        .eq('user_id', userId)
-    )
-    .limit(1)
+
+  if (userQuestIds.length > 0) {
+    featuredQuestsQuery = featuredQuestsQuery.not('id', 'in', `(${userQuestIds.map(id => `'${id}'`).join(',')})`)
+  }
+
+  const { data: featuredQuests } = await featuredQuestsQuery.limit(1)
 
   const upcomingDeadlines = (deadlines || []).map((d: any) => ({
     quest_id: d.quest_id,
