@@ -27,46 +27,49 @@ export function EnrichedStatCard({
   href,
   className,
 }: EnrichedStatCardProps) {
-  const CardWrapper = href ? Link : 'div'
-  const cardProps = href
-    ? { href, className: cn('block transition-colors hover:bg-muted/50', className) }
-    : { className }
-
-  return (
-    <CardWrapper {...cardProps}>
-      <Card className={cn(href && 'cursor-pointer', className)}>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {title}
-            </CardTitle>
-            {badge && (
-              <Badge variant={badgeVariant} className="text-xs">
-                {badge}
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-baseline gap-2">
-            <p className="text-3xl font-bold">
-              {typeof value === 'number' ? value.toLocaleString() : value}
-            </p>
-            {subValue && (
-              <span className="text-sm text-muted-foreground">
-                {subValue}
-              </span>
-            )}
-          </div>
-          {description && (
-            <p className="text-xs text-muted-foreground mt-1">
-              {description}
-            </p>
+  const cardContent = (
+    <Card className={cn(href && 'cursor-pointer', className)}>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            {title}
+          </CardTitle>
+          {badge && (
+            <Badge variant={badgeVariant} className="text-xs">
+              {badge}
+            </Badge>
           )}
-        </CardContent>
-      </Card>
-    </CardWrapper>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-baseline gap-2">
+          <p className="text-3xl font-bold">
+            {typeof value === 'number' ? value.toLocaleString() : value}
+          </p>
+          {subValue && (
+            <span className="text-sm text-muted-foreground">
+              {subValue}
+            </span>
+          )}
+        </div>
+        {description && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {description}
+          </p>
+        )}
+      </CardContent>
+    </Card>
   )
+
+  if (href) {
+    return (
+      <Link href={href} className={cn('block transition-colors hover:bg-muted/50', className)}>
+        {cardContent}
+      </Link>
+    )
+  }
+
+  return <div className={className}>{cardContent}</div>
 }
 
 export function EnrichedStatCardSkeleton() {
