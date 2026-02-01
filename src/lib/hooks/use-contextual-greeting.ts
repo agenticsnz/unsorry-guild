@@ -95,18 +95,25 @@ async function fetchGreetingData(userId: string): Promise<GreetingDataResult> {
     .order('completed_at', { ascending: false })
     .limit(3)
 
+  // Fetch user's active quest IDs first
+  const { data: activeQuests } = await supabase
+    .from('user_quests')
+    .select('id')
+    .eq('user_id', userId)
+    .in('status', ['accepted', 'in_progress'])
+
+  const activeQuestIds = activeQuests?.map(q => q.id) ?? []
+
   // Fetch count of approved objectives ready to continue
-  const { count: approvedCount } = await supabase
-    .from('user_objectives')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'approved')
-    .in('user_quest_id',
-      supabase
-        .from('user_quests')
-        .select('id')
-        .eq('user_id', userId)
-        .in('status', ['accepted', 'in_progress'])
-    )
+  let approvedCount = 0
+  if (activeQuestIds.length > 0) {
+    const { count } = await supabase
+      .from('user_objectives')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'approved')
+      .in('user_quest_id', activeQuestIds)
+    approvedCount = count ?? 0
+  }
 
   // Fetch upcoming deadlines (next 3 days)
   const { data: deadlines } = await supabase
