@@ -49,6 +49,31 @@ export interface QuestResource {
   url: string
 }
 
+// Quest prerequisite for dependency chains
+export interface QuestPrerequisite {
+  prerequisite_quest_id: string
+  prerequisite_title: string
+  is_completed: boolean
+}
+
+// Quest question for challenge questions
+export interface QuestQuestion {
+  id: string
+  quest_id: string
+  question: string
+  order_index: number
+  created_at: string
+}
+
+// User answer to a quest question
+export interface UserQuestAnswer {
+  question_id: string
+  question: string
+  order_index: number
+  is_answered: boolean
+  is_correct: boolean
+}
+
 // Difficulty levels
 export type QuestDifficulty = 'Apprentice' | 'Journeyman' | 'Expert' | 'Master'
 
@@ -99,6 +124,10 @@ export interface Quest {
   published_at: string | null
   archived_at: string | null
   objectives?: Objective[]
+  // Prerequisites (populated when fetching quest details)
+  prerequisites?: QuestPrerequisite[]
+  // Challenge questions (populated when fetching quest details)
+  questions?: QuestQuestion[]
   // Legacy fields for backward compatibility
   guild_id?: string
   claimed_by?: string | null

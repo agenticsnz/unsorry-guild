@@ -56,6 +56,39 @@ async function acceptQuest(params: string | AcceptQuestParams): Promise<UserQues
     }
   }
 
+  // Check prerequisites using the database function
+  // Use type assertion since these functions may not be in generated types yet
+  try {
+    const { data: canAccept, error: prereqError } = await (supabase.rpc as CallableFunction)(
+      'can_accept_quest',
+      { p_user_id: user.id, p_quest_id: questId }
+    )
+
+    if (prereqError) {
+      // Function doesn't exist yet - skip prerequisite check
+      console.warn('Prerequisite check skipped:', prereqError.message)
+    } else if (canAccept === false) {
+      // Get the incomplete prerequisites for a better error message
+      const { data: incomplete } = await (supabase.rpc as CallableFunction)(
+        'get_incomplete_prerequisites',
+        { p_user_id: user.id, p_quest_id: questId }
+      )
+
+      if (incomplete && Array.isArray(incomplete) && incomplete.length > 0) {
+        const prereqTitles = incomplete.map((p: { prerequisite_title: string }) => p.prerequisite_title).join(', ')
+        throw new Error(`You must complete these quests first: ${prereqTitles}`)
+      }
+      throw new Error('You must complete the prerequisite quests first.')
+    }
+  } catch (err) {
+    // If it's our thrown error, rethrow it
+    if (err instanceof Error && err.message.includes('complete')) {
+      throw err
+    }
+    // Otherwise, function doesn't exist yet - skip prerequisite check
+    console.warn('Prerequisite check skipped:', err)
+  }
+
   // Check if user already has this quest (might be abandoned/expired)
   const { data: existingQuest } = await (supabase
     .from('user_quests') as ReturnType<typeof supabase.from>)

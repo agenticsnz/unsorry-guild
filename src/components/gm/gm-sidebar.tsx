@@ -10,7 +10,8 @@ import {
   Users,
   FileText,
   LayoutDashboard,
-  Sparkles
+  Sparkles,
+  Megaphone
 } from 'lucide-react'
 
 interface SidebarItem {
@@ -51,6 +52,11 @@ const sidebarItems: SidebarItem[] = [
     href: '/gm/users',
     label: 'Users',
     icon: <Users className="h-5 w-5" />,
+  },
+  {
+    href: '/gm/banners',
+    label: 'Banners',
+    icon: <Megaphone className="h-5 w-5" />,
   },
   {
     href: '/gm/templates',
