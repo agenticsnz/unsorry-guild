@@ -23,18 +23,22 @@ async function fetchEnrichedStats(userId: string): Promise<UserStatsData> {
   const supabase = createClient()
 
   // Fetch user data
-  const { data: user } = await supabase
+  const { data: userData } = await supabase
     .from('users')
     .select('total_points, quests_completed')
     .eq('id', userId)
     .single()
 
+  const user = userData as { total_points: number; quests_completed: number } | null
+
   // Fetch user rank from leaderboard view
-  const { data: rankData } = await supabase
+  const { data: rankResult } = await supabase
     .from('leaderboard')
     .select('rank')
     .eq('id', userId)
     .single()
+
+  const rankData = rankResult as { rank: number } | null
 
   // Fetch total users on leaderboard
   const { count: totalUsers } = await supabase
