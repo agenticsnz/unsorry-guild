@@ -102,7 +102,7 @@ async function fetchGreetingData(userId: string): Promise<GreetingDataResult> {
     .eq('user_id', userId)
     .in('status', ['accepted', 'in_progress'])
 
-  const activeQuestIds = activeQuests?.map(q => q.id) ?? []
+  const activeQuestIds = (activeQuests as Array<{ id: string }> | null)?.map(q => q.id) ?? []
 
   // Fetch count of approved objectives ready to continue
   let approvedCount = 0
