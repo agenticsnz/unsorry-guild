@@ -49,12 +49,13 @@ async function fetchEnrichedStats(userId: string): Promise<UserStatsData> {
     .in('status', ['accepted', 'in_progress'])
 
   // Fetch objective stats
-  const { data: objectives } = await supabase
+  const { data: objectivesData } = await supabase
     .from('user_objectives')
     .select('status, user_quests!inner(user_id)')
     .eq('user_quests.user_id', userId)
     .in('status', ['pending_review', 'approved'])
 
+  const objectives = objectivesData as Array<{ status: string }> | null
   const pendingObjectives = objectives?.filter(o => o.status === 'pending_review').length || 0
   const approvedObjectives = objectives?.filter(o => o.status === 'approved').length || 0
 
