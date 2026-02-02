@@ -220,9 +220,9 @@
 |----|-------------|:--:|:------:|
 | FR13.1 | In-app notifications for GM | ✓ | |
 | FR13.2 | In-app notifications for users | ✓ | |
-| FR13.3 | Email notifications | | ✓ |
+| FR13.3 | Email notifications | ✓ | |
 | FR13.4 | Push notifications (mobile/browser) | | ✓ |
-| FR13.5 | Configurable notification preferences | | ✓ |
+| FR13.5 | Configurable notification preferences | ✓ | |
 
 **Notification Triggers (V1):**
 - User accepts a quest
@@ -233,6 +233,45 @@
 - GM approves/rejects evidence
 - GM approves/denies extension
 - Deadline approaching
+
+### FR16: Engagement Features
+
+| ID | Requirement | V1 | Future |
+|----|-------------|:--:|:------:|
+| FR16.1 | Skill tier system (5 levels: Apprentice→Legend) | ✓ | |
+| FR16.2 | GM-configurable tier thresholds | ✓ | |
+| FR16.3 | Tier progress visualization on dashboard | ✓ | |
+| FR16.4 | Contextual greeting with priority rules | ✓ | |
+| FR16.5 | Session-cached greeting (consistent per session) | ✓ | |
+| FR16.6 | User activity streak tracking | ✓ | |
+| FR16.7 | User-configurable weekend streak behavior | ✓ | |
+| FR16.8 | Streak milestone celebrations (7, 14, 30 days) | ✓ | |
+| FR16.9 | Rotating philosophy quotes on dashboard | ✓ | |
+| FR16.10 | GM quote management interface | ✓ | |
+| FR16.11 | Smart nudge banner (one at a time, dismissible) | ✓ | |
+| FR16.12 | GM daily digest email (08:00 default) | ✓ | |
+| FR16.13 | User weekly progress email (Monday 08:00 default) | ✓ | |
+| FR16.14 | User email preferences (day, time, timezone) | ✓ | |
+| FR16.15 | GM manual push for weekly emails | ✓ | |
+
+**Skill Tier Thresholds (Default):**
+- Apprentice: 0 points
+- Journeyman: 300 points
+- Expert: 600 points
+- Master: 1,200 points
+- Legend: 2,400 points
+
+**Contextual Greeting Priority:**
+1. Celebration (quest complete, tier advance)
+2. Action (approved objectives, deadline approaching)
+3. Progression (near tier milestone, streak milestone)
+4. Time (morning/afternoon/evening)
+
+**Nudge Banner Priority:**
+1. Approved submissions ready to progress
+2. Approaching deadline (< 3 days)
+3. Recent celebration milestone
+4. Quest recommendation (if no active quests)
 
 ---
 

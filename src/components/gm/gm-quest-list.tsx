@@ -40,7 +40,8 @@ function QuestListSkeleton() {
 }
 
 export function GMQuestList({ className }: GMQuestListProps) {
-  const [statusFilter, setStatusFilter] = useState<QuestDbStatus | 'all'>('all')
+  // Default to 'published' filter per ADR-012
+  const [statusFilter, setStatusFilter] = useState<QuestDbStatus | 'all'>('published')
   const [difficultyFilter, setDifficultyFilter] = useState<QuestDifficulty | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 

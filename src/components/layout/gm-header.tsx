@@ -7,13 +7,6 @@ import {
   Menu,
   Settings,
   X,
-  Scroll,
-  ClipboardCheck,
-  Clock,
-  Users,
-  FileText,
-  LayoutDashboard,
-  Sparkles,
   LogOut,
   Home
 } from 'lucide-react'
@@ -31,14 +24,17 @@ import { createClient } from '@/lib/supabase/client'
 import { NotificationBell } from '@/components/notifications/notification-bell'
 import { cn } from '@/lib/utils'
 
-const sidebarItems = [
-  { href: '/gm', label: 'Overview', icon: LayoutDashboard },
-  { href: '/gm/quests', label: 'Quests', icon: Scroll },
-  { href: '/gm/smart-creator', label: 'Smart Creator', icon: Sparkles },
-  { href: '/gm/review', label: 'Review', icon: ClipboardCheck },
-  { href: '/gm/extensions', label: 'Extensions', icon: Clock },
-  { href: '/gm/users', label: 'Users', icon: Users },
-  { href: '/gm/templates', label: 'Templates', icon: FileText },
+const gmNavItems = [
+  { href: '/gm', label: 'Overview' },
+  { href: '/gm/quests', label: 'Quests' },
+  { href: '/gm/review', label: 'Review' },
+  { href: '/gm/extensions', label: 'Extensions' },
+  { href: '/gm/users', label: 'Users' },
+  { href: '/gm/banners', label: 'Banners' },
+  { href: '/gm/templates', label: 'Templates' },
+  { href: '/gm/emails', label: 'Emails' },
+  { href: '/gm/quotes', label: 'Quotes' },
+  { href: '/gm/tiers', label: 'Tiers' },
 ]
 
 export function GMHeader() {
@@ -58,10 +54,16 @@ export function GMHeader() {
     router.refresh()
   }
 
+  const isActive = (href: string) => {
+    if (href === '/gm') return pathname === '/gm'
+    return pathname === href || pathname.startsWith(`${href}/`)
+  }
+
   return (
     <header className="border-b bg-primary/5">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-6">
+          {/* Logo and Guild Name */}
           <div className="flex items-center gap-3 text-xl">
             <Link href="/gm">
               <span className="font-bold">Guild Hall</span>
@@ -102,15 +104,36 @@ export function GMHeader() {
                 )}
               </>
             )}
+            <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded">
+              GM
+            </span>
           </div>
-          <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded">
-            GM
-          </span>
+
+          {/* Desktop horizontal navigation */}
+          <nav className="hidden xl:flex items-center gap-1">
+            {gmNavItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  'px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                  isActive(item.href)
+                    ? 'bg-accent text-accent-foreground'
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
         </div>
 
-        {/* Desktop navigation */}
-        <nav className="hidden md:flex items-center gap-4">
-          <Link href="/dashboard" className="text-sm text-muted-foreground hover:underline">
+        {/* Desktop right-side actions - visible when horizontal nav is visible */}
+        <nav className="hidden xl:flex items-center gap-4">
+          <Link
+            href="/dashboard"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
             Exit GM
           </Link>
           {user && <NotificationBell />}
@@ -121,8 +144,8 @@ export function GMHeader() {
           )}
         </nav>
 
-        {/* Mobile navigation */}
-        <div className="flex md:hidden items-center gap-2">
+        {/* Mobile/tablet navigation - visible when horizontal nav is hidden */}
+        <div className="flex xl:hidden items-center gap-2">
           {/* Gear menu for Exit GM/Notifications/Sign out */}
           {user && (
             <DropdownMenu>
@@ -140,7 +163,7 @@ export function GMHeader() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/settings/privacy" className="cursor-pointer flex items-center gap-2">
+                  <Link href="/settings" className="cursor-pointer flex items-center gap-2">
                     <Settings className="h-4 w-4" />
                     Settings
                   </Link>
@@ -167,27 +190,19 @@ export function GMHeader() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              {sidebarItems.map((item) => {
-                const Icon = item.icon
-                const isActive = item.href === '/gm'
-                  ? pathname === '/gm'
-                  : pathname === item.href || pathname.startsWith(`${item.href}/`)
-
-                return (
-                  <DropdownMenuItem key={item.href} asChild>
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        "cursor-pointer flex items-center gap-2",
-                        isActive && "bg-accent"
-                      )}
-                    >
-                      <Icon className="h-4 w-4" />
-                      {item.label}
-                    </Link>
-                  </DropdownMenuItem>
-                )
-              })}
+              {gmNavItems.map((item) => (
+                <DropdownMenuItem key={item.href} asChild>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      'cursor-pointer',
+                      isActive(item.href) && 'bg-accent'
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

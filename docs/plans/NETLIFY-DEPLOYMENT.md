@@ -21,8 +21,21 @@ Set these in Netlify Dashboard → Site settings → Environment variables:
 | `NEXT_PUBLIC_APP_URL` | Production URL (e.g., https://guild-hall.netlify.app) | ✅ |
 | `NEXT_PUBLIC_GUILD_LOGO_URL` | Custom logo URL | Optional |
 | `NEXT_PUBLIC_GUILD_NAME` | Custom guild name | Optional |
+| `MAILJET_API_KEY` | Mailjet API key (for test emails) | For emails |
+| `MAILJET_SECRET_KEY` | Mailjet secret key (for test emails) | For emails |
+| `EMAIL_FROM_ADDRESS` | Email sender address (default: agentics@cgee.nz) | Optional |
 
-### 2. Supabase Configuration
+### 2. Supabase Edge Function Secrets
+
+Set these secrets for Edge Functions (GM Daily Digest, User Weekly Progress):
+
+```bash
+npx supabase secrets set MAILJET_API_KEY=your-api-key
+npx supabase secrets set MAILJET_SECRET_KEY=your-secret-key
+npx supabase secrets set EMAIL_FROM_ADDRESS=your@email.com  # Optional, defaults to agentics@cgee.nz
+```
+
+### 3. Supabase Configuration
 
 Update in Supabase Dashboard → Authentication → URL Configuration:
 

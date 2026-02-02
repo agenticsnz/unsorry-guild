@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { Menu, Settings, X } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -17,11 +17,21 @@ import { useAuth } from '@/contexts/auth-context'
 import { useIsGm } from '@/lib/hooks/use-is-gm'
 import { createClient } from '@/lib/supabase/client'
 import { NotificationBell } from '@/components/notifications/notification-bell'
+import { cn } from '@/lib/utils'
+
+const navItems = [
+  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/my-quests', label: 'My Quests' },
+  { href: '/quests', label: 'Bounty Board' },
+  { href: '/leaderboard', label: 'Leaderboard' },
+  { href: '/profile', label: 'Profile' },
+]
 
 export function Header() {
   const { user } = useAuth()
   const { data: isGm } = useIsGm()
   const router = useRouter()
+  const pathname = usePathname()
   const supabase = createClient()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -35,55 +45,84 @@ export function Header() {
     router.refresh()
   }
 
+  const isActive = (href: string) => {
+    if (href === '/dashboard') return pathname === '/dashboard'
+    return pathname === href || pathname.startsWith(`${href}/`)
+  }
+
   return (
     <header className="border-b">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3 text-xl">
-          <Link href="/dashboard">
-            <span className="font-bold">Guild Hall</span>
-          </Link>
-          {guildName && (
-            <>
-              {guildLink ? (
-                <a
-                  href={guildLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 hover:opacity-80"
-                >
-                  {logoUrl && (
-                    <Image
-                      src={logoUrl}
-                      alt="Guild Logo"
-                      width={32}
-                      height={32}
-                      className="h-8 w-8 object-contain"
-                    />
-                  )}
-                  <span className="font-normal text-lg hidden sm:inline">{guildName}</span>
-                </a>
-              ) : (
-                <>
-                  {logoUrl && (
-                    <Image
-                      src={logoUrl}
-                      alt="Guild Logo"
-                      width={32}
-                      height={32}
-                      className="h-8 w-8 object-contain"
-                    />
-                  )}
-                  <span className="font-normal text-lg hidden sm:inline">{guildName}</span>
-                </>
-              )}
-            </>
-          )}
+        <div className="flex items-center gap-6">
+          {/* Logo and Guild Name */}
+          <div className="flex items-center gap-3 text-xl">
+            <Link href="/dashboard">
+              <span className="font-bold">Guild Hall</span>
+            </Link>
+            {guildName && (
+              <>
+                {guildLink ? (
+                  <a
+                    href={guildLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 hover:opacity-80"
+                  >
+                    {logoUrl && (
+                      <Image
+                        src={logoUrl}
+                        alt="Guild Logo"
+                        width={32}
+                        height={32}
+                        className="h-8 w-8 object-contain"
+                      />
+                    )}
+                    <span className="font-normal text-lg hidden sm:inline">{guildName}</span>
+                  </a>
+                ) : (
+                  <>
+                    {logoUrl && (
+                      <Image
+                        src={logoUrl}
+                        alt="Guild Logo"
+                        width={32}
+                        height={32}
+                        className="h-8 w-8 object-contain"
+                      />
+                    )}
+                    <span className="font-normal text-lg hidden sm:inline">{guildName}</span>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Desktop horizontal navigation */}
+          <nav className="hidden lg:flex items-center gap-1">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  'px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                  isActive(item.href)
+                    ? 'bg-accent text-accent-foreground'
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
         </div>
 
-        {/* Desktop navigation */}
-        <nav className="hidden md:flex items-center gap-4">
+        {/* Desktop right-side actions - visible when horizontal nav is visible */}
+        <nav className="hidden lg:flex items-center gap-4">
           {isGm && (
-            <Link href="/gm" className="text-sm hover:underline">
+            <Link
+              href="/gm"
+              className="text-sm font-medium px-3 py-1 bg-primary/10 text-primary rounded hover:bg-primary/20"
+            >
               GM
             </Link>
           )}
@@ -97,7 +136,7 @@ export function Header() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem asChild>
-                  <Link href="/settings/privacy" className="cursor-pointer">
+                  <Link href="/settings" className="cursor-pointer">
                     Settings
                   </Link>
                 </DropdownMenuItem>
@@ -117,8 +156,8 @@ export function Header() {
           )}
         </nav>
 
-        {/* Mobile navigation */}
-        <div className="flex md:hidden items-center gap-2">
+        {/* Mobile/tablet navigation - visible when horizontal nav is hidden */}
+        <div className="flex lg:hidden items-center gap-2">
           {/* Gear menu for GM/Settings/Notifications */}
           {user && (
             <DropdownMenu>
@@ -140,7 +179,7 @@ export function Header() {
                   </>
                 )}
                 <DropdownMenuItem asChild>
-                  <Link href="/settings/privacy" className="cursor-pointer">
+                  <Link href="/settings" className="cursor-pointer">
                     Settings
                   </Link>
                 </DropdownMenuItem>
@@ -171,31 +210,19 @@ export function Header() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard" className="cursor-pointer">
-                  Dashboard
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/quests" className="cursor-pointer">
-                  Quests
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/my-quests" className="cursor-pointer">
-                  My Quests
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/leaderboard" className="cursor-pointer">
-                  Leaderboard
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/profile" className="cursor-pointer">
-                  Profile
-                </Link>
-              </DropdownMenuItem>
+              {navItems.map((item) => (
+                <DropdownMenuItem key={item.href} asChild>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      'cursor-pointer',
+                      isActive(item.href) && 'bg-accent'
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
               {user && (
                 <>
                   <DropdownMenuSeparator />
