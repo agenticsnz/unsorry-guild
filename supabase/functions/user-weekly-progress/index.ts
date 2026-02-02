@@ -29,7 +29,7 @@ interface UserPreference {
     id: string
     email: string
     display_name: string
-    points: number
+    total_points: number
   }
 }
 
@@ -533,7 +533,7 @@ Deno.serve(async (req) => {
         send_time,
         timezone,
         last_sent_at,
-        users!inner(id, email, display_name, points)
+        users!inner(id, email, display_name, total_points)
       `)
       .eq('enabled', true)
 
@@ -588,7 +588,7 @@ Deno.serve(async (req) => {
         const userData = await gatherUserData(
           supabase,
           pref.user_id,
-          pref.users.points
+          pref.users.total_points
         )
 
         const weekRange = getWeekRange(now)
