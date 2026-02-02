@@ -56,6 +56,7 @@ async function fetchUserAllQuestIds(userId: string): Promise<Set<string>> {
 
 /**
  * Fetch user quest statuses (questId -> status mapping)
+ * Note: Excludes abandoned quests so they appear as "available" on bounty board
  */
 async function fetchUserQuestStatuses(userId: string): Promise<Map<string, { userQuestId: string; status: string }>> {
   const supabase = createClient()
@@ -64,6 +65,7 @@ async function fetchUserQuestStatuses(userId: string): Promise<Map<string, { use
     .from('user_quests')
     .select('id, quest_id, status')
     .eq('user_id', userId)
+    .neq('status', 'abandoned') // Exclude abandoned - treat as not taken
 
   if (error) {
     console.error('Error fetching user quest statuses:', error)
