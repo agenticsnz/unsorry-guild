@@ -11,6 +11,7 @@ import { useFeaturedQuests } from '@/lib/hooks/use-featured-quests'
 import { useQuests } from '@/lib/hooks/use-quests'
 import { useUserActiveQuestIds, useUserAllQuestIds, useUserQuestStatuses } from '@/lib/hooks/use-user-active-quest-ids'
 import { useAllQuestPrerequisites } from '@/lib/hooks/use-all-quest-prerequisites'
+import { getDifficultyOrder } from '@/lib/types/quest'
 
 interface SmartQuestSectionProps {
   activeQuests: Array<{
@@ -76,9 +77,13 @@ export function SmartQuestSection({ activeQuests, isLoading }: SmartQuestSection
           !lockStatus?.isLocked // Only unlocked quests for fill slots
         )
       })
+      .sort((a, b) => getDifficultyOrder(a.difficulty) - getDifficultyOrder(b.difficulty)) // Easiest first
       .slice(0, MIN_FEATURED_QUESTS - featured.length)
 
-    return [...featured, ...additionalQuests]
+    // Sort final list: easiest quests first (fill quests should come before harder featured quests)
+    return [...featured, ...additionalQuests].sort(
+      (a, b) => getDifficultyOrder(a.difficulty) - getDifficultyOrder(b.difficulty)
+    )
   }, [featuredQuests, allQuests, allUserQuestIds, questLockStatuses])
 
   // Transform active quests to quest format for QuestList

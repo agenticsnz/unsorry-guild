@@ -43,11 +43,12 @@ async function canAcceptQuest(supabase: ReturnType<typeof createClient>, userId:
 async function fetchQuestRecommendation(userId: string): Promise<QuestRecommendation | null> {
   const supabase = createClient()
 
-  // Get user's quest history to determine preferences
+  // Get user's quest history to determine preferences (excluding abandoned quests)
   const { data: userQuestsData } = await supabase
     .from('user_quests')
     .select('quest_id, status, quests!inner(category_id)')
     .eq('user_id', userId)
+    .neq('status', 'abandoned') // Exclude abandoned - user can re-accept these
 
   const userQuests = userQuestsData as Array<{ quest_id: string; status: string; quests: { category_id: string } }> | null
   const acceptedQuestIds = userQuests?.map(uq => uq.quest_id) || []
