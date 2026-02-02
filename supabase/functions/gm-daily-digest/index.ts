@@ -3,13 +3,13 @@
 // ADR: ADR-012-Engagement-Improvements, SPEC-012-E
 
 import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { Resend } from 'https://esm.sh/resend@2'
 
 import {
   emailWrapper,
   formatDate,
   isSameDay,
   escapeHtml,
+  sendEmailViaMailjet,
 } from '../_shared/email-templates.ts'
 
 // Types
@@ -354,19 +354,19 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-    const resendApiKey = Deno.env.get('RESEND_API_KEY')
+    const mailjetApiKey = Deno.env.get('MAILJET_API_KEY')
+    const mailjetSecretKey = Deno.env.get('MAILJET_SECRET_KEY')
     const baseUrl = Deno.env.get('PUBLIC_SITE_URL') || 'https://guild-hall.agentics.nz'
 
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error('Missing Supabase environment variables')
     }
 
-    if (!resendApiKey) {
-      throw new Error('Missing RESEND_API_KEY environment variable')
+    if (!mailjetApiKey || !mailjetSecretKey) {
+      throw new Error('Missing MAILJET_API_KEY or MAILJET_SECRET_KEY environment variable')
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
-    const resend = new Resend(resendApiKey)
 
     // Parse optional request body for manual trigger
     let forceUserId: string | null = null
@@ -438,17 +438,19 @@ Deno.serve(async (req) => {
           baseUrl
         )
 
-        // Send email via Resend
-        const { error: sendError } = await resend.emails.send({
-          from: 'Guild Hall <noreply@guildhall.agentics.nz>',
-          to: gm.users.email,
-          subject: `GM Daily Digest - ${formatDate(now)}`,
-          html,
-        })
+        // Send email via Mailjet
+        const sendResult = await sendEmailViaMailjet(
+          mailjetApiKey,
+          mailjetSecretKey,
+          gm.users.email,
+          gm.users.display_name || 'Game Master',
+          `GM Daily Digest - ${formatDate(now)}`,
+          html
+        )
 
-        if (sendError) {
-          console.error(`Error sending email to ${gm.user_id}:`, sendError)
-          errors.push(`${gm.user_id}: ${sendError.message}`)
+        if (!sendResult.success) {
+          console.error(`Error sending email to ${gm.user_id}:`, sendResult.error)
+          errors.push(`${gm.user_id}: ${sendResult.error}`)
           continue
         }
 

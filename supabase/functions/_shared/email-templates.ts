@@ -240,3 +240,60 @@ export function escapeHtml(text: string): string {
   }
   return text.replace(/[&<>"']/g, (m) => map[m])
 }
+
+/**
+ * Send email via Mailjet API
+ */
+export async function sendEmailViaMailjet(
+  apiKey: string,
+  secretKey: string,
+  toEmail: string,
+  toName: string,
+  subject: string,
+  html: string
+): Promise<{ success: boolean; error?: string; messageId?: string }> {
+  try {
+    const response = await fetch('https://api.mailjet.com/v3.1/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${btoa(`${apiKey}:${secretKey}`)}`,
+      },
+      body: JSON.stringify({
+        Messages: [
+          {
+            From: {
+              Email: 'noreply@guildhall.agentics.nz',
+              Name: 'Guild Hall',
+            },
+            To: [
+              {
+                Email: toEmail,
+                Name: toName,
+              },
+            ],
+            Subject: subject,
+            HTMLPart: html,
+          },
+        ],
+      }),
+    })
+
+    const result = await response.json()
+
+    if (!response.ok || result.Messages?.[0]?.Status === 'error') {
+      const errorMsg = result.Messages?.[0]?.Errors?.[0]?.ErrorMessage || 'Unknown Mailjet error'
+      return { success: false, error: errorMsg }
+    }
+
+    return {
+      success: true,
+      messageId: result.Messages?.[0]?.To?.[0]?.MessageID,
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
+  }
+}

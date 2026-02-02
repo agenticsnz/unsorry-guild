@@ -450,11 +450,12 @@ export async function POST(request: Request) {
       )
     }
 
-    // Check for Resend API key (configured in Netlify environment variables)
-    const resendApiKey = process.env.RESEND_API_KEY
-    if (!resendApiKey) {
+    // Check for Mailjet API keys (configured in Netlify environment variables)
+    const mailjetApiKey = process.env.MAILJET_API_KEY
+    const mailjetSecretKey = process.env.MAILJET_SECRET_KEY
+    if (!mailjetApiKey || !mailjetSecretKey) {
       return NextResponse.json(
-        { error: 'RESEND_API_KEY not configured. Add it to Netlify environment variables.' },
+        { error: 'MAILJET_API_KEY or MAILJET_SECRET_KEY not configured. Add them to Netlify environment variables.' },
         { status: 500 }
       )
     }
@@ -473,26 +474,38 @@ export async function POST(request: Request) {
       subject = '[TEST] Your Weekly Progress - Guild Hall'
     }
 
-    // Send via Resend API
-    const resendResponse = await fetch('https://api.resend.com/emails', {
+    // Send via Mailjet API
+    const mailjetResponse = await fetch('https://api.mailjet.com/v3.1/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${resendApiKey}`,
+        'Authorization': `Basic ${Buffer.from(`${mailjetApiKey}:${mailjetSecretKey}`).toString('base64')}`,
       },
       body: JSON.stringify({
-        from: 'Guild Hall <noreply@guildhall.agentics.nz>',
-        to: email,
-        subject: subject,
-        html: html,
+        Messages: [
+          {
+            From: {
+              Email: 'noreply@guildhall.agentics.nz',
+              Name: 'Guild Hall',
+            },
+            To: [
+              {
+                Email: email,
+                Name: displayName,
+              },
+            ],
+            Subject: subject,
+            HTMLPart: html,
+          },
+        ],
       }),
     })
 
-    const resendResult = await resendResponse.json()
+    const mailjetResult = await mailjetResponse.json()
 
-    if (!resendResponse.ok) {
-      console.error('Error sending test email:', resendResult)
-      const errorMsg = resendResult.message || resendResult.error || 'Unknown error'
+    if (!mailjetResponse.ok || mailjetResult.Messages?.[0]?.Status === 'error') {
+      console.error('Error sending test email:', mailjetResult)
+      const errorMsg = mailjetResult.Messages?.[0]?.Errors?.[0]?.ErrorMessage || 'Unknown error'
       return NextResponse.json(
         { error: `Failed to send email: ${errorMsg}` },
         { status: 500 }
@@ -504,7 +517,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       message: `Test ${type} email sent to ${email}`,
-      messageId: resendResult.id,
+      messageId: mailjetResult.Messages?.[0]?.To?.[0]?.MessageID,
     })
   } catch (error) {
     console.error('Error in test email endpoint:', error)
