@@ -135,14 +135,14 @@ export function ActivityFeed({ limit = 20, className }: ActivityFeedProps) {
   const { data: activities, isLoading } = useActivityFeed({ limit })
 
   return (
-    <Card className={className}>
-      <CardHeader className="pb-3">
+    <Card className={cn('flex flex-col', className)}>
+      <CardHeader className="pb-3 flex-shrink-0">
         <CardTitle className="text-lg flex items-center gap-2">
           <Activity className="h-5 w-5 text-muted-foreground" />
           Guild Activity
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 min-h-0">
         {isLoading ? (
           <div className="divide-y divide-border/50">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -154,7 +154,7 @@ export function ActivityFeed({ limit = 20, className }: ActivityFeedProps) {
             No recent activity to show.
           </p>
         ) : (
-          <div className="max-h-[400px] overflow-y-auto">
+          <div className="h-full overflow-y-auto">
             {activities.map((item) => (
               <ActivityItem key={item.id} item={item} />
             ))}

@@ -181,9 +181,9 @@ export function EngagementDashboard({
         </div>
 
         {/* Right column: Events + Activity Feed */}
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           <GuildEvents feedUrl={guildEventsFeedUrl} />
-          <ActivityFeed limit={10} />
+          <ActivityFeed limit={10} className="flex-1" />
         </div>
       </div>
     </div>
