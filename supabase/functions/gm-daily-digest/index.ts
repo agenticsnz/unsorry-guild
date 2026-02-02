@@ -356,6 +356,7 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     const mailjetApiKey = Deno.env.get('MAILJET_API_KEY')
     const mailjetSecretKey = Deno.env.get('MAILJET_SECRET_KEY')
+    const fromEmail = Deno.env.get('EMAIL_FROM_ADDRESS') || 'agentics@cgee.nz'
     const baseUrl = Deno.env.get('PUBLIC_SITE_URL') || 'https://guild-hall.agentics.nz'
 
     if (!supabaseUrl || !supabaseServiceKey) {
@@ -445,7 +446,8 @@ Deno.serve(async (req) => {
           gm.users.email,
           gm.users.display_name || 'Game Master',
           `GM Daily Digest - ${formatDate(now)}`,
-          html
+          html,
+          fromEmail
         )
 
         if (!sendResult.success) {

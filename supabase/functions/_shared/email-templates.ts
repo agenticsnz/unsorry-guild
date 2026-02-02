@@ -250,7 +250,8 @@ export async function sendEmailViaMailjet(
   toEmail: string,
   toName: string,
   subject: string,
-  html: string
+  html: string,
+  fromEmail: string = 'agentics@cgee.nz'
 ): Promise<{ success: boolean; error?: string; messageId?: string }> {
   try {
     const response = await fetch('https://api.mailjet.com/v3.1/send', {
@@ -263,7 +264,7 @@ export async function sendEmailViaMailjet(
         Messages: [
           {
             From: {
-              Email: 'agentics@cgee.nz',
+              Email: fromEmail,
               Name: 'Guild Hall',
             },
             To: [

@@ -461,6 +461,7 @@ export async function POST(request: Request) {
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://guild-hall.agentics.nz'
+    const fromEmail = process.env.EMAIL_FROM_ADDRESS || 'agentics@cgee.nz'
 
     // Render the appropriate email
     let html: string
@@ -485,7 +486,7 @@ export async function POST(request: Request) {
         Messages: [
           {
             From: {
-              Email: 'agentics@cgee.nz',
+              Email: fromEmail,
               Name: 'Guild Hall',
             },
             To: [
