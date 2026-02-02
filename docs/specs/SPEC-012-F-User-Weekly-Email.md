@@ -342,15 +342,17 @@ SELECT cron.schedule(
 ```typescript
 // supabase/functions/user-weekly-progress/index.ts
 import { createClient } from '@supabase/supabase-js'
-import { Resend } from 'resend'
 import { getRecommendedAction } from '../_shared/nudge-priority.ts'
+
+// Email is sent via Mailjet (configured in Supabase)
+const MAILJET_API_KEY = Deno.env.get('MAILJET_API_KEY')!
+const MAILJET_SECRET_KEY = Deno.env.get('MAILJET_SECRET_KEY')!
 
 Deno.serve(async (req) => {
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   )
-  const resend = new Resend(Deno.env.get('RESEND_API_KEY'))
 
   // Check if this is a manual push from GM
   const { manual, userIds } = await req.json().catch(() => ({}))
@@ -405,11 +407,21 @@ Deno.serve(async (req) => {
       displayName: pref.users.display_name
     })
 
-    await resend.emails.send({
-      from: 'Guild Hall <noreply@guildhall.agentics.nz>',
-      to: pref.users.email,
-      subject: `Your Weekly Progress - Guild Hall`,
-      html
+    // Send via Mailjet API
+    await fetch('https://api.mailjet.com/v3.1/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${btoa(`${MAILJET_API_KEY}:${MAILJET_SECRET_KEY}`)}`,
+      },
+      body: JSON.stringify({
+        Messages: [{
+          From: { Email: 'noreply@guildhall.agentics.nz', Name: 'Guild Hall' },
+          To: [{ Email: pref.users.email, Name: pref.users.display_name }],
+          Subject: `Your Weekly Progress - Guild Hall`,
+          HTMLPart: html,
+        }],
+      }),
     })
 
     // Update last sent timestamp

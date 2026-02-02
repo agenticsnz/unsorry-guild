@@ -283,13 +283,15 @@ jobs:
 ```typescript
 // supabase/functions/gm-daily-digest/index.ts
 import { createClient } from '@supabase/supabase-js'
-import { Resend } from 'resend'
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 )
-const resend = new Resend(Deno.env.get('RESEND_API_KEY'))
+
+// Email is sent via Mailjet (configured in Supabase)
+const MAILJET_API_KEY = Deno.env.get('MAILJET_API_KEY')!
+const MAILJET_SECRET_KEY = Deno.env.get('MAILJET_SECRET_KEY')!
 
 Deno.serve(async () => {
   // Get GMs who should receive digest now
@@ -325,15 +327,24 @@ Deno.serve(async () => {
       if (isSameDay(lastSentDate, now, gm.timezone)) continue
     }
 
-    // Gather data and send email
+    // Gather data and send email via Mailjet
     const digestData = await gatherDigestData()
     const html = renderDigestEmail(digestData, gm.users.display_name)
 
-    await resend.emails.send({
-      from: 'Guild Hall <noreply@guildhall.agentics.nz>',
-      to: gm.users.email,
-      subject: `GM Daily Digest - ${formatDate(now)}`,
-      html
+    await fetch('https://api.mailjet.com/v3.1/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${btoa(`${MAILJET_API_KEY}:${MAILJET_SECRET_KEY}`)}`,
+      },
+      body: JSON.stringify({
+        Messages: [{
+          From: { Email: 'noreply@guildhall.agentics.nz', Name: 'Guild Hall' },
+          To: [{ Email: gm.users.email, Name: gm.users.display_name }],
+          Subject: `GM Daily Digest - ${formatDate(now)}`,
+          HTMLPart: html,
+        }],
+      }),
     })
 
     // Update last sent timestamp

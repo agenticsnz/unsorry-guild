@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { Resend } from 'resend'
 
 // Email template helpers (replicated from edge functions)
 function emailWrapper(content: string, title: string): string {
@@ -452,16 +451,16 @@ export async function POST(request: Request) {
       )
     }
 
-    // Check for Resend API key
-    const resendApiKey = process.env.RESEND_API_KEY
-    if (!resendApiKey) {
+    // Check for Mailjet API keys (configured in Supabase)
+    const mailjetApiKey = process.env.MAILJET_API_KEY
+    const mailjetSecretKey = process.env.MAILJET_SECRET_KEY
+    if (!mailjetApiKey || !mailjetSecretKey) {
       return NextResponse.json(
-        { error: 'RESEND_API_KEY not configured' },
+        { error: 'MAILJET_API_KEY or MAILJET_SECRET_KEY not configured' },
         { status: 500 }
       )
     }
 
-    const resend = new Resend(resendApiKey)
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://guild-hall.agentics.nz'
 
     // Render the appropriate email
@@ -476,18 +475,40 @@ export async function POST(request: Request) {
       subject = '[TEST] Your Weekly Progress - Guild Hall'
     }
 
-    // Send via Resend
-    const { data: sendData, error: sendError } = await resend.emails.send({
-      from: 'Guild Hall <noreply@guildhall.agentics.nz>',
-      to: email,
-      subject,
-      html,
+    // Send via Mailjet API
+    const mailjetResponse = await fetch('https://api.mailjet.com/v3.1/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${Buffer.from(`${mailjetApiKey}:${mailjetSecretKey}`).toString('base64')}`,
+      },
+      body: JSON.stringify({
+        Messages: [
+          {
+            From: {
+              Email: 'noreply@guildhall.agentics.nz',
+              Name: 'Guild Hall',
+            },
+            To: [
+              {
+                Email: email,
+                Name: displayName,
+              },
+            ],
+            Subject: subject,
+            HTMLPart: html,
+          },
+        ],
+      }),
     })
 
-    if (sendError) {
-      console.error('Error sending test email:', sendError)
+    const mailjetResult = await mailjetResponse.json()
+
+    if (!mailjetResponse.ok || mailjetResult.Messages?.[0]?.Status === 'error') {
+      console.error('Error sending test email:', mailjetResult)
+      const errorMsg = mailjetResult.Messages?.[0]?.Errors?.[0]?.ErrorMessage || 'Unknown error'
       return NextResponse.json(
-        { error: `Failed to send email: ${sendError.message}` },
+        { error: `Failed to send email: ${errorMsg}` },
         { status: 500 }
       )
     }
@@ -497,7 +518,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       message: `Test ${type} email sent to ${email}`,
-      emailId: sendData?.id,
+      messageId: mailjetResult.Messages?.[0]?.To?.[0]?.MessageID,
     })
   } catch (error) {
     console.error('Error in test email endpoint:', error)
