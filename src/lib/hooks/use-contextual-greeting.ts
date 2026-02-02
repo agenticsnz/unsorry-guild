@@ -9,7 +9,7 @@ import type { GreetingContext, GreetingPriority } from '@/lib/types/engagement'
 
 // Session storage keys
 const GREETING_CACHE_KEY = 'guild-hall-greeting'
-const CELEBRATION_SHOWN_KEY = 'guild-hall-celebration-shown'
+const CELEBRATION_SHOWN_PREFIX = 'guild-hall-celebration-shown-'
 
 interface CachedGreeting {
   greeting: string
@@ -17,29 +17,31 @@ interface CachedGreeting {
   subMessage?: string
   timestamp: number
   date: string
+  userId: string
 }
 
 /**
- * Check if celebration greeting was already shown this session
+ * Check if celebration greeting was already shown this session for this user
  */
-function wasCelebrationShown(): boolean {
+function wasCelebrationShown(userId: string): boolean {
   if (typeof window === 'undefined') return false
-  return sessionStorage.getItem(CELEBRATION_SHOWN_KEY) === 'true'
+  return sessionStorage.getItem(`${CELEBRATION_SHOWN_PREFIX}${userId}`) === 'true'
 }
 
 /**
- * Mark celebration as shown for this session
+ * Mark celebration as shown for this session for this user
  */
-function markCelebrationShown(): void {
+function markCelebrationShown(userId: string): void {
   if (typeof window === 'undefined') return
-  sessionStorage.setItem(CELEBRATION_SHOWN_KEY, 'true')
+  sessionStorage.setItem(`${CELEBRATION_SHOWN_PREFIX}${userId}`, 'true')
 }
 
 /**
  * Get cached greeting from session storage
+ * Returns null if cache is invalid, from a different day, or for a different user
  */
-function getCachedGreeting(): CachedGreeting | null {
-  if (typeof window === 'undefined') return null
+function getCachedGreeting(userId: string | undefined): CachedGreeting | null {
+  if (typeof window === 'undefined' || !userId) return null
 
   const cached = sessionStorage.getItem(GREETING_CACHE_KEY)
   if (!cached) return null
@@ -49,6 +51,8 @@ function getCachedGreeting(): CachedGreeting | null {
     // Invalidate if from a different day
     const today = new Date().toISOString().split('T')[0]
     if (parsed.date !== today) return null
+    // Invalidate if for a different user (prevents cross-user cache leakage)
+    if (parsed.userId !== userId) return null
     return parsed
   } catch {
     return null
@@ -58,7 +62,7 @@ function getCachedGreeting(): CachedGreeting | null {
 /**
  * Cache greeting in session storage
  */
-function setCachedGreeting(greeting: string, priority: GreetingPriority, subMessage?: string): void {
+function setCachedGreeting(greeting: string, priority: GreetingPriority, userId: string, subMessage?: string): void {
   if (typeof window === 'undefined') return
 
   const cached: CachedGreeting = {
@@ -67,6 +71,7 @@ function setCachedGreeting(greeting: string, priority: GreetingPriority, subMess
     subMessage,
     timestamp: Date.now(),
     date: new Date().toISOString().split('T')[0],
+    userId,
   }
 
   sessionStorage.setItem(GREETING_CACHE_KEY, JSON.stringify(cached))
@@ -171,13 +176,14 @@ function evaluateGreeting(
   displayName: string,
   tierInfo: { pointsToNext: number; nextTier: { name: string } | null } | null,
   streakInfo: { currentStreak: number } | null,
+  userId: string,
 ): GreetingContext {
   const hour = new Date().getHours()
 
-  // Priority 1: Celebration - Quest completed recently (only show once per session)
-  if (data.recentlyCompletedQuests.length > 0 && !wasCelebrationShown()) {
+  // Priority 1: Celebration - Quest completed recently (only show once per session per user)
+  if (data.recentlyCompletedQuests.length > 0 && !wasCelebrationShown(userId)) {
     const quest = data.recentlyCompletedQuests[0]
-    markCelebrationShown()
+    markCelebrationShown(userId)
     return {
       priority: 'celebration',
       message: `Congratulations on completing ${quest.quest_title}!`,
@@ -239,8 +245,8 @@ export function useContextualGreeting(
   displayName: string,
   userPoints: number | undefined,
 ) {
-  // Check for cached greeting first
-  const cached = typeof window !== 'undefined' ? getCachedGreeting() : null
+  // Check for cached greeting first (validates userId to prevent cross-user cache leakage)
+  const cached = typeof window !== 'undefined' ? getCachedGreeting(userId) : null
 
   // Fetch greeting data from database
   const { data: greetingData, isLoading: isLoadingData } = useQuery({
@@ -267,8 +273,8 @@ export function useContextualGreeting(
       } as GreetingContext
     }
 
-    // If data not loaded yet, return time-based greeting
-    if (!greetingData) {
+    // If data not loaded yet or no userId, return time-based greeting
+    if (!greetingData || !userId) {
       return {
         priority: 'time' as GreetingPriority,
         message: getTimeGreeting(new Date().getHours(), displayName),
@@ -281,13 +287,16 @@ export function useContextualGreeting(
       displayName,
       tierInfo,
       streakInfo || null,
+      userId,
     )
 
-    // Cache the result
-    setCachedGreeting(result.message, result.priority, result.subMessage)
+    // Cache the result (include userId to prevent cross-user cache leakage)
+    if (userId) {
+      setCachedGreeting(result.message, result.priority, userId, result.subMessage)
+    }
 
     return result
-  }, [cached, greetingData, displayName, tierInfo, streakInfo])
+  }, [cached, greetingData, displayName, tierInfo, streakInfo, userId])
 
   return {
     greeting,
