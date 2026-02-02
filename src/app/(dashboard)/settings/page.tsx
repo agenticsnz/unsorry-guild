@@ -171,6 +171,24 @@ export default function SettingsPage() {
         </div>
       ) : (
         <>
+          {/* Profile Settings */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <User className="h-5 w-5 text-primary" />
+                <CardTitle>Profile Settings</CardTitle>
+              </div>
+              <CardDescription>
+                Update your display name, bio, and avatar.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" asChild>
+                <a href="/profile">Go to Profile</a>
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Email Preferences */}
           <Card>
             <CardHeader>
@@ -330,24 +348,6 @@ export default function SettingsPage() {
               <Button onClick={handleSaveStreak} disabled={savingStreak}>
                 <Save className="mr-2 h-4 w-4" />
                 {savingStreak ? 'Saving...' : 'Save Streak Settings'}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Link to Profile */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <User className="h-5 w-5 text-muted-foreground" />
-                <CardTitle>Profile Settings</CardTitle>
-              </div>
-              <CardDescription>
-                Update your display name, bio, and avatar.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="outline" asChild>
-                <a href="/profile">Go to Profile</a>
               </Button>
             </CardContent>
           </Card>
