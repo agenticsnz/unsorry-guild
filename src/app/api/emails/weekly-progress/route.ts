@@ -17,15 +17,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user is GM (check user_roles table)
-    const { data: roleData } = await supabase
+    // Check if user is GM (using user_roles table)
+    const { data: roles } = await supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .in('role', ['gm', 'admin'])
-      .maybeSingle()
 
-    if (!roleData) {
+    const isGm = roles?.some((r: { role: string }) => r.role === 'gm' || r.role === 'admin')
+
+    if (!isGm) {
       return NextResponse.json({ error: 'Forbidden - GM access required' }, { status: 403 })
     }
 
