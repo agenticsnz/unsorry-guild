@@ -180,10 +180,10 @@ export function EngagementDashboard({
           />
         </div>
 
-        {/* Right column: Events + Activity Feed */}
-        <div className="flex flex-col gap-6">
-          <GuildEvents feedUrl={guildEventsFeedUrl} />
-          <ActivityFeed limit={10} className="flex-1" />
+        {/* Right column: Events + Activity Feed - uses flex to fill grid cell height */}
+        <div className="flex flex-col gap-6 overflow-hidden">
+          <GuildEvents feedUrl={guildEventsFeedUrl} className="flex-shrink-0" />
+          <ActivityFeed limit={10} className="flex-1 min-h-0" />
         </div>
       </div>
     </div>

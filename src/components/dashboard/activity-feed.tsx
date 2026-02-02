@@ -135,7 +135,7 @@ export function ActivityFeed({ limit = 20, className }: ActivityFeedProps) {
   const { data: activities, isLoading } = useActivityFeed({ limit })
 
   return (
-    <Card className={cn('flex flex-col', className)}>
+    <Card className={cn('flex flex-col overflow-hidden', className)}>
       <CardHeader className="pb-3 flex-shrink-0">
         <CardTitle className="text-lg flex items-center gap-2">
           <Activity className="h-5 w-5 text-muted-foreground" />
