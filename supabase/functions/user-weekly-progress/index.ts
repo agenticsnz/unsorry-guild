@@ -131,149 +131,102 @@ async function gatherUserData(
   const now = new Date()
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
 
-  // Get next steps (approved objectives with available next objectives)
-  const { data: approvedData } = await supabase
-    .from('user_objectives')
-    .select(`
-      objectives!inner(title),
-      user_quests!inner(
-        id,
-        status,
-        user_id,
-        quests!inner(id, title)
-      )
-    `)
-    .eq('status', 'approved')
-    .eq('user_quests.user_id', userId)
-    .in('user_quests.status', ['accepted', 'in_progress'])
-    .limit(5)
-
   const nextSteps: NextStep[] = []
+  let approvedObjectivesCount = 0
 
-  for (const item of approvedData || []) {
-    const userQuest = item.user_quests as Record<string, unknown>
-    const quest = userQuest.quests as Record<string, unknown>
-    const objective = item.objectives as Record<string, unknown>
-
-    // Check if there are available objectives to continue
-    const { count: availableCount } = await supabase
+  // Get next steps (approved objectives with available next objectives)
+  try {
+    const { data: approvedData, error: approvedError } = await supabase
       .from('user_objectives')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_quest_id', userQuest.id)
-      .eq('status', 'available')
+      .select(`
+        objectives!inner(title),
+        user_quests!inner(
+          id,
+          status,
+          user_id,
+          quests!inner(id, title)
+        )
+      `)
+      .eq('status', 'approved')
+      .eq('user_quests.user_id', userId)
+      .in('user_quests.status', ['accepted', 'in_progress'])
+      .limit(5)
 
-    if (availableCount && availableCount > 0) {
-      // Get progress
-      const { count: approvedCount } = await supabase
-        .from('user_objectives')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_quest_id', userQuest.id)
-        .eq('status', 'approved')
-
-      const { count: totalCount } = await supabase
-        .from('objectives')
-        .select('*', { count: 'exact', head: true })
-        .eq('quest_id', quest.id)
-
-      nextSteps.push({
-        questTitle: quest.title as string,
-        objectiveTitle: objective.title as string,
-        questProgress: `${approvedCount}/${totalCount} objectives`,
-      })
+    if (approvedError) {
+      console.error('[gatherUserData] Error fetching approved data:', approvedError)
     }
+
+    for (const item of approvedData || []) {
+      try {
+        const userQuest = item.user_quests as Record<string, unknown>
+        const quest = userQuest?.quests as Record<string, unknown>
+        const objective = item.objectives as Record<string, unknown>
+
+        if (!userQuest?.id || !quest?.id) continue
+
+        // Check if there are available objectives to continue
+        const { count: availableCount } = await supabase
+          .from('user_objectives')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_quest_id', userQuest.id as string)
+          .eq('status', 'available')
+
+        if (availableCount && availableCount > 0) {
+          // Get progress
+          const { count: approvedCount } = await supabase
+            .from('user_objectives')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_quest_id', userQuest.id as string)
+            .eq('status', 'approved')
+
+          const { count: totalCount } = await supabase
+            .from('objectives')
+            .select('*', { count: 'exact', head: true })
+            .eq('quest_id', quest.id as string)
+
+          nextSteps.push({
+            questTitle: (quest.title as string) || 'Quest',
+            objectiveTitle: (objective?.title as string) || 'Objective',
+            questProgress: `${approvedCount || 0}/${totalCount || 0} objectives`,
+          })
+        }
+      } catch (itemError) {
+        console.error('[gatherUserData] Error processing item:', itemError)
+      }
+    }
+  } catch (nextStepsError) {
+    console.error('[gatherUserData] Error in next steps:', nextStepsError)
   }
 
   // Count approved objectives for nudge context
-  const { count: approvedObjectivesCount } = await supabase
-    .from('user_objectives')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'approved')
-    .in(
-      'user_quest_id',
-      (
-        await supabase
-          .from('user_quests')
-          .select('id')
-          .eq('user_id', userId)
-          .in('status', ['accepted', 'in_progress'])
-      ).data?.map((q) => q.id) || []
-    )
+  try {
+    // First get the user's active quest IDs
+    const { data: userQuestIds } = await supabase
+      .from('user_quests')
+      .select('id')
+      .eq('user_id', userId)
+      .in('status', ['accepted', 'in_progress'])
 
-  // Get upcoming deadlines
-  const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-  const { data: deadlineData } = await supabase
-    .from('user_quests')
-    .select(`
-      deadline,
-      extended_deadline,
-      quest_id,
-      quests!inner(title)
-    `)
-    .eq('user_id', userId)
-    .in('status', ['accepted', 'in_progress'])
-    .not('deadline', 'is', null)
-    .lte('deadline', sevenDaysFromNow.toISOString())
-    .gte('deadline', now.toISOString())
-    .order('deadline', { ascending: true })
+    const questIds = userQuestIds?.map((q) => q.id) || []
 
-  const upcomingDeadlines = (deadlineData || []).map((item) => {
-    const quest = item.quests as Record<string, unknown>
-    const effectiveDeadline = item.extended_deadline || item.deadline
-    const deadlineDate = new Date(effectiveDeadline as string)
-    const daysRemaining = Math.ceil(
-      (deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-    )
+    if (questIds.length > 0) {
+      const { count } = await supabase
+        .from('user_objectives')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'approved')
+        .in('user_quest_id', questIds)
 
-    return {
-      quest_id: item.quest_id,
-      quest_title: quest.title as string,
-      days_remaining: daysRemaining,
+      approvedObjectivesCount = count || 0
     }
-  })
+  } catch (countError) {
+    console.error('[gatherUserData] Error counting approved objectives:', countError)
+  }
 
-  // Get active quests count
-  const { count: activeQuestsCount } = await supabase
-    .from('user_quests')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .in('status', ['accepted', 'in_progress'])
-
-  // Get recommended quest if no active quests
+  // Initialize defaults
+  let upcomingDeadlines: Array<{ quest_id: string; quest_title: string; days_remaining: number }> = []
+  let activeQuestsCount = 0
   let recommendedQuest: { id: string; title: string } | null = null
-  if (activeQuestsCount === 0) {
-    const { data: questData } = await supabase
-      .from('quests')
-      .select('id, title')
-      .eq('status', 'published')
-      .eq('is_featured', true)
-      .limit(1)
-
-    if (questData && questData.length > 0) {
-      recommendedQuest = {
-        id: questData[0].id,
-        title: questData[0].title,
-      }
-    }
-  }
-
-  // Build nudge context for recommended action
-  const nudgeContext: NudgeContext = {
-    approvedObjectivesCount: approvedObjectivesCount || 0,
-    upcomingDeadlines,
-    activeQuestsCount: activeQuestsCount || 0,
-    recommendedQuest,
-    recentMilestone: null, // Not used in email
-  }
-
-  const recommendedAction = getRecommendedAction(nudgeContext)
-
-  // Weekly progress stats
-  const { data: weeklyActivities } = await supabase
-    .from('activities')
-    .select('type, points_earned')
-    .eq('user_id', userId)
-    .gte('created_at', weekAgo.toISOString())
-
+  let recommendedAction: NudgeBannerData | null = null
   const progress: WeeklyProgress = {
     objectivesSubmitted: 0,
     objectivesApproved: 0,
@@ -282,44 +235,163 @@ async function gatherUserData(
     currentStreak: 0,
   }
 
-  for (const activity of weeklyActivities || []) {
-    progress.pointsEarned += activity.points_earned || 0
+  // Get upcoming deadlines
+  try {
+    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+    const { data: deadlineData } = await supabase
+      .from('user_quests')
+      .select(`
+        deadline,
+        extended_deadline,
+        quest_id,
+        quests!inner(title)
+      `)
+      .eq('user_id', userId)
+      .in('status', ['accepted', 'in_progress'])
+      .not('deadline', 'is', null)
+      .lte('deadline', sevenDaysFromNow.toISOString())
+      .gte('deadline', now.toISOString())
+      .order('deadline', { ascending: true })
 
-    switch (activity.type) {
-      case 'objective_completed':
-        progress.objectivesApproved++
-        break
-      case 'quest_completed':
-        progress.questsCompleted++
-        break
+    upcomingDeadlines = (deadlineData || []).map((item) => {
+      const quest = item.quests as Record<string, unknown>
+      const effectiveDeadline = item.extended_deadline || item.deadline
+      const deadlineDate = new Date(effectiveDeadline as string)
+      const daysRemaining = Math.ceil(
+        (deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+      )
+
+      return {
+        quest_id: item.quest_id,
+        quest_title: (quest?.title as string) || 'Quest',
+        days_remaining: daysRemaining,
+      }
+    })
+  } catch (deadlineError) {
+    console.error('[gatherUserData] Error fetching deadlines:', deadlineError)
+  }
+
+  // Get active quests count
+  try {
+    const { count } = await supabase
+      .from('user_quests')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .in('status', ['accepted', 'in_progress'])
+
+    activeQuestsCount = count || 0
+  } catch (activeError) {
+    console.error('[gatherUserData] Error counting active quests:', activeError)
+  }
+
+  // Get recommended quest if no active quests
+  try {
+    if (activeQuestsCount === 0) {
+      const { data: questData } = await supabase
+        .from('quests')
+        .select('id, title')
+        .eq('status', 'published')
+        .eq('is_featured', true)
+        .limit(1)
+
+      if (questData && questData.length > 0) {
+        recommendedQuest = {
+          id: questData[0].id,
+          title: questData[0].title,
+        }
+      }
     }
+  } catch (recommendError) {
+    console.error('[gatherUserData] Error fetching recommended quest:', recommendError)
+  }
+
+  // Build nudge context for recommended action
+  try {
+    const nudgeContext: NudgeContext = {
+      approvedObjectivesCount: approvedObjectivesCount || 0,
+      upcomingDeadlines,
+      activeQuestsCount: activeQuestsCount || 0,
+      recommendedQuest,
+      recentMilestone: null, // Not used in email
+    }
+
+    recommendedAction = getRecommendedAction(nudgeContext)
+  } catch (nudgeError) {
+    console.error('[gatherUserData] Error getting recommended action:', nudgeError)
+  }
+
+  // Weekly progress stats
+  try {
+    const { data: weeklyActivities } = await supabase
+      .from('activities')
+      .select('type, points_earned')
+      .eq('user_id', userId)
+      .gte('created_at', weekAgo.toISOString())
+
+    for (const activity of weeklyActivities || []) {
+      progress.pointsEarned += activity.points_earned || 0
+
+      switch (activity.type) {
+        case 'objective_completed':
+          progress.objectivesApproved++
+          break
+        case 'quest_completed':
+          progress.questsCompleted++
+          break
+      }
+    }
+  } catch (activityError) {
+    console.error('[gatherUserData] Error fetching activities:', activityError)
   }
 
   // Count submitted objectives this week
-  const { count: submittedCount } = await supabase
-    .from('user_objectives')
-    .select('*', { count: 'exact', head: true })
-    .in(
-      'user_quest_id',
-      (
-        await supabase.from('user_quests').select('id').eq('user_id', userId)
-      ).data?.map((q) => q.id) || []
-    )
-    .gte('submitted_at', weekAgo.toISOString())
+  try {
+    const { data: userQuestIds } = await supabase
+      .from('user_quests')
+      .select('id')
+      .eq('user_id', userId)
 
-  progress.objectivesSubmitted = submittedCount || 0
+    const questIds = userQuestIds?.map((q) => q.id) || []
+
+    if (questIds.length > 0) {
+      const { count: submittedCount } = await supabase
+        .from('user_objectives')
+        .select('*', { count: 'exact', head: true })
+        .in('user_quest_id', questIds)
+        .gte('submitted_at', weekAgo.toISOString())
+
+      progress.objectivesSubmitted = submittedCount || 0
+    }
+  } catch (submittedError) {
+    console.error('[gatherUserData] Error counting submitted objectives:', submittedError)
+  }
 
   // Get streak
-  const { data: streakData } = await supabase
-    .from('user_streaks')
-    .select('current_streak')
-    .eq('user_id', userId)
-    .single()
+  try {
+    const { data: streakData } = await supabase
+      .from('user_streaks')
+      .select('current_streak')
+      .eq('user_id', userId)
+      .maybeSingle()
 
-  progress.currentStreak = streakData?.current_streak || 0
+    progress.currentStreak = streakData?.current_streak || 0
+  } catch (streakError) {
+    console.error('[gatherUserData] Error fetching streak:', streakError)
+  }
 
   // Get tier progress
-  const tierProgress = await getTierInfo(supabase, userPoints)
+  let tierProgress: TierProgress = {
+    currentTier: 'Apprentice',
+    pointsToNext: 300,
+    nextTier: 'Journeyman',
+    progressPercent: Math.min(100, (userPoints / 300) * 100),
+  }
+
+  try {
+    tierProgress = await getTierInfo(supabase, userPoints)
+  } catch (tierError) {
+    console.error('[gatherUserData] Error fetching tier info:', tierError)
+  }
 
   // Generate encouragement message
   const encouragementMessage = generateEncouragementMessage(
@@ -491,12 +563,23 @@ Deno.serve(async (req) => {
   }
 
   try {
+    console.log('[Weekly Progress] Starting function execution...')
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     const mailjetApiKey = Deno.env.get('MAILJET_API_KEY')
     const mailjetSecretKey = Deno.env.get('MAILJET_SECRET_KEY')
     const fromEmail = Deno.env.get('EMAIL_FROM_ADDRESS') || 'agentics@cgee.nz'
     const baseUrl = Deno.env.get('PUBLIC_SITE_URL') || 'https://guild-hall.agentics.nz'
+
+    console.log('[Weekly Progress] Environment check:', {
+      hasSupabaseUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey,
+      hasMailjetKey: !!mailjetApiKey,
+      hasMailjetSecret: !!mailjetSecretKey,
+      fromEmail,
+      baseUrl,
+    })
 
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error('Missing Supabase environment variables')
@@ -507,6 +590,7 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    console.log('[Weekly Progress] Supabase client created')
 
     // Parse request body for manual trigger
     let manual = false
@@ -545,12 +629,15 @@ Deno.serve(async (req) => {
       query = query.eq('day_of_week', currentDayOfWeek)
     }
 
+    console.log('[Weekly Progress] Executing user preferences query...')
     const { data: users, error: userError } = await query
 
     if (userError) {
-      console.error('Error fetching user preferences:', userError)
-      throw userError
+      console.error('[Weekly Progress] Error fetching user preferences:', userError)
+      throw new Error(`Database query error: ${userError.message}`)
     }
+
+    console.log('[Weekly Progress] Found users with email prefs:', users?.length || 0)
 
     // Filter by time (unless manual)
     const usersToEmail = manual
@@ -572,24 +659,42 @@ Deno.serve(async (req) => {
     const emailsSent: string[] = []
     const errors: string[] = []
 
+    console.log('[Weekly Progress] Users to email:', usersToEmail.length)
+
     for (const pref of usersToEmail) {
       try {
+        console.log(`[Weekly Progress] Processing user ${pref.user_id}...`, {
+          hasUsers: !!pref.users,
+          email: pref.users?.email,
+          displayName: pref.users?.display_name,
+          totalPoints: pref.users?.total_points,
+        })
+
+        // Safety check for users join
+        if (!pref.users || !pref.users.email) {
+          console.error(`[Weekly Progress] Missing user data for ${pref.user_id}`)
+          errors.push(`${pref.user_id}: Missing user email data`)
+          continue
+        }
+
         // Check if already sent this week (unless manual)
         if (!manual && pref.last_sent_at) {
           const lastSent = new Date(pref.last_sent_at)
           const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
           if (lastSent > weekAgo) {
-            console.log(`Skipping ${pref.user_id} - already sent this week`)
+            console.log(`[Weekly Progress] Skipping ${pref.user_id} - already sent this week`)
             continue
           }
         }
 
         // Gather user data
+        console.log(`[Weekly Progress] Gathering data for user ${pref.user_id}...`)
         const userData = await gatherUserData(
           supabase,
           pref.user_id,
-          pref.users.total_points
+          pref.users.total_points ?? 0
         )
+        console.log(`[Weekly Progress] User data gathered for ${pref.user_id}`)
 
         const weekRange = getWeekRange(now)
 
