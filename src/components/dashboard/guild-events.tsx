@@ -104,11 +104,24 @@ function parseICSDate(value: string): Date {
 }
 
 /**
- * Extract first 2 paragraphs from event description
+ * Extract first 2 paragraphs from event description, filtering out boilerplate
  */
 function getFirstTwoParagraphs(text: string): string {
-  const paragraphs = text.split(/\n\n|\r\n\r\n/).filter(p => p.trim())
+  // Filter out boilerplate lines like "Get up-to-date information at:"
+  const cleanedText = text
+    .split(/\n/)
+    .filter(line => !line.trim().toLowerCase().startsWith('get up-to-date'))
+    .join('\n')
+
+  const paragraphs = cleanedText.split(/\n\n|\r\n\r\n/).filter(p => p.trim())
   return paragraphs.slice(0, 2).join('\n\n').trim()
+}
+
+/**
+ * Check if a string looks like a URL
+ */
+function isUrl(str: string): boolean {
+  return str.startsWith('http://') || str.startsWith('https://')
 }
 
 function getEventDateBadge(date: Date): { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' } | null {
@@ -138,8 +151,16 @@ function EventItemSkeleton() {
 
 function EventItem({ event }: { event: ParsedEvent }) {
   const dateBadge = getEventDateBadge(event.date)
-  const dateStr = format(event.date, 'EEE, MMM d')
   const timeStr = format(event.date, 'h:mm a')
+
+  // If location is a URL, use it as the event URL instead
+  const locationIsUrl = event.location && isUrl(event.location)
+  const displayLocation = locationIsUrl ? undefined : event.location
+  const eventUrl = event.url || (locationIsUrl ? event.location : undefined)
+
+  // Clean description - filter out empty or boilerplate-only results
+  const cleanDescription = event.description ? getFirstTwoParagraphs(event.description) : undefined
+  const showDescription = cleanDescription && cleanDescription.length > 0
 
   return (
     <div className="flex items-start gap-3 py-3 border-b border-border/50 last:border-0">
@@ -165,35 +186,28 @@ function EventItem({ event }: { event: ParsedEvent }) {
             <Clock className="h-3 w-3" />
             {timeStr}
           </span>
-          {event.location && (
+          {displayLocation && (
             <span className="flex items-center gap-1 truncate">
               <MapPin className="h-3 w-3 shrink-0" />
-              <span className="truncate">{event.location}</span>
+              <span className="truncate">{displayLocation}</span>
             </span>
           )}
         </div>
-        {event.description && (
+        {showDescription && (
           <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2">
-            {getFirstTwoParagraphs(event.description)}
+            {cleanDescription}
           </p>
         )}
-        {event.url && (
-          <Button
-            variant="link"
-            size="sm"
-            className="h-auto p-0 mt-1 text-xs"
-            asChild
+        {eventUrl && (
+          <a
+            href={eventUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 mt-1.5 text-xs text-primary hover:underline"
           >
-            <a
-              href={event.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1"
-            >
-              View details
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          </Button>
+            View details
+            <ExternalLink className="h-3 w-3" />
+          </a>
         )}
       </div>
     </div>
