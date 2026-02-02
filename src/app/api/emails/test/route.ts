@@ -485,7 +485,7 @@ export async function POST(request: Request) {
         Messages: [
           {
             From: {
-              Email: 'noreply@guildhall.agentics.nz',
+              Email: 'agentics@cgee.nz',
               Name: 'Guild Hall',
             },
             To: [
