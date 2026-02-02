@@ -42,36 +42,44 @@ export function SmartQuestSection({ activeQuests, isLoading }: SmartQuestSection
 
   const hasActiveQuests = activeQuests.length > 0
 
+  // Get all potential quest IDs (featured + all published) for prerequisites check
+  const allPotentialQuestIds = useMemo(() => {
+    const featuredIds = (featuredQuests ?? []).map(q => q.id)
+    const allIds = (allQuests ?? []).filter(q => q.status === 'published').map(q => q.id)
+    return [...new Set([...featuredIds, ...allIds])]
+  }, [featuredQuests, allQuests])
+
+  // Fetch prerequisites for all potential quests upfront
+  const { data: questLockStatuses } = useAllQuestPrerequisites(allPotentialQuestIds)
+
   // Filter out quests the user has already started or completed (excluding abandoned)
+  // Also filter out locked quests when filling to minimum count
   const availableFeaturedQuests = useMemo(() => {
     const featured = featuredQuests?.filter(
       quest => !allUserQuestIds?.has(quest.id)
     ) ?? []
 
-    // If we have enough featured quests, return them
+    // If we have enough featured quests, return them (locked ones will show with lock badge)
     if (featured.length >= MIN_FEATURED_QUESTS) {
       return featured
     }
 
-    // Fill with additional open quests (sorted by difficulty - easiest first)
+    // Fill with additional open quests that are NOT locked (sorted by difficulty - easiest first)
     const featuredIds = new Set(featured.map(q => q.id))
     const additionalQuests = (allQuests ?? [])
-      .filter(quest =>
-        !allUserQuestIds?.has(quest.id) && // Not already taken
-        !featuredIds.has(quest.id) && // Not already in featured
-        quest.status === 'published' // Only published quests
-      )
+      .filter(quest => {
+        const lockStatus = questLockStatuses?.get(quest.id)
+        return (
+          !allUserQuestIds?.has(quest.id) && // Not already taken
+          !featuredIds.has(quest.id) && // Not already in featured
+          quest.status === 'published' && // Only published quests
+          !lockStatus?.isLocked // Only unlocked quests for fill slots
+        )
+      })
       .slice(0, MIN_FEATURED_QUESTS - featured.length)
 
     return [...featured, ...additionalQuests]
-  }, [featuredQuests, allQuests, allUserQuestIds])
-
-  // Get quest IDs for prerequisites check
-  const questIds = useMemo(
-    () => availableFeaturedQuests.map(q => q.id),
-    [availableFeaturedQuests]
-  )
-  const { data: questLockStatuses } = useAllQuestPrerequisites(questIds)
+  }, [featuredQuests, allQuests, allUserQuestIds, questLockStatuses])
 
   // Transform active quests to quest format for QuestList
   const activeQuestsData = activeQuests.map(uq => ({

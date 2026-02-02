@@ -1,14 +1,21 @@
 'use client'
 
 import { useState } from 'react'
-import { Send, Mail, Users, CheckCircle, AlertCircle } from 'lucide-react'
+import { Send, Mail, Users, CheckCircle, AlertCircle, TestTube } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 export default function GMEmailsPage() {
   const [sending, setSending] = useState(false)
-  const [result, setResult] = useState<{ success: boolean; count: number; error?: string } | null>(null)
+  const [result, setResult] = useState<{ success: boolean; count?: number; message?: string; error?: string } | null>(null)
+
+  // Test email state
+  const [testEmail, setTestEmail] = useState('')
+  const [testDisplayName, setTestDisplayName] = useState('')
+  const [sendingTest, setSendingTest] = useState<'gm-digest' | 'weekly-progress' | null>(null)
 
   const handleSendWeeklyEmails = async () => {
     if (!confirm('This will send the weekly progress email to all users who have enabled it. Continue?')) {
@@ -39,6 +46,40 @@ export default function GMEmailsPage() {
     }
   }
 
+  const handleSendTestEmail = async (type: 'gm-digest' | 'weekly-progress') => {
+    if (!testEmail) {
+      setResult({ success: false, error: 'Please enter an email address' })
+      return
+    }
+
+    setSendingTest(type)
+    setResult(null)
+
+    try {
+      const response = await fetch('/api/emails/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type,
+          email: testEmail,
+          displayName: testDisplayName || 'Test User',
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setResult({ success: true, message: data.message })
+      } else {
+        setResult({ success: false, error: data.error || 'Unknown error' })
+      }
+    } catch (error) {
+      setResult({ success: false, error: 'Failed to send test email' })
+    } finally {
+      setSendingTest(null)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -56,11 +97,11 @@ export default function GMEmailsPage() {
             <AlertCircle className="h-4 w-4" />
           )}
           <AlertTitle>
-            {result.success ? 'Emails Sent Successfully' : 'Failed to Send Emails'}
+            {result.success ? 'Success' : 'Failed'}
           </AlertTitle>
           <AlertDescription>
             {result.success
-              ? `Successfully sent ${result.count} weekly progress email${result.count !== 1 ? 's' : ''}.`
+              ? result.message || `Successfully sent ${result.count} email${result.count !== 1 ? 's' : ''}.`
               : result.error}
           </AlertDescription>
         </Alert>
@@ -112,6 +153,60 @@ export default function GMEmailsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Test Email Section */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <TestTube className="h-5 w-5 text-purple-500" />
+            <CardTitle>Send Test Emails</CardTitle>
+          </div>
+          <CardDescription>
+            Send test emails to preview templates before sending to users.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="test-email">Email Address</Label>
+              <Input
+                id="test-email"
+                type="email"
+                placeholder="test@example.com"
+                value={testEmail}
+                onChange={(e) => setTestEmail(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="test-name">Display Name (optional)</Label>
+              <Input
+                id="test-name"
+                placeholder="Test User"
+                value={testDisplayName}
+                onChange={(e) => setTestDisplayName(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => handleSendTestEmail('gm-digest')}
+              disabled={sendingTest !== null || !testEmail}
+            >
+              <Mail className="mr-2 h-4 w-4" />
+              {sendingTest === 'gm-digest' ? 'Sending...' : 'Test GM Digest'}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleSendTestEmail('weekly-progress')}
+              disabled={sendingTest !== null || !testEmail}
+            >
+              <Users className="mr-2 h-4 w-4" />
+              {sendingTest === 'weekly-progress' ? 'Sending...' : 'Test Weekly Progress'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
