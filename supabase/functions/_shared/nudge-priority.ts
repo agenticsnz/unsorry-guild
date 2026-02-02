@@ -52,7 +52,7 @@ export function getRecommendedAction(
     return {
       priority: 'approved_ready',
       message: `You have ${count} objective${count > 1 ? 's' : ''} approved and ready to continue!`,
-      actionUrl: '/quests/active',
+      actionUrl: '/my-quests',
       actionLabel: 'Continue Quest',
       variant: 'info',
     }
@@ -111,7 +111,7 @@ export function getAllApplicableNudges(context: NudgeContext): NudgeBannerData[]
     nudges.push({
       priority: 'approved_ready',
       message: `You have ${count} objective${count > 1 ? 's' : ''} approved and ready to continue!`,
-      actionUrl: '/quests/active',
+      actionUrl: '/my-quests',
       actionLabel: 'Continue Quest',
       variant: 'info',
     })

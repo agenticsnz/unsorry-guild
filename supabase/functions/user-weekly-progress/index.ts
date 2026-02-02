@@ -421,7 +421,7 @@ function renderWeeklyEmail(data: UserEmailData, baseUrl: string): string {
           <span class="muted">${escapeHtml(step.objectiveTitle)} (${step.questProgress})</span>
         </div>
       `).join('')}
-      <a href="${baseUrl}/quests/active" class="button">View Active Quests</a>
+      <a href="${baseUrl}/my-quests" class="button">View Active Quests</a>
     </div>`
   }
 

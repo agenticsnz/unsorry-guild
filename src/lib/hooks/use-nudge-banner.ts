@@ -65,7 +65,7 @@ export function getRecommendedAction(context: NudgeContext): NudgeBannerData | n
     return {
       priority: 'approved_ready',
       message: `You have ${context.approvedObjectivesCount} objective${context.approvedObjectivesCount > 1 ? 's' : ''} approved and ready to continue!`,
-      actionUrl: '/quests/active',
+      actionUrl: '/my-quests',
       actionLabel: 'Continue Quest',
       variant: 'info',
     }

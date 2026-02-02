@@ -247,7 +247,7 @@ describe('getRecommendedAction', () => {
 
       const result = getRecommendedAction(context)
 
-      expect(result?.actionUrl).toBe('/quests/active')
+      expect(result?.actionUrl).toBe('/my-quests')
       expect(result?.actionLabel).toBe('Continue Quest')
     })
 

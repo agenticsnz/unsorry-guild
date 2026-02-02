@@ -294,7 +294,7 @@ export const mockGreetingDataWithDeadline: GreetingData = {
 export const mockNudgeApprovedReady: NudgeBannerData = {
   priority: 'approved_ready',
   message: 'You have 2 objectives approved and ready to continue!',
-  actionUrl: '/quests/active',
+  actionUrl: '/my-quests',
   actionLabel: 'Continue Quest',
   variant: 'info',
 }
