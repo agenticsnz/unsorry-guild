@@ -34,7 +34,8 @@ async function fetchUserActiveQuestIds(userId: string): Promise<{ questId: strin
 }
 
 /**
- * Fetch all quest IDs the user has started (active + completed)
+ * Fetch all quest IDs the user has started (active + completed), excluding abandoned
+ * Note: Abandoned quests are excluded so users can re-accept them
  */
 async function fetchUserAllQuestIds(userId: string): Promise<Set<string>> {
   const supabase = createClient()
@@ -43,6 +44,7 @@ async function fetchUserAllQuestIds(userId: string): Promise<Set<string>> {
     .from('user_quests')
     .select('quest_id')
     .eq('user_id', userId)
+    .neq('status', 'abandoned')
 
   if (error) {
     console.error('Error fetching all quest IDs:', error)

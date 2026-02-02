@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Sprout, TreeDeciduous, Trees, Mountain, Crown, Save } from 'lucide-react'
+import { Sprout, TreeDeciduous, Trees, Mountain, Crown, Swords, Save } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,10 +17,11 @@ const TIER_ICONS: Record<string, React.ComponentType<{ className?: string }>> = 
   Trees,
   Mountain,
   Crown,
+  Swords,
 }
 
-const AVAILABLE_ICONS = ['Sprout', 'TreeDeciduous', 'Trees', 'Mountain', 'Crown']
-const AVAILABLE_COLORS = ['green', 'emerald', 'teal', 'cyan', 'amber']
+const AVAILABLE_ICONS = ['Sprout', 'TreeDeciduous', 'Trees', 'Mountain', 'Crown', 'Swords']
+const AVAILABLE_COLORS = ['green', 'emerald', 'teal', 'cyan', 'amber', 'blue', 'red']
 
 export default function TiersPage() {
   const { data: tiers, isLoading } = useSkillTiers()

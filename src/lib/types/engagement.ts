@@ -60,6 +60,18 @@ export const TIER_COLOR_STYLES: Record<string, {
     border: 'border-amber-200 dark:border-amber-800',
     progressBar: 'bg-gradient-to-r from-amber-400 to-yellow-500',
   },
+  blue: {
+    bg: 'bg-blue-50 dark:bg-blue-950/20',
+    text: 'text-blue-700 dark:text-blue-300',
+    border: 'border-blue-200 dark:border-blue-800',
+    progressBar: 'bg-blue-500',
+  },
+  red: {
+    bg: 'bg-red-50 dark:bg-red-950/20',
+    text: 'text-red-700 dark:text-red-300',
+    border: 'border-red-200 dark:border-red-800',
+    progressBar: 'bg-red-500',
+  },
 }
 
 // ============================================================

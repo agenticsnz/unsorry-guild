@@ -22,6 +22,7 @@ interface ParsedEvent {
   endDate?: Date
   location?: string
   url?: string
+  description?: string
 }
 
 function parseICSContent(icsContent: string): ParsedEvent[] {
@@ -68,6 +69,9 @@ function parseICSContent(icsContent: string): ParsedEvent[] {
         currentEvent.location = line.substring(9)
       } else if (line.startsWith('URL:')) {
         currentEvent.url = line.substring(4)
+      } else if (line.startsWith('DESCRIPTION:')) {
+        // ICS descriptions use \n for newlines, unescape them
+        currentEvent.description = line.substring(12).replace(/\\n/g, '\n').replace(/\\,/g, ',')
       }
     }
   }
@@ -97,6 +101,14 @@ function parseICSDate(value: string): Date {
   const day = parseInt(value.substring(6, 8))
 
   return new Date(year, month, day)
+}
+
+/**
+ * Extract first 2 paragraphs from event description
+ */
+function getFirstTwoParagraphs(text: string): string {
+  const paragraphs = text.split(/\n\n|\r\n\r\n/).filter(p => p.trim())
+  return paragraphs.slice(0, 2).join('\n\n').trim()
 }
 
 function getEventDateBadge(date: Date): { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' } | null {
@@ -160,6 +172,11 @@ function EventItem({ event }: { event: ParsedEvent }) {
             </span>
           )}
         </div>
+        {event.description && (
+          <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2">
+            {getFirstTwoParagraphs(event.description)}
+          </p>
+        )}
         {event.url && (
           <Button
             variant="link"

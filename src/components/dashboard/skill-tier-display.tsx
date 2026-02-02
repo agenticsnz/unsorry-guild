@@ -1,6 +1,6 @@
 'use client'
 
-import { Sprout, TreeDeciduous, Trees, Mountain, Crown } from 'lucide-react'
+import { Sprout, TreeDeciduous, Trees, Mountain, Crown, Swords } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
@@ -13,6 +13,7 @@ const TIER_ICONS: Record<string, React.ComponentType<{ className?: string }>> = 
   Trees,
   Mountain,
   Crown,
+  Swords,
 }
 
 interface SkillTierDisplayProps {

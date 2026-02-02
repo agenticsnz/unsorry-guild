@@ -44,13 +44,14 @@ interface QuestCardProps {
 
 /**
  * Get display info for user quest status
+ * Returns null for statuses that shouldn't be displayed to users (e.g., abandoned)
  */
 function getUserQuestStatusDisplay(status: UserQuestStatus): {
   label: string
   variant: 'default' | 'secondary' | 'destructive' | 'outline'
   className: string
   icon: React.ReactNode
-} {
+} | null {
   switch (status) {
     case 'in_progress':
       return {
@@ -87,13 +88,10 @@ function getUserQuestStatusDisplay(status: UserQuestStatus): {
         className: 'bg-purple-500 hover:bg-purple-500',
         icon: <Hourglass className="h-3 w-3 mr-1" />,
       }
-    default:
-      return {
-        label: status.replace('_', ' '),
-        variant: 'outline',
-        className: '',
-        icon: null,
-      }
+    case 'abandoned':
+    case 'expired':
+      // Don't show internal statuses to users
+      return null
   }
 }
 
@@ -168,13 +166,13 @@ export function QuestCard({ quest, className, userQuestId, userQuestStatus, isLo
                 Active
               </Badge>
             )}
-            {userQuestStatus && (
+            {userQuestStatus && getUserQuestStatusDisplay(userQuestStatus) && (
               <Badge
-                variant={getUserQuestStatusDisplay(userQuestStatus).variant}
-                className={getUserQuestStatusDisplay(userQuestStatus).className}
+                variant={getUserQuestStatusDisplay(userQuestStatus)!.variant}
+                className={getUserQuestStatusDisplay(userQuestStatus)!.className}
               >
-                {getUserQuestStatusDisplay(userQuestStatus).icon}
-                {getUserQuestStatusDisplay(userQuestStatus).label}
+                {getUserQuestStatusDisplay(userQuestStatus)!.icon}
+                {getUserQuestStatusDisplay(userQuestStatus)!.label}
               </Badge>
             )}
             {isLocked && (
