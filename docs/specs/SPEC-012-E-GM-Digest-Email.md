@@ -289,9 +289,10 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 )
 
-// Email is sent via Mailjet (configured in Supabase)
+// Email is sent via Mailjet (configured in Supabase secrets)
 const MAILJET_API_KEY = Deno.env.get('MAILJET_API_KEY')!
 const MAILJET_SECRET_KEY = Deno.env.get('MAILJET_SECRET_KEY')!
+const EMAIL_FROM_ADDRESS = Deno.env.get('EMAIL_FROM_ADDRESS') || 'agentics@cgee.nz'
 
 Deno.serve(async () => {
   // Get GMs who should receive digest now
@@ -339,7 +340,7 @@ Deno.serve(async () => {
       },
       body: JSON.stringify({
         Messages: [{
-          From: { Email: 'noreply@guildhall.agentics.nz', Name: 'Guild Hall' },
+          From: { Email: EMAIL_FROM_ADDRESS, Name: 'Guild Hall' },
           To: [{ Email: gm.users.email, Name: gm.users.display_name }],
           Subject: `GM Daily Digest - ${formatDate(now)}`,
           HTMLPart: html,

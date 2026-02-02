@@ -344,9 +344,10 @@ SELECT cron.schedule(
 import { createClient } from '@supabase/supabase-js'
 import { getRecommendedAction } from '../_shared/nudge-priority.ts'
 
-// Email is sent via Mailjet (configured in Supabase)
+// Email is sent via Mailjet (configured in Supabase secrets)
 const MAILJET_API_KEY = Deno.env.get('MAILJET_API_KEY')!
 const MAILJET_SECRET_KEY = Deno.env.get('MAILJET_SECRET_KEY')!
+const EMAIL_FROM_ADDRESS = Deno.env.get('EMAIL_FROM_ADDRESS') || 'agentics@cgee.nz'
 
 Deno.serve(async (req) => {
   const supabase = createClient(
@@ -416,7 +417,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         Messages: [{
-          From: { Email: 'noreply@guildhall.agentics.nz', Name: 'Guild Hall' },
+          From: { Email: EMAIL_FROM_ADDRESS, Name: 'Guild Hall' },
           To: [{ Email: pref.users.email, Name: pref.users.display_name }],
           Subject: `Your Weekly Progress - Guild Hall`,
           HTMLPart: html,
