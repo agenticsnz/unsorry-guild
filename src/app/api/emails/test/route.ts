@@ -420,16 +420,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user is GM
-    const { data: profileData } = await supabase
-      .from('users')
+    // Check if user is GM (using user_roles table)
+    const { data: roles } = await supabase
+      .from('user_roles')
       .select('role')
-      .eq('id', user.id)
-      .single()
+      .eq('user_id', user.id)
 
-    const profile = profileData as { role: string } | null
+    const isGm = roles?.some((r: { role: string }) => r.role === 'gm' || r.role === 'admin')
 
-    if (!profile || profile.role !== 'gm') {
+    if (!isGm) {
       return NextResponse.json({ error: 'Forbidden - GM access required' }, { status: 403 })
     }
 
