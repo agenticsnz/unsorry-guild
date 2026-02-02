@@ -129,17 +129,7 @@ export function EngagementDashboard({
                 <EnrichedStatCard
                   title="Active Quests"
                   value={stats.activeQuests}
-                  badge={
-                    stats.approvedObjectives > 0
-                      ? `${stats.approvedObjectives} objectives ready`
-                      : undefined
-                  }
-                  badgeVariant={stats.approvedObjectives > 0 ? 'default' : 'secondary'}
-                  description={
-                    stats.pendingObjectives > 0
-                      ? `${stats.pendingObjectives} objectives pending review`
-                      : 'Quests in progress'
-                  }
+                  description="Quests in progress"
                   href="/my-quests"
                 />
 
