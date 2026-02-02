@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 /**
@@ -31,8 +31,11 @@ export async function POST(request: Request) {
 
     console.log(`[Weekly Progress] Manual push triggered by ${user.email}`)
 
+    // Use service client to invoke Edge Function (requires service role key)
+    const serviceClient = createServiceClient()
+
     // Call the Edge Function with manual flag
-    const { data, error } = await supabase.functions.invoke('user-weekly-progress', {
+    const { data, error } = await serviceClient.functions.invoke('user-weekly-progress', {
       body: { manual: true },
     })
 
