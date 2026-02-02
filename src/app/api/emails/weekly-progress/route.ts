@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server'
  * POST /api/emails/weekly-progress
  *
  * Triggers sending weekly progress emails to all users who have enabled the feature.
- * Only accessible by GMs.
+ * Only accessible by GMs. Invokes the user-weekly-progress Edge Function.
  */
 export async function POST(request: Request) {
   try {
@@ -29,47 +29,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Forbidden - GM access required' }, { status: 403 })
     }
 
-    // Get request body
-    const body = await request.json().catch(() => ({}))
-    const isManual = body.manual === true
+    console.log(`[Weekly Progress] Manual push triggered by ${user.email}`)
 
-    // Fetch all users with weekly email enabled
-    const { data: usersWithPrefs, error: prefsError } = await (supabase as any)
-      .from('user_weekly_email_prefs')
-      .select(`
-        user_id,
-        enabled,
-        users!inner (
-          id,
-          email,
-          display_name
-        )
-      `)
-      .eq('enabled', true)
+    // Call the Edge Function with manual flag
+    const { data, error } = await supabase.functions.invoke('user-weekly-progress', {
+      body: { manual: true },
+    })
 
-    if (prefsError) {
-      console.error('Error fetching user preferences:', prefsError)
-      return NextResponse.json({ error: 'Failed to fetch user preferences' }, { status: 500 })
+    if (error) {
+      console.error('Error invoking Edge Function:', error)
+      return NextResponse.json(
+        { error: `Failed to send emails: ${error.message}` },
+        { status: 500 }
+      )
     }
 
-    // For now, return a placeholder response
-    // In production, this would call the Edge Function or send emails directly via Resend
-    const eligibleUsers = usersWithPrefs || []
+    console.log(`[Weekly Progress] Edge Function response:`, data)
 
-    // TODO: Call the user-weekly-progress Edge Function for each user
-    // or implement email sending directly here
-
-    console.log(`[Weekly Progress] Manual push triggered by ${user.email}`)
-    console.log(`[Weekly Progress] Found ${eligibleUsers.length} eligible users`)
-
-    // For now, simulate success
-    // In production, integrate with Resend or call the Edge Function
     return NextResponse.json({
       success: true,
-      emailsSent: eligibleUsers.length,
-      message: isManual
-        ? `Manual weekly progress email sent to ${eligibleUsers.length} users`
-        : `Weekly progress email sent to ${eligibleUsers.length} users`,
+      emailsSent: data?.emailsSent || 0,
+      userIds: data?.userIds || [],
+      errors: data?.errors,
+      message: `Weekly progress email sent to ${data?.emailsSent || 0} users`,
     })
   } catch (error) {
     console.error('Error sending weekly progress emails:', error)
