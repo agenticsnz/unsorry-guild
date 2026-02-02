@@ -21,18 +21,50 @@ import { useEngagementPreferences, useUpdateEngagementPreferences } from '@/lib/
 import { DAYS_OF_WEEK, type WeekendBehavior } from '@/lib/types/engagement'
 
 const TIMEZONES = [
+  // Pacific
   'Pacific/Auckland',
   'Pacific/Fiji',
+  'Pacific/Honolulu',
+  // Australia
   'Australia/Sydney',
   'Australia/Melbourne',
   'Australia/Brisbane',
   'Australia/Perth',
+  'Australia/Adelaide',
+  // Asia
   'Asia/Singapore',
+  'Asia/Hong_Kong',
   'Asia/Tokyo',
+  'Asia/Seoul',
+  'Asia/Shanghai',
+  'Asia/Kolkata',
+  'Asia/Dubai',
+  // Europe
   'Europe/London',
+  'Europe/Paris',
+  'Europe/Berlin',
+  'Europe/Amsterdam',
+  // Americas
   'America/New_York',
+  'America/Chicago',
+  'America/Denver',
   'America/Los_Angeles',
+  'America/Toronto',
+  'America/Vancouver',
 ]
+
+/**
+ * Get user's timezone from browser
+ */
+function getUserTimezone(): string {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+    // Return if it's in our list, otherwise default to Auckland
+    return TIMEZONES.includes(tz) ? tz : 'Pacific/Auckland'
+  } catch {
+    return 'Pacific/Auckland'
+  }
+}
 
 const HOURS = Array.from({ length: 24 }, (_, i) => {
   const hour = i.toString().padStart(2, '0')
@@ -88,12 +120,12 @@ export default function SettingsPage() {
     enable_nudge_banners: true,
   })
 
-  const [emailForm, setEmailForm] = useState({
+  const [emailForm, setEmailForm] = useState(() => ({
     enabled: true,
     day_of_week: 1,
     send_time: '08:00',
-    timezone: 'Pacific/Auckland',
-  })
+    timezone: getUserTimezone(),
+  }))
 
   const [weekendBehavior, setWeekendBehavior] = useState<WeekendBehavior>('weekends_count')
 
@@ -203,6 +235,13 @@ export default function SettingsPage() {
                   }
                 />
               </div>
+
+              {emailForm.enabled && (
+                <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
+                  Emails will be sent every <strong>{DAYS_OF_WEEK.find(d => d.value === emailForm.day_of_week)?.label}</strong> at{' '}
+                  <strong>{emailForm.send_time}</strong> ({emailForm.timezone.replace(/_/g, ' ')})
+                </p>
+              )}
 
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-2">
