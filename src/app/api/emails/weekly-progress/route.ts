@@ -101,6 +101,27 @@ interface TierConfig {
   min_points: number
 }
 
+interface UserEmailPref {
+  user_id: string
+  enabled: boolean
+}
+
+interface UserRecord {
+  id: string
+  email: string
+  display_name: string | null
+  total_points: number | null
+}
+
+interface ActivityRecord {
+  type: string
+  points_earned: number | null
+}
+
+interface StreakRecord {
+  current_streak: number
+}
+
 async function sendEmailViaMailjet(
   email: string,
   name: string,
@@ -267,7 +288,7 @@ export async function POST() {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://guild-hall.netlify.app'
 
     // Get users with weekly email enabled
-    const { data: prefs, error: prefsError } = await supabase
+    const { data: prefsData, error: prefsError } = await supabase
       .from('user_weekly_email_prefs')
       .select('user_id, enabled')
       .eq('enabled', true)
@@ -277,7 +298,9 @@ export async function POST() {
       return NextResponse.json({ error: 'Failed to fetch user preferences' }, { status: 500 })
     }
 
-    if (!prefs || prefs.length === 0) {
+    const prefs: UserEmailPref[] = (prefsData as UserEmailPref[]) || []
+
+    if (prefs.length === 0) {
       return NextResponse.json({ success: true, emailsSent: 0, message: 'No users have weekly emails enabled' })
     }
 
@@ -316,11 +339,13 @@ export async function POST() {
     for (const pref of prefs) {
       try {
         // Get user info
-        const { data: userData } = await supabase
+        const { data: userDataRaw } = await supabase
           .from('users')
           .select('id, email, display_name, total_points')
           .eq('id', pref.user_id)
           .single()
+
+        const userData = userDataRaw as UserRecord | null
 
         if (!userData?.email) {
           errors.push(`${pref.user_id}: No email found`)
@@ -328,11 +353,13 @@ export async function POST() {
         }
 
         // Get weekly stats
-        const { data: activities } = await supabase
+        const { data: activitiesRaw } = await supabase
           .from('activities')
           .select('type, points_earned')
           .eq('user_id', pref.user_id)
           .gte('created_at', weekAgo.toISOString())
+
+        const activities = (activitiesRaw as ActivityRecord[]) || []
 
         const stats: WeeklyStats = {
           objectivesSubmitted: 0,
@@ -342,19 +369,20 @@ export async function POST() {
           currentStreak: 0,
         }
 
-        for (const act of activities || []) {
+        for (const act of activities) {
           stats.pointsEarned += act.points_earned || 0
           if (act.type === 'objective_completed') stats.objectivesApproved++
           if (act.type === 'quest_completed') stats.questsCompleted++
         }
 
         // Get streak
-        const { data: streakData } = await supabase
+        const { data: streakDataRaw } = await supabase
           .from('user_streaks')
           .select('current_streak')
           .eq('user_id', pref.user_id)
           .maybeSingle()
 
+        const streakData = streakDataRaw as StreakRecord | null
         stats.currentStreak = streakData?.current_streak || 0
 
         // Get tier info
