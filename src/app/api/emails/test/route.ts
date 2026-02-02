@@ -41,7 +41,6 @@ function emailWrapper(content: string, title: string): string {
       background-color: #F5F0E6;
       padding: 16px 24px;
       border-bottom: 1px solid #E5DDD0;
-      text-align: center;
     }
     .header-text {
       font-size: 18px;
