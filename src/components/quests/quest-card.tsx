@@ -144,9 +144,9 @@ export function QuestCard({ quest, className, userQuestId, userQuestStatus, isLo
         <CardHeader className="pb-3">
           <div className="flex gap-4">
             {/* Left column: title and badges */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 relative z-10">
               <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap relative z-10">
                   {quest.category && <CategoryBadge category={quest.category} />}
                   {quest.difficulty && <DifficultyBadge difficulty={quest.difficulty} />}
                   {userQuestId && !userQuestStatus && (

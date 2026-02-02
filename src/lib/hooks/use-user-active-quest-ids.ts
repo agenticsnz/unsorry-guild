@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 interface UserQuestResult {
   id: string
   quest_id: string
+  status: string
 }
 
 /**
@@ -33,6 +34,25 @@ async function fetchUserActiveQuestIds(userId: string): Promise<{ questId: strin
 }
 
 /**
+ * Fetch all quest IDs the user has started (active + completed)
+ */
+async function fetchUserAllQuestIds(userId: string): Promise<Set<string>> {
+  const supabase = createClient()
+
+  const { data, error } = await supabase
+    .from('user_quests')
+    .select('quest_id')
+    .eq('user_id', userId)
+
+  if (error) {
+    console.error('Error fetching all quest IDs:', error)
+    return new Set()
+  }
+
+  return new Set(((data || []) as { quest_id: string }[]).map((item) => item.quest_id))
+}
+
+/**
  * Hook to get the quest IDs that the current user is actively taking
  * Returns a map of questId -> userQuestId for quick lookup
  */
@@ -49,6 +69,26 @@ export function useUserActiveQuestIds() {
 
       const activeQuests = await fetchUserActiveQuestIds(user.id)
       return new Map(activeQuests.map((q) => [q.questId, q.userQuestId]))
+    },
+  })
+}
+
+/**
+ * Hook to get all quest IDs the user has started (active + completed)
+ * Used to filter out quests user has already taken from featured lists
+ */
+export function useUserAllQuestIds() {
+  return useQuery({
+    queryKey: ['userAllQuestIds'],
+    queryFn: async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        return new Set<string>()
+      }
+
+      return fetchUserAllQuestIds(user.id)
     },
   })
 }

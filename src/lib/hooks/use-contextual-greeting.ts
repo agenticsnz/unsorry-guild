@@ -7,8 +7,9 @@ import { useUserTier } from './use-skill-tiers'
 import { useUserStreak } from './use-user-streak'
 import type { GreetingContext, GreetingPriority } from '@/lib/types/engagement'
 
-// Session storage key for cached greeting
+// Session storage keys
 const GREETING_CACHE_KEY = 'guild-hall-greeting'
+const CELEBRATION_SHOWN_KEY = 'guild-hall-celebration-shown'
 
 interface CachedGreeting {
   greeting: string
@@ -16,6 +17,22 @@ interface CachedGreeting {
   subMessage?: string
   timestamp: number
   date: string
+}
+
+/**
+ * Check if celebration greeting was already shown this session
+ */
+function wasCelebrationShown(): boolean {
+  if (typeof window === 'undefined') return false
+  return sessionStorage.getItem(CELEBRATION_SHOWN_KEY) === 'true'
+}
+
+/**
+ * Mark celebration as shown for this session
+ */
+function markCelebrationShown(): void {
+  if (typeof window === 'undefined') return
+  sessionStorage.setItem(CELEBRATION_SHOWN_KEY, 'true')
 }
 
 /**
@@ -157,9 +174,10 @@ function evaluateGreeting(
 ): GreetingContext {
   const hour = new Date().getHours()
 
-  // Priority 1: Celebration - Quest completed recently
-  if (data.recentlyCompletedQuests.length > 0) {
+  // Priority 1: Celebration - Quest completed recently (only show once per session)
+  if (data.recentlyCompletedQuests.length > 0 && !wasCelebrationShown()) {
     const quest = data.recentlyCompletedQuests[0]
+    markCelebrationShown()
     return {
       priority: 'celebration',
       message: `Congratulations on completing ${quest.quest_title}!`,

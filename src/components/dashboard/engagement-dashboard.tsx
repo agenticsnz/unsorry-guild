@@ -97,102 +97,103 @@ export function EngagementDashboard({
         </div>
       </div>
 
-      {/* Skill Tier Display */}
-      {isLoadingStats || !stats?.tier ? (
-        <Skeleton className="h-24 w-full rounded-lg" />
-      ) : (
-        <SkillTierDisplay tierInfo={stats.tier} />
-      )}
-
-      {/* Enriched Stat Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        {isLoadingStats || !stats ? (
-          <>
-            <EnrichedStatCardSkeleton />
-            <EnrichedStatCardSkeleton />
-            <EnrichedStatCardSkeleton />
-          </>
-        ) : (
-          <>
-            <EnrichedStatCard
-              title="Guild Rank"
-              value={stats.rank || '-'}
-              subValue={stats.totalUsers > 0 ? `of ${stats.totalUsers}` : undefined}
-              description="Your position on the leaderboard"
-              href="/leaderboard"
-            />
-
-            <EnrichedStatCard
-              title="Active Quests"
-              value={stats.activeQuests}
-              badge={
-                stats.approvedObjectives > 0
-                  ? `${stats.approvedObjectives} ready`
-                  : undefined
-              }
-              badgeVariant={stats.approvedObjectives > 0 ? 'default' : 'secondary'}
-              description={
-                stats.pendingObjectives > 0
-                  ? `${stats.pendingObjectives} pending review`
-                  : 'Quests in progress'
-              }
-              href="/my-quests"
-            />
-
-            <EnrichedStatCard
-              title="Completed"
-              value={stats.completedQuests}
-              subValue={
-                stats.streak && stats.streak.currentStreak > 0 ? (
-                  <StreakBadge
-                    streak={stats.streak.currentStreak}
-                    isAtRisk={stats.streak.isStreakAtRisk}
-                    size="sm"
-                  />
-                ) : undefined
-              }
-              description={
-                stats.tier
-                  ? `${stats.tier.points.toLocaleString()} total points`
-                  : 'Total quests completed'
-              }
-              href="/my-quests?status=completed"
-            />
-          </>
-        )}
-      </div>
-
-      {/* Mentorship Prompt (for Expert+ users) */}
-      {stats?.tier?.tier && (
-        <MentorshipPrompt
-          userTierLevel={stats.tier.tier.tier_level}
-          mentorshipSignupUrl={mentorshipSignupUrl}
-        />
-      )}
-
-      {/* Your Path Section (Quest Recommendation) */}
-      {!isLoadingRecommendation && initialActiveQuests.length === 0 && (
-        <YourPathSection
-          recommendation={recommendation}
-          isLoading={isLoadingRecommendation}
-          hasActiveQuests={initialActiveQuests.length > 0}
-        />
-      )}
-
-      {/* Main Content Grid: Smart Quests + Sidebar */}
+      {/* Main Content Grid: Left (tier + stats + quests) + Right (events + activity) */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Smart Quest Section (Continue/Featured tabs) - Takes 2/3 on large screens */}
-        <div className="lg:col-span-2">
+        {/* Left column: Takes 2/3 on large screens */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Skill Tier Display */}
+          {isLoadingStats || !stats?.tier ? (
+            <Skeleton className="h-24 w-full rounded-lg" />
+          ) : (
+            <SkillTierDisplay tierInfo={stats.tier} />
+          )}
+
+          {/* Enriched Stat Cards */}
+          <div className="grid gap-4 md:grid-cols-3">
+            {isLoadingStats || !stats ? (
+              <>
+                <EnrichedStatCardSkeleton />
+                <EnrichedStatCardSkeleton />
+                <EnrichedStatCardSkeleton />
+              </>
+            ) : (
+              <>
+                <EnrichedStatCard
+                  title="Guild Rank"
+                  value={stats.rank || '-'}
+                  subValue={stats.totalUsers > 0 ? `of ${stats.totalUsers}` : undefined}
+                  description="Your position on the leaderboard"
+                  href="/leaderboard"
+                />
+
+                <EnrichedStatCard
+                  title="Active Quests"
+                  value={stats.activeQuests}
+                  badge={
+                    stats.approvedObjectives > 0
+                      ? `${stats.approvedObjectives} ready`
+                      : undefined
+                  }
+                  badgeVariant={stats.approvedObjectives > 0 ? 'default' : 'secondary'}
+                  description={
+                    stats.pendingObjectives > 0
+                      ? `${stats.pendingObjectives} pending review`
+                      : 'Quests in progress'
+                  }
+                  href="/my-quests"
+                />
+
+                <EnrichedStatCard
+                  title="Completed"
+                  value={stats.completedQuests}
+                  subValue={
+                    stats.streak && stats.streak.currentStreak > 0 ? (
+                      <StreakBadge
+                        streak={stats.streak.currentStreak}
+                        isAtRisk={stats.streak.isStreakAtRisk}
+                        size="sm"
+                      />
+                    ) : undefined
+                  }
+                  description={
+                    stats.tier
+                      ? `${stats.tier.points.toLocaleString()} total points`
+                      : 'Total quests completed'
+                  }
+                  href="/my-quests?status=completed"
+                />
+              </>
+            )}
+          </div>
+
+          {/* Mentorship Prompt (for Expert+ users) */}
+          {stats?.tier?.tier && (
+            <MentorshipPrompt
+              userTierLevel={stats.tier.tier.tier_level}
+              mentorshipSignupUrl={mentorshipSignupUrl}
+            />
+          )}
+
+          {/* Your Path Section (Quest Recommendation) */}
+          {!isLoadingRecommendation && initialActiveQuests.length === 0 && (
+            <YourPathSection
+              recommendation={recommendation}
+              isLoading={isLoadingRecommendation}
+              hasActiveQuests={initialActiveQuests.length > 0}
+            />
+          )}
+
+          {/* Smart Quest Section (Continue/Featured tabs) */}
           <SmartQuestSection
             activeQuests={initialActiveQuests}
             isLoading={false}
           />
         </div>
 
-        {/* Sidebar: Activity Feed + Guild Events */}
+        {/* Right column: Events + Activity Feed */}
         <div className="space-y-6">
-          <ActivityFeed limit={10} />
           <GuildEvents feedUrl={guildEventsFeedUrl} />
+          <ActivityFeed limit={10} />
         </div>
       </div>
     </div>

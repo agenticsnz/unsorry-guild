@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { QuestList } from '@/components/quests/quest-list'
 import { useFeaturedQuests } from '@/lib/hooks/use-featured-quests'
-import { useUserActiveQuestIds } from '@/lib/hooks/use-user-active-quest-ids'
+import { useUserActiveQuestIds, useUserAllQuestIds } from '@/lib/hooks/use-user-active-quest-ids'
 
 interface SmartQuestSectionProps {
   activeQuests: Array<{
@@ -32,8 +32,14 @@ export function SmartQuestSection({ activeQuests, isLoading }: SmartQuestSection
 
   const { data: featuredQuests, isLoading: loadingFeatured } = useFeaturedQuests()
   const { data: activeQuestIds } = useUserActiveQuestIds()
+  const { data: allUserQuestIds } = useUserAllQuestIds()
 
   const hasActiveQuests = activeQuests.length > 0
+
+  // Filter out quests the user has already started or completed
+  const availableFeaturedQuests = featuredQuests?.filter(
+    quest => !allUserQuestIds?.has(quest.id)
+  ) ?? []
 
   // Transform active quests to quest format for QuestList
   const activeQuestsData = activeQuests.map(uq => ({
@@ -45,7 +51,7 @@ export function SmartQuestSection({ activeQuests, isLoading }: SmartQuestSection
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>Quests</CardTitle>
+          <CardTitle>Featured Quests</CardTitle>
           <CardDescription>
             {hasActiveQuests
               ? 'Continue your journey or discover new adventures'
@@ -107,13 +113,13 @@ export function SmartQuestSection({ activeQuests, isLoading }: SmartQuestSection
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">Loading featured quests...</p>
                 </div>
-              ) : !featuredQuests || featuredQuests.length === 0 ? (
+              ) : availableFeaturedQuests.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-muted-foreground">No featured quests available.</p>
+                  <p className="text-muted-foreground">No new featured quests available.</p>
                 </div>
               ) : (
                 <QuestList
-                  quests={featuredQuests}
+                  quests={availableFeaturedQuests}
                   isLoading={false}
                   activeQuestIds={activeQuestIds}
                 />
@@ -126,10 +132,12 @@ export function SmartQuestSection({ activeQuests, isLoading }: SmartQuestSection
               <div className="text-center py-8">
                 <p className="text-muted-foreground">Loading featured quests...</p>
               </div>
-            ) : !featuredQuests || featuredQuests.length === 0 ? (
+            ) : availableFeaturedQuests.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground mb-4">
-                  No featured quests available yet.
+                  {allUserQuestIds && allUserQuestIds.size > 0
+                    ? "You've completed all available featured quests!"
+                    : 'No featured quests available yet.'}
                 </p>
                 <Button variant="outline" asChild>
                   <Link href="/quests">
@@ -139,7 +147,7 @@ export function SmartQuestSection({ activeQuests, isLoading }: SmartQuestSection
               </div>
             ) : (
               <QuestList
-                quests={featuredQuests}
+                quests={availableFeaturedQuests}
                 isLoading={false}
                 activeQuestIds={activeQuestIds}
               />
