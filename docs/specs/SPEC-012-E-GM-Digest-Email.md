@@ -132,108 +132,119 @@ interface RecentCompletion {
 
 ---
 
-## Email Template
+## Email Template Style Guidelines
+
+All Guild Hall emails must use consistent branding defined in the shared email templates module:
+`supabase/functions/_shared/email-templates.ts`
+
+### Brand Colors
+
+```typescript
+const BRAND = {
+  gold: '#B8860B',      // Primary brand color for buttons, progress bars
+  cream: '#FDF8E8',     // Background color
+  accentGold: '#C9A857', // Secondary gold for gradients
+  textDark: '#3D2E1F',  // Primary text color
+  success: '#16a34a',   // Success states
+  warning: '#d97706',   // Warning states
+  error: '#dc2626',     // Error states
+}
+```
+
+### Logo Asset
+
+```typescript
+const LOGO_URL = 'https://cdn.disco.co/media/agentics-logo-enhanced-removebg-preview_2949fb89-758d-4d9d-ae30-a51cea979427.png'
+```
+
+### Email Structure
+
+All emails use the `emailWrapper()` function which provides:
+
+1. **Header**: Cream background (#F5F0E6) with "Guild Hall" + Logo + "Agentics NZ"
+2. **Content**: White background with 32px padding
+3. **Footer**: Gray background with email preferences and site links
+
+### Component Classes
+
+| Class | Purpose |
+|-------|---------|
+| `.card` | Content sections with #f8f8f8 background |
+| `.button` | Gold (#B8860B) CTA buttons |
+| `.stat-grid` | Flex container for statistics |
+| `.stat-item` | Individual stat cards with gold values |
+| `.alert-card` | Warning sections with amber left border |
+| `.success-card` | Success sections with green left border |
+| `.info-card` | Information sections with gold left border |
+| `.tier-badge` | Gold pill badges |
+| `.progress-bar` | Gold gradient progress indicators |
+| `.encouragement` | Cream gradient highlight boxes |
 
 ### HTML Structure
 
 ```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Guild Hall - GM Daily Digest</title>
   <style>
-    /* Inline styles for email compatibility */
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 24px; border-radius: 8px 8px 0 0; }
-    .section { background: #f8fafc; padding: 16px; margin: 16px 0; border-radius: 8px; }
-    .stat { display: inline-block; text-align: center; padding: 8px 16px; }
-    .stat-value { font-size: 24px; font-weight: bold; color: #1e3a5f; }
-    .stat-label { font-size: 12px; color: #64748b; }
-    .alert { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin: 8px 0; }
-    .success { background: #dcfce7; border-left: 4px solid #22c55e; }
-    .button { display: inline-block; background: #1e3a5f; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #FDF8E8;  /* cream */
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #3D2E1F;  /* textDark */
+    }
+    .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+    .header {
+      background-color: #F5F0E6;
+      padding: 16px 24px;
+      border-bottom: 1px solid #E5DDD0;
+      text-align: center;
+    }
+    .button {
+      display: inline-block;
+      background-color: #B8860B;  /* gold */
+      color: #ffffff !important;
+      padding: 14px 28px;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: bold;
+      color: #B8860B;  /* gold */
+    }
+    .progress-fill {
+      background: linear-gradient(90deg, #B8860B, #C9A857);  /* gold gradient */
+    }
+    /* ... see email-templates.ts for full styles */
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- Header with logo -->
     <div class="header">
-      <h1>GM Daily Digest</h1>
-      <p>{{date}} - Guild Hall Activity Summary</p>
+      <span class="header-text">Guild Hall</span>
+      <img src="{{logo}}" alt="Logo" class="header-logo">
+      <span class="header-text">Agentics NZ</span>
     </div>
 
-    <!-- Activity Summary -->
-    <div class="section">
-      <h2>Activity Summary (Last 24h)</h2>
-      <div class="stats">
-        <div class="stat">
-          <div class="stat-value">{{newSubmissions}}</div>
-          <div class="stat-label">New Submissions</div>
-        </div>
-        <div class="stat">
-          <div class="stat-value">{{questsCompleted}}</div>
-          <div class="stat-label">Quests Completed</div>
-        </div>
-        <div class="stat">
-          <div class="stat-value">{{newUsers}}</div>
-          <div class="stat-label">New Members</div>
-        </div>
-      </div>
+    <div class="content">
+      <!-- Email content sections -->
     </div>
 
-    <!-- Pending Reviews -->
-    {{#if pendingReviews.length}}
-    <div class="section alert">
-      <h2>Pending Reviews ({{pendingReviews.length}})</h2>
-      <ul>
-        {{#each pendingReviews}}
-        <li><strong>{{userName}}</strong> - {{questTitle}} / {{objectiveTitle}} ({{hoursWaiting}}h ago)</li>
-        {{/each}}
-      </ul>
-      <a href="{{baseUrl}}/gm/review" class="button">Review Now</a>
-    </div>
-    {{/if}}
-
-    <!-- Upcoming Deadlines -->
-    {{#if upcomingDeadlines.length}}
-    <div class="section">
-      <h2>Upcoming Deadlines</h2>
-      <ul>
-        {{#each upcomingDeadlines}}
-        <li><strong>{{userName}}</strong> - {{questTitle}} ({{daysRemaining}} days)</li>
-        {{/each}}
-      </ul>
-    </div>
-    {{/if}}
-
-    <!-- Recent Completions -->
-    {{#if recentCompletions.length}}
-    <div class="section success">
-      <h2>Recent Completions</h2>
-      <ul>
-        {{#each recentCompletions}}
-        <li><strong>{{userName}}</strong> completed {{questTitle}} (+{{pointsEarned}} pts)</li>
-        {{/each}}
-      </ul>
-    </div>
-    {{/if}}
-
-    <!-- Quick Links -->
-    <div class="section">
-      <h2>Quick Links</h2>
+    <!-- Footer -->
+    <div class="footer">
+      <p>This email was sent by Guild Hall - Agentics NZ</p>
       <p>
-        <a href="{{baseUrl}}/gm/review">Review Submissions</a> |
-        <a href="{{baseUrl}}/gm/quests">Manage Quests</a> |
-        <a href="{{baseUrl}}/gm/users">View Users</a>
+        <a href="{{baseUrl}}/settings">Email Preferences</a> |
+        <a href="{{baseUrl}}">Visit Guild Hall</a>
       </p>
     </div>
-
-    <footer style="text-align: center; color: #94a3b8; font-size: 12px; padding: 20px;">
-      <p>Guild Hall - Agentics NZ</p>
-      <p><a href="{{baseUrl}}/gm/settings/email">Manage email preferences</a></p>
-    </footer>
   </div>
 </body>
 </html>
@@ -391,3 +402,4 @@ CREATE POLICY "gm_email_preferences_own" ON gm_email_preferences
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 2025-02-01 | Initial specification |
+| 1.1 | 2025-02-02 | Updated email template style guidelines with gold/cream branding |

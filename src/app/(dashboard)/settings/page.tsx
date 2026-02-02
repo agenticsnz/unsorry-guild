@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Clock, Globe, Mail, Bell, Save, User, Eye, EyeOff, Users } from 'lucide-react'
+import { Calendar, Clock, Globe, Mail, Bell, Save, User } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -17,7 +17,6 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import { useUserWeeklyEmailPrefs, useUpdateUserWeeklyEmailPrefs } from '@/lib/hooks/use-user-weekly-email-prefs'
 import { useUserStreak, useUpdateWeekendBehavior } from '@/lib/hooks/use-user-streak'
-import { useEngagementPreferences, useUpdateEngagementPreferences } from '@/lib/hooks/use-engagement-preferences'
 import { DAYS_OF_WEEK, type WeekendBehavior } from '@/lib/types/engagement'
 
 const TIMEZONES = [
@@ -110,16 +109,6 @@ export default function SettingsPage() {
   const { data: streakInfo, isLoading: loadingStreak } = useUserStreak(userId || undefined)
   const { mutate: updateWeekendBehavior, isPending: savingStreak } = useUpdateWeekendBehavior()
 
-  // Engagement/privacy preferences
-  const { data: engagementPrefs, isLoading: loadingEngagement } = useEngagementPreferences(userId || undefined)
-  const { mutate: updateEngagementPrefs, isPending: savingEngagement } = useUpdateEngagementPreferences()
-
-  const [privacyForm, setPrivacyForm] = useState({
-    show_activity_in_feed: true,
-    show_streak_publicly: true,
-    enable_nudge_banners: true,
-  })
-
   const [emailForm, setEmailForm] = useState(() => ({
     enabled: true,
     day_of_week: 1,
@@ -147,16 +136,6 @@ export default function SettingsPage() {
     }
   }, [streakInfo])
 
-  useEffect(() => {
-    if (engagementPrefs) {
-      setPrivacyForm({
-        show_activity_in_feed: engagementPrefs.show_activity_in_feed,
-        show_streak_publicly: engagementPrefs.show_streak_publicly,
-        enable_nudge_banners: engagementPrefs.enable_nudge_banners,
-      })
-    }
-  }, [engagementPrefs])
-
   const handleSaveEmail = () => {
     if (!userId) return
     updateEmailPrefs({
@@ -173,14 +152,6 @@ export default function SettingsPage() {
     })
   }
 
-  const handleSavePrivacy = () => {
-    if (!userId) return
-    updateEngagementPrefs({
-      userId,
-      preferences: privacyForm,
-    })
-  }
-
   if (!userId) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -189,18 +160,10 @@ export default function SettingsPage() {
     )
   }
 
-  const isLoading = loadingEmail || loadingStreak || loadingEngagement
-  const isSaving = savingEmail || savingStreak || savingEngagement
+  const isLoading = loadingEmail || loadingStreak
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground">
-          Manage your account preferences
-        </p>
-      </div>
-
       {isLoading ? (
         <div className="space-y-4">
           <Skeleton className="h-48 w-full" />
@@ -245,7 +208,10 @@ export default function SettingsPage() {
 
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-2">
-                  <Label htmlFor="day-of-week">Day of Week</Label>
+                  <Label htmlFor="day-of-week" className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Day of Week
+                  </Label>
                   <Select
                     value={emailForm.day_of_week.toString()}
                     onValueChange={(value) =>
@@ -364,80 +330,6 @@ export default function SettingsPage() {
               <Button onClick={handleSaveStreak} disabled={savingStreak}>
                 <Save className="mr-2 h-4 w-4" />
                 {savingStreak ? 'Saving...' : 'Save Streak Settings'}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Privacy Settings */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-teal-500" />
-                <CardTitle>Privacy Settings</CardTitle>
-              </div>
-              <CardDescription>
-                Control what information is shared with other guild members.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="share-activity" className="flex items-center gap-2">
-                    {privacyForm.show_activity_in_feed ? (
-                      <Eye className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    )}
-                    Share activity with guild members
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Show your quest completions and achievements in the guild activity feed
-                  </p>
-                </div>
-                <Switch
-                  id="share-activity"
-                  checked={privacyForm.show_activity_in_feed}
-                  onCheckedChange={(checked) =>
-                    setPrivacyForm(prev => ({ ...prev, show_activity_in_feed: checked }))
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="show-streak">Show streak on profile</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Display your activity streak on your public profile
-                  </p>
-                </div>
-                <Switch
-                  id="show-streak"
-                  checked={privacyForm.show_streak_publicly}
-                  onCheckedChange={(checked) =>
-                    setPrivacyForm(prev => ({ ...prev, show_streak_publicly: checked }))
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="enable-nudges">Enable nudge banners</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Show helpful reminders and suggestions on your dashboard
-                  </p>
-                </div>
-                <Switch
-                  id="enable-nudges"
-                  checked={privacyForm.enable_nudge_banners}
-                  onCheckedChange={(checked) =>
-                    setPrivacyForm(prev => ({ ...prev, enable_nudge_banners: checked }))
-                  }
-                />
-              </div>
-
-              <Button onClick={handleSavePrivacy} disabled={savingEngagement}>
-                <Save className="mr-2 h-4 w-4" />
-                {savingEngagement ? 'Saving...' : 'Save Privacy Settings'}
               </Button>
             </CardContent>
           </Card>

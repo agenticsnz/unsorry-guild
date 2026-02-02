@@ -1,178 +1,234 @@
 // Shared email template utilities for Edge Functions
 // ADR: ADR-012-Engagement-Improvements
+// Based on original send-email template style
+
+// Brand colors from the Guild Hall theme
+const BRAND = {
+  gold: '#B8860B',
+  cream: '#FDF8E8',
+  accentGold: '#C9A857',
+  textDark: '#3D2E1F',
+  success: '#16a34a',
+  warning: '#d97706',
+  error: '#dc2626',
+}
+
+const LOGO_URL = 'https://cdn.disco.co/media/agentics-logo-enhanced-removebg-preview_2949fb89-758d-4d9d-ae30-a51cea979427.png'
 
 /**
  * Base email wrapper with Guild Hall branding
+ * Matches the established send-email template style
  */
-export function emailWrapper(content: string, title: string): string {
+export function emailWrapper(content: string, title: string, previewText?: string): string {
   return `<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>${title}</title>
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-      line-height: 1.6;
-      color: #1e293b;
-      background-color: #f1f5f9;
       margin: 0;
       padding: 0;
+      background-color: ${BRAND.cream};
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: ${BRAND.textDark};
     }
     .container {
       max-width: 600px;
       margin: 0 auto;
-      padding: 20px;
+      background-color: #ffffff;
     }
     .header {
-      background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
-      color: white;
-      padding: 32px;
-      border-radius: 12px 12px 0 0;
+      background-color: #F5F0E6;
+      padding: 16px 24px;
+      border-bottom: 1px solid #E5DDD0;
       text-align: center;
     }
-    .header h1 {
-      margin: 0 0 8px 0;
-      font-size: 24px;
+    .header-text {
+      font-size: 18px;
       font-weight: 600;
+      color: ${BRAND.textDark};
     }
-    .header p {
+    .header-logo {
+      height: 28px;
+      vertical-align: middle;
+      margin: 0 8px;
+    }
+    .content {
+      padding: 32px 24px;
+      color: ${BRAND.textDark};
+    }
+    .hero {
+      text-align: center;
+      padding: 24px 0;
+    }
+    .hero-icon {
+      font-size: 48px;
+    }
+    .hero-text {
+      font-size: 28px;
+      font-weight: bold;
+      color: ${BRAND.textDark};
+      margin: 16px 0 8px 0;
+    }
+    .hero-subtitle {
+      font-size: 16px;
+      color: #666666;
       margin: 0;
-      opacity: 0.9;
-      font-size: 14px;
     }
     .card {
-      background: white;
-      border-radius: 12px;
-      padding: 24px;
+      background: #f8f8f8;
+      border-radius: 8px;
+      padding: 20px;
       margin: 16px 0;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
     .section-title {
       font-size: 12px;
       font-weight: 600;
-      color: #64748b;
+      color: #888888;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin: 0 0 12px 0;
     }
     .button {
       display: inline-block;
-      background: #1e3a5f;
-      color: white !important;
-      padding: 12px 24px;
-      border-radius: 6px;
+      background-color: ${BRAND.gold};
+      color: #ffffff !important;
+      padding: 14px 28px;
       text-decoration: none;
-      font-weight: 500;
-      margin-top: 12px;
-    }
-    .button:hover {
-      background: #2d5a87;
+      border-radius: 6px;
+      font-weight: 600;
+      margin: 16px 0;
     }
     .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin: 16px 0;
     }
     .stat-item {
       text-align: center;
-      padding: 16px 12px;
-      background: #f8fafc;
+      padding: 16px;
+      background: #ffffff;
       border-radius: 8px;
+      min-width: 100px;
     }
     .stat-value {
       font-size: 28px;
       font-weight: bold;
-      color: #1e3a5f;
+      color: ${BRAND.gold};
     }
     .stat-label {
       font-size: 12px;
-      color: #64748b;
+      color: #666666;
       margin-top: 4px;
     }
     .alert-card {
-      background: #fef3c7;
-      border-left: 4px solid #f59e0b;
-      border-radius: 0 12px 12px 0;
+      background: #FEF9E7;
+      border-left: 4px solid ${BRAND.warning};
+      border-radius: 0 8px 8px 0;
       padding: 16px 20px;
       margin: 16px 0;
     }
     .success-card {
-      background: #dcfce7;
-      border-left: 4px solid #22c55e;
-      border-radius: 0 12px 12px 0;
+      background: #E8F5E9;
+      border-left: 4px solid ${BRAND.success};
+      border-radius: 0 8px 8px 0;
       padding: 16px 20px;
       margin: 16px 0;
     }
     .info-card {
-      background: #f0f9ff;
-      border: 2px solid #0ea5e9;
-      border-radius: 8px;
-      padding: 16px;
+      background: #f5f5f5;
+      border-left: 4px solid ${BRAND.gold};
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin: 16px 0;
     }
     .info-card h3 {
       margin: 0 0 8px 0;
-      color: #0369a1;
+      color: ${BRAND.textDark};
       font-size: 16px;
     }
     .list-item {
       padding: 12px 0;
-      border-bottom: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e5e5e5;
     }
     .list-item:last-child {
       border-bottom: none;
     }
     .muted {
-      color: #64748b;
+      color: #666666;
       font-size: 14px;
     }
     .footer {
+      background-color: #f5f5f5;
       text-align: center;
-      color: #94a3b8;
+      color: #666666;
       font-size: 12px;
       padding: 24px 20px;
     }
     .footer a {
-      color: #64748b;
+      color: #666666;
       text-decoration: underline;
     }
     .progress-bar {
       height: 8px;
-      background: #e2e8f0;
+      background: #e5e5e5;
       border-radius: 4px;
       overflow: hidden;
       margin: 8px 0;
     }
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, #22c55e, #16a34a);
+      background: linear-gradient(90deg, ${BRAND.gold}, ${BRAND.accentGold});
       border-radius: 4px;
     }
     .encouragement {
-      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      background: linear-gradient(135deg, #FEF9E7 0%, #FDF5D6 100%);
       padding: 20px;
-      border-radius: 12px;
+      border-radius: 8px;
       text-align: center;
+      margin: 16px 0;
     }
     .tier-badge {
       display: inline-block;
       padding: 4px 12px;
-      background: #1e3a5f;
+      background: ${BRAND.gold};
       color: white;
       border-radius: 16px;
       font-size: 12px;
       font-weight: 500;
     }
+    @media only screen and (max-width: 600px) {
+      .content { padding: 24px 16px; }
+      .stat-grid { flex-direction: column; gap: 12px; }
+      .stat-item { min-width: auto; }
+    }
   </style>
 </head>
 <body>
+  ${previewText ? `<div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">${previewText}</div>` : ''}
+
   <div class="container">
-    ${content}
+    <div class="header">
+      <span class="header-text">Guild Hall</span>
+      <img src="${LOGO_URL}" alt="Logo" class="header-logo">
+      <span class="header-text">Agentics NZ</span>
+    </div>
+
+    <div class="content">
+      ${content}
+    </div>
+
     <div class="footer">
-      <p>Guild Hall - Agentics NZ</p>
+      <p>This email was sent by Guild Hall - Agentics NZ</p>
       <p>
-        <a href="{{baseUrl}}/settings">Manage email preferences</a>
+        <a href="{{baseUrl}}/settings">Email Preferences</a> |
+        <a href="{{baseUrl}}">Visit Guild Hall</a>
       </p>
     </div>
   </div>

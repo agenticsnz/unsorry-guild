@@ -163,7 +163,7 @@ export function GMHeader() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/settings/privacy" className="cursor-pointer flex items-center gap-2">
+                  <Link href="/settings" className="cursor-pointer flex items-center gap-2">
                     <Settings className="h-4 w-4" />
                     Settings
                   </Link>

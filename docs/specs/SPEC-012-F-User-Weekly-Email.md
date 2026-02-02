@@ -113,7 +113,7 @@ function getRecommendedAction(context: UserContext): RecommendedAction | null {
     return {
       priority: 'approved_ready',
       message: `You have ${context.approvedObjectivesCount} objective(s) approved and ready to continue!`,
-      actionUrl: '/quests/active',
+      actionUrl: '/my-quests',
       actionLabel: 'Continue Quest'
     }
   }
@@ -190,132 +190,31 @@ Personalized message based on activity:
 
 ## Email Template
 
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Guild Hall - Your Weekly Progress</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f1f5f9; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .card { background: white; border-radius: 12px; padding: 24px; margin: 16px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .header { background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 32px; border-radius: 12px; text-align: center; }
-    .header h1 { margin: 0 0 8px 0; }
-    .header p { margin: 0; opacity: 0.9; }
-    .section-title { font-size: 14px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
-    .action-card { background: #f0f9ff; border: 2px solid #0ea5e9; border-radius: 8px; padding: 16px; }
-    .action-card h3 { margin: 0 0 8px 0; color: #0369a1; }
-    .button { display: inline-block; background: #1e3a5f; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 500; }
-    .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .stat-item { text-align: center; padding: 12px; background: #f8fafc; border-radius: 8px; }
-    .stat-value { font-size: 24px; font-weight: bold; color: #1e3a5f; }
-    .stat-label { font-size: 12px; color: #64748b; }
-    .encouragement { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 16px; border-radius: 8px; text-align: center; }
-    .next-step { padding: 12px; border-bottom: 1px solid #e2e8f0; }
-    .next-step:last-child { border-bottom: none; }
-    .tier-progress { background: #f8fafc; padding: 16px; border-radius: 8px; }
-    .progress-bar { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin: 8px 0; }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, #22c55e, #16a34a); border-radius: 4px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <!-- Header -->
-    <div class="header">
-      <h1>Your Weekly Progress</h1>
-      <p>Week of {{weekStart}} - {{weekEnd}}</p>
-    </div>
+> **Note:** All email templates use the shared Guild Hall branding defined in
+> `supabase/functions/_shared/email-templates.ts`. See [SPEC-012-E](./SPEC-012-E-GM-Digest-Email.md#email-template-style-guidelines)
+> for complete style guidelines including brand colors (gold/cream), logo, and component classes.
 
-    <!-- Greeting -->
-    <div class="card">
-      <p style="font-size: 18px;">Kia ora, {{displayName}}!</p>
-      <p>{{encouragementMessage}}</p>
-    </div>
+### Key URLs
 
-    <!-- Recommended Action (if any) -->
-    {{#if recommendedAction}}
-    <div class="card">
-      <div class="section-title">Recommended Action</div>
-      <div class="action-card">
-        <h3>{{recommendedAction.message}}</h3>
-        <a href="{{baseUrl}}{{recommendedAction.actionUrl}}" class="button">{{recommendedAction.actionLabel}}</a>
-      </div>
-    </div>
-    {{/if}}
+| Action | URL |
+|--------|-----|
+| View Active Quests | `/my-quests` |
+| View Quest Details | `/quests/{quest_id}` |
+| Email Preferences | `/settings` |
+| Visit Guild Hall | `/` |
 
-    <!-- Next Steps (if any) -->
-    {{#if nextSteps.length}}
-    <div class="card">
-      <div class="section-title">Ready to Continue</div>
-      {{#each nextSteps}}
-      <div class="next-step">
-        <strong>{{questTitle}}</strong>
-        <br>
-        <span style="color: #64748b;">{{objectiveTitle}} ({{questProgress}})</span>
-      </div>
-      {{/each}}
-      <a href="{{baseUrl}}/quests/active" class="button" style="margin-top: 12px;">View Active Quests</a>
-    </div>
-    {{/if}}
+### Template Structure
 
-    <!-- Weekly Stats -->
-    <div class="card">
-      <div class="section-title">This Week's Progress</div>
-      <div class="stat-grid">
-        <div class="stat-item">
-          <div class="stat-value">{{progress.objectivesSubmitted}}</div>
-          <div class="stat-label">Objectives Submitted</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">{{progress.objectivesApproved}}</div>
-          <div class="stat-label">Objectives Approved</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">{{progress.questsCompleted}}</div>
-          <div class="stat-label">Quests Completed</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">+{{progress.pointsEarned}}</div>
-          <div class="stat-label">Points Earned</div>
-        </div>
-      </div>
-    </div>
+The weekly email uses the shared `emailWrapper()` function and includes:
 
-    <!-- Tier Progress -->
-    {{#if tierProgress.nextTier}}
-    <div class="card">
-      <div class="section-title">Tier Progress</div>
-      <div class="tier-progress">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span>{{tierProgress.currentTier}}</span>
-          <span style="color: #64748b;">{{tierProgress.pointsToNext}} pts to {{tierProgress.nextTier}}</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: {{tierProgress.progressPercent}}%"></div>
-        </div>
-      </div>
-    </div>
-    {{/if}}
-
-    <!-- Streak -->
-    {{#if progress.currentStreak}}
-    <div class="card encouragement">
-      <span style="font-size: 32px;">🔥</span>
-      <p style="margin: 8px 0 0 0; font-weight: 600;">{{progress.currentStreak}} Day Streak!</p>
-    </div>
-    {{/if}}
-
-    <!-- Footer -->
-    <footer style="text-align: center; color: #94a3b8; font-size: 12px; padding: 20px;">
-      <p>Guild Hall - Agentics NZ</p>
-      <p><a href="{{baseUrl}}/settings">Manage email preferences</a></p>
-    </footer>
-  </div>
-</body>
-</html>
-```
+1. **Header**: Guild Hall + Agentics NZ branding with logo
+2. **Greeting**: Personalized "Kia ora, {name}!" with encouragement message
+3. **Recommended Action**: Uses shared nudge priority logic (DRY)
+4. **Next Steps**: Approved objectives ready to continue
+5. **Weekly Stats**: Grid of objectives/quests/points
+6. **Tier Progress**: Progress bar toward next tier
+7. **Streak Badge**: Displayed if user has active streak
+8. **Footer**: Email preferences and site links
 
 ---
 
@@ -567,3 +466,4 @@ CREATE POLICY "user_weekly_email_prefs_gm_select" ON user_weekly_email_prefs
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 2025-02-01 | Initial specification |
+| 1.1 | 2025-02-02 | Updated email template to reference shared style guidelines; fixed URL from /quests/active to /my-quests |
