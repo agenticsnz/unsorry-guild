@@ -58,13 +58,18 @@ async function fetchQuestRecommendation(userId: string): Promise<QuestRecommenda
   )
 
   // Strategy 1: Featured quests not yet accepted
-  const { data: featuredQuestsData } = await supabase
+  let featuredQuery = supabase
     .from('quests')
     .select('id, title, category_id')
     .eq('status', 'published')
     .eq('featured', true)
-    .not('id', 'in', `(${acceptedQuestIds.length > 0 ? acceptedQuestIds.map(id => `'${id}'`).join(',') : "''"})`)
-    .limit(10)
+
+  // Only add NOT IN filter if there are quests to exclude
+  if (acceptedQuestIds.length > 0) {
+    featuredQuery = featuredQuery.not('id', 'in', `(${acceptedQuestIds.join(',')})`)
+  }
+
+  const { data: featuredQuestsData } = await featuredQuery.limit(10)
 
   const featuredQuests = featuredQuestsData as Array<{ id: string; title: string; category_id: string }> | null
 
@@ -89,13 +94,17 @@ async function fetchQuestRecommendation(userId: string): Promise<QuestRecommenda
   // Strategy 2: Quests in familiar categories
   if (completedCategories.size > 0) {
     const categoryIds = Array.from(completedCategories)
-    const { data: categoryQuestsData } = await supabase
+    let categoryQuery = supabase
       .from('quests')
       .select('id, title')
       .eq('status', 'published')
       .in('category_id', categoryIds)
-      .not('id', 'in', `(${acceptedQuestIds.length > 0 ? acceptedQuestIds.map(id => `'${id}'`).join(',') : "''"})`)
-      .limit(10)
+
+    if (acceptedQuestIds.length > 0) {
+      categoryQuery = categoryQuery.not('id', 'in', `(${acceptedQuestIds.join(',')})`)
+    }
+
+    const { data: categoryQuestsData } = await categoryQuery.limit(10)
 
     const categoryQuests = categoryQuestsData as Array<{ id: string; title: string }> | null
 
@@ -115,11 +124,16 @@ async function fetchQuestRecommendation(userId: string): Promise<QuestRecommenda
   }
 
   // Strategy 3: Any available quests (not accepted, not locked)
-  const { data: availableQuestsData } = await supabase
+  let availableQuery = supabase
     .from('quests')
     .select('id, title')
     .eq('status', 'published')
-    .not('id', 'in', `(${acceptedQuestIds.length > 0 ? acceptedQuestIds.map(id => `'${id}'`).join(',') : "''"})`)
+
+  if (acceptedQuestIds.length > 0) {
+    availableQuery = availableQuery.not('id', 'in', `(${acceptedQuestIds.join(',')})`)
+  }
+
+  const { data: availableQuestsData } = await availableQuery
     .order('created_at', { ascending: true }) // Older quests likely more popular
     .limit(10)
 
