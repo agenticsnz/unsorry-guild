@@ -95,6 +95,12 @@ interface TierInfo {
   progressPercent: number
 }
 
+interface TierConfig {
+  id: string
+  name: string
+  min_points: number
+}
+
 async function sendEmailViaMailjet(
   email: string,
   name: string,
@@ -276,17 +282,19 @@ export async function POST() {
     }
 
     // Get tier config for tier calculations
-    const { data: tiers } = await supabase
+    const { data: tiersData } = await supabase
       .from('skill_tier_config')
-      .select('*')
+      .select('id, name, min_points')
       .order('min_points', { ascending: true })
 
+    const tiers: TierConfig[] = (tiersData as TierConfig[]) || []
+
     const getTierInfo = (points: number): TierInfo => {
-      if (!tiers || tiers.length === 0) {
+      if (tiers.length === 0) {
         return { currentTier: 'Apprentice', nextTier: 'Journeyman', pointsToNext: 300 - points, progressPercent: Math.min(100, (points / 300) * 100) }
       }
       let currentTier = tiers[0]
-      let nextTier = tiers[1] || null
+      let nextTier: TierConfig | null = tiers[1] || null
       for (let i = tiers.length - 1; i >= 0; i--) {
         if (points >= tiers[i].min_points) {
           currentTier = tiers[i]
