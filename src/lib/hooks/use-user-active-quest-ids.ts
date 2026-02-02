@@ -53,6 +53,30 @@ async function fetchUserAllQuestIds(userId: string): Promise<Set<string>> {
 }
 
 /**
+ * Fetch user quest statuses (questId -> status mapping)
+ */
+async function fetchUserQuestStatuses(userId: string): Promise<Map<string, { userQuestId: string; status: string }>> {
+  const supabase = createClient()
+
+  const { data, error } = await supabase
+    .from('user_quests')
+    .select('id, quest_id, status')
+    .eq('user_id', userId)
+
+  if (error) {
+    console.error('Error fetching user quest statuses:', error)
+    return new Map()
+  }
+
+  return new Map(
+    ((data || []) as UserQuestResult[]).map((item) => [
+      item.quest_id,
+      { userQuestId: item.id, status: item.status }
+    ])
+  )
+}
+
+/**
  * Hook to get the quest IDs that the current user is actively taking
  * Returns a map of questId -> userQuestId for quick lookup
  */
@@ -89,6 +113,26 @@ export function useUserAllQuestIds() {
       }
 
       return fetchUserAllQuestIds(user.id)
+    },
+  })
+}
+
+/**
+ * Hook to get user quest statuses (questId -> {userQuestId, status})
+ * Used to show proper status badges on quest cards
+ */
+export function useUserQuestStatuses() {
+  return useQuery({
+    queryKey: ['userQuestStatuses'],
+    queryFn: async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        return new Map<string, { userQuestId: string; status: string }>()
+      }
+
+      return fetchUserQuestStatuses(user.id)
     },
   })
 }

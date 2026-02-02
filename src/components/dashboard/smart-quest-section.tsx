@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { QuestList } from '@/components/quests/quest-list'
 import { useFeaturedQuests } from '@/lib/hooks/use-featured-quests'
-import { useUserActiveQuestIds, useUserAllQuestIds } from '@/lib/hooks/use-user-active-quest-ids'
+import { useUserActiveQuestIds, useUserAllQuestIds, useUserQuestStatuses } from '@/lib/hooks/use-user-active-quest-ids'
 
 interface SmartQuestSectionProps {
   activeQuests: Array<{
@@ -33,6 +33,7 @@ export function SmartQuestSection({ activeQuests, isLoading }: SmartQuestSection
   const { data: featuredQuests, isLoading: loadingFeatured } = useFeaturedQuests()
   const { data: activeQuestIds } = useUserActiveQuestIds()
   const { data: allUserQuestIds } = useUserAllQuestIds()
+  const { data: userQuestStatuses } = useUserQuestStatuses()
 
   const hasActiveQuests = activeQuests.length > 0
 
@@ -122,6 +123,7 @@ export function SmartQuestSection({ activeQuests, isLoading }: SmartQuestSection
                   quests={availableFeaturedQuests}
                   isLoading={false}
                   activeQuestIds={activeQuestIds}
+                  userQuestStatuses={userQuestStatuses}
                 />
               )}
             </TabsContent>
@@ -150,6 +152,7 @@ export function SmartQuestSection({ activeQuests, isLoading }: SmartQuestSection
                 quests={availableFeaturedQuests}
                 isLoading={false}
                 activeQuestIds={activeQuestIds}
+                userQuestStatuses={userQuestStatuses}
               />
             )}
           </>
