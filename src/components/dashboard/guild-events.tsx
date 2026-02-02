@@ -192,14 +192,28 @@ export function GuildEvents({ feedUrl, className }: GuildEventsProps) {
     async function fetchEvents() {
       if (!feedUrl) {
         setIsLoading(false)
+        setEvents([]) // No events to show
         return
       }
 
       try {
-        const response = await fetch(feedUrl)
+        // Use our API route to proxy the ICS feed (avoids CORS issues)
+        const proxyUrl = `/api/events/feed?url=${encodeURIComponent(feedUrl)}`
+        const response = await fetch(proxyUrl)
+
         if (!response.ok) {
-          throw new Error('Failed to fetch events')
+          // If proxy fails, try direct fetch as fallback
+          const directResponse = await fetch(feedUrl)
+          if (!directResponse.ok) {
+            throw new Error('Failed to fetch events')
+          }
+          const icsContent = await directResponse.text()
+          const parsedEvents = parseICSContent(icsContent)
+          setEvents(parsedEvents.slice(0, 5))
+          setError(null)
+          return
         }
+
         const icsContent = await response.text()
         const parsedEvents = parseICSContent(icsContent)
         setEvents(parsedEvents.slice(0, 5)) // Limit to 5 upcoming events

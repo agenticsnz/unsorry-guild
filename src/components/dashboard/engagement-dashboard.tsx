@@ -131,13 +131,13 @@ export function EngagementDashboard({
                   value={stats.activeQuests}
                   badge={
                     stats.approvedObjectives > 0
-                      ? `${stats.approvedObjectives} ready`
+                      ? `${stats.approvedObjectives} objectives ready`
                       : undefined
                   }
                   badgeVariant={stats.approvedObjectives > 0 ? 'default' : 'secondary'}
                   description={
                     stats.pendingObjectives > 0
-                      ? `${stats.pendingObjectives} pending review`
+                      ? `${stats.pendingObjectives} objectives pending review`
                       : 'Quests in progress'
                   }
                   href="/my-quests"

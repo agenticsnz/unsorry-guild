@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { QuestList } from '@/components/quests/quest-list'
 import { QuestFilters } from '@/components/quests/quest-filters'
 import { QuestSearch } from '@/components/quests/quest-search'
@@ -9,6 +9,7 @@ import { useQuests } from '@/lib/hooks/use-quests'
 import { useCategories } from '@/lib/hooks/use-categories'
 import { useDebounce } from '@/lib/hooks/use-debounce'
 import { useUserActiveQuestIds, useUserQuestStatuses } from '@/lib/hooks/use-user-active-quest-ids'
+import { useAllQuestPrerequisites } from '@/lib/hooks/use-all-quest-prerequisites'
 import type { QuestDifficulty } from '@/lib/types/quest'
 
 export default function QuestsPage() {
@@ -25,6 +26,10 @@ export default function QuestsPage() {
   })
   const { data: activeQuestIds } = useUserActiveQuestIds()
   const { data: userQuestStatuses } = useUserQuestStatuses()
+
+  // Get quest IDs for prerequisite lookup
+  const questIds = useMemo(() => quests?.map(q => q.id) || [], [quests])
+  const { data: questLockStatuses } = useAllQuestPrerequisites(questIds)
 
   return (
     <div className="space-y-6">
@@ -69,6 +74,7 @@ export default function QuestsPage() {
           isLoading={questsLoading}
           activeQuestIds={activeQuestIds}
           userQuestStatuses={userQuestStatuses}
+          questLockStatuses={questLockStatuses}
         />
       )}
     </div>

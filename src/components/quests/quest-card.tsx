@@ -142,45 +142,9 @@ export function QuestCard({ quest, className, userQuestId, userQuestStatus, isLo
         )}
       >
         <CardHeader className="pb-3">
-          <div className="flex gap-4">
-            {/* Left column: title and badges */}
-            <div className="flex-1 min-w-0 relative z-10">
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="flex items-center gap-2 flex-wrap relative z-10">
-                  {quest.category && <CategoryBadge category={quest.category} />}
-                  {quest.difficulty && <DifficultyBadge difficulty={quest.difficulty} />}
-                  {userQuestId && !userQuestStatus && (
-                    <Badge variant="default" className="bg-green-600 hover:bg-green-600">
-                      <Play className="h-3 w-3 mr-1" />
-                      Active
-                    </Badge>
-                  )}
-                  {userQuestStatus && (
-                    <Badge
-                      variant={getUserQuestStatusDisplay(userQuestStatus).variant}
-                      className={getUserQuestStatusDisplay(userQuestStatus).className}
-                    >
-                      {getUserQuestStatusDisplay(userQuestStatus).icon}
-                      {getUserQuestStatusDisplay(userQuestStatus).label}
-                    </Badge>
-                  )}
-                </div>
-                {isLocked && (
-                  <Badge variant="outline" className="text-muted-foreground border-muted-foreground/50">
-                    <Lock className="h-3 w-3 mr-1" />
-                    Locked
-                  </Badge>
-                )}
-                {!userQuestId && !userQuestStatus && !isLocked && (
-                  <QuestStatusBadge
-                    status={displayStatus}
-                    isExclusive={'is_exclusive' in quest ? quest.is_exclusive : false}
-                  />
-                )}
-              </div>
-              <CardTitle className="text-lg leading-tight">{quest.title}</CardTitle>
-            </div>
-            {/* Right column: badge image */}
+          {/* Row 1: Title and badge image */}
+          <div className="flex gap-4 items-start mb-2">
+            <CardTitle className="flex-1 text-lg leading-tight">{quest.title}</CardTitle>
             {quest.badge_url && (
               <div className="flex-shrink-0">
                 <div className="w-16 h-16 relative">
@@ -192,6 +156,38 @@ export function QuestCard({ quest, className, userQuestId, userQuestStatus, isLo
                   />
                 </div>
               </div>
+            )}
+          </div>
+          {/* Row 2: Tags and status badges */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {quest.category && <CategoryBadge category={quest.category} />}
+            {quest.difficulty && <DifficultyBadge difficulty={quest.difficulty} />}
+            {userQuestId && !userQuestStatus && (
+              <Badge variant="default" className="bg-green-600 hover:bg-green-600">
+                <Play className="h-3 w-3 mr-1" />
+                Active
+              </Badge>
+            )}
+            {userQuestStatus && (
+              <Badge
+                variant={getUserQuestStatusDisplay(userQuestStatus).variant}
+                className={getUserQuestStatusDisplay(userQuestStatus).className}
+              >
+                {getUserQuestStatusDisplay(userQuestStatus).icon}
+                {getUserQuestStatusDisplay(userQuestStatus).label}
+              </Badge>
+            )}
+            {isLocked && (
+              <Badge variant="outline" className="text-muted-foreground border-muted-foreground/50">
+                <Lock className="h-3 w-3 mr-1" />
+                Locked
+              </Badge>
+            )}
+            {!userQuestId && !userQuestStatus && !isLocked && (
+              <QuestStatusBadge
+                status={displayStatus}
+                isExclusive={'is_exclusive' in quest ? quest.is_exclusive : false}
+              />
             )}
           </div>
         </CardHeader>

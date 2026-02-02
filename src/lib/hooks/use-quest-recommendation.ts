@@ -11,11 +11,34 @@ interface RecommendationResult {
 }
 
 /**
+ * Check if user can accept a quest (all prerequisites completed)
+ */
+async function canAcceptQuest(supabase: ReturnType<typeof createClient>, userId: string, questId: string): Promise<boolean> {
+  try {
+    const { data, error } = await (supabase.rpc as CallableFunction)(
+      'can_accept_quest',
+      { p_user_id: userId, p_quest_id: questId }
+    )
+
+    if (error) {
+      // Function might not exist, assume can accept
+      return true
+    }
+
+    return data as boolean
+  } catch {
+    return true // Assume can accept if function doesn't exist
+  }
+}
+
+/**
  * Fetch quest recommendation for a user
  * Prioritizes:
- * 1. Featured quests user hasn't started
+ * 1. Featured quests user hasn't started (and can accept)
  * 2. Quests in categories user has completed before (familiarity)
  * 3. Most popular quests by acceptance rate
+ *
+ * Excludes quests that are locked by prerequisites
  */
 async function fetchQuestRecommendation(userId: string): Promise<QuestRecommendation | null> {
   const supabase = createClient()
@@ -23,13 +46,14 @@ async function fetchQuestRecommendation(userId: string): Promise<QuestRecommenda
   // Get user's quest history to determine preferences
   const { data: userQuestsData } = await supabase
     .from('user_quests')
-    .select('quest_id, quests!inner(category_id)')
+    .select('quest_id, status, quests!inner(category_id)')
     .eq('user_id', userId)
 
-  const userQuests = userQuestsData as Array<{ quest_id: string; quests: { category_id: string } }> | null
+  const userQuests = userQuestsData as Array<{ quest_id: string; status: string; quests: { category_id: string } }> | null
   const acceptedQuestIds = userQuests?.map(uq => uq.quest_id) || []
+  const completedQuestIds = userQuests?.filter(uq => uq.status === 'completed').map(uq => uq.quest_id) || []
   const completedCategories = new Set(
-    userQuests?.map((uq: any) => uq.quests?.category_id).filter(Boolean)
+    userQuests?.filter(uq => uq.status === 'completed').map((uq: any) => uq.quests?.category_id).filter(Boolean)
   )
 
   // Strategy 1: Featured quests not yet accepted
@@ -39,29 +63,25 @@ async function fetchQuestRecommendation(userId: string): Promise<QuestRecommenda
     .eq('status', 'published')
     .eq('featured', true)
     .not('id', 'in', `(${acceptedQuestIds.length > 0 ? acceptedQuestIds.map(id => `'${id}'`).join(',') : "''"})`)
-    .limit(5)
+    .limit(10)
 
   const featuredQuests = featuredQuestsData as Array<{ id: string; title: string; category_id: string }> | null
 
   if (featuredQuests && featuredQuests.length > 0) {
-    // Prefer featured quests in familiar categories
-    const familiarFeatured = featuredQuests.find(q => completedCategories.has(q.category_id))
-
-    if (familiarFeatured) {
-      return {
-        quest_id: familiarFeatured.id,
-        quest_title: familiarFeatured.title,
-        reason: 'Featured quest in a category you\'ve explored',
-        match_score: 0.9,
+    // Filter to only quests user can accept (not locked by prerequisites)
+    for (const quest of featuredQuests) {
+      const canAccept = await canAcceptQuest(supabase, userId, quest.id)
+      if (canAccept) {
+        const isFamiliar = completedCategories.has(quest.category_id)
+        return {
+          quest_id: quest.id,
+          quest_title: quest.title,
+          reason: isFamiliar
+            ? 'Featured quest in a category you\'ve explored'
+            : 'Featured guild quest',
+          match_score: isFamiliar ? 0.9 : 0.8,
+        }
       }
-    }
-
-    // Otherwise, return first featured quest
-    return {
-      quest_id: featuredQuests[0].id,
-      quest_title: featuredQuests[0].title,
-      reason: 'Featured guild quest',
-      match_score: 0.8,
     }
   }
 
@@ -74,37 +94,47 @@ async function fetchQuestRecommendation(userId: string): Promise<QuestRecommenda
       .eq('status', 'published')
       .in('category_id', categoryIds)
       .not('id', 'in', `(${acceptedQuestIds.length > 0 ? acceptedQuestIds.map(id => `'${id}'`).join(',') : "''"})`)
-      .limit(3)
+      .limit(10)
 
     const categoryQuests = categoryQuestsData as Array<{ id: string; title: string }> | null
 
     if (categoryQuests && categoryQuests.length > 0) {
-      return {
-        quest_id: categoryQuests[0].id,
-        quest_title: categoryQuests[0].title,
-        reason: 'Quest in a familiar category',
-        match_score: 0.7,
+      for (const quest of categoryQuests) {
+        const canAccept = await canAcceptQuest(supabase, userId, quest.id)
+        if (canAccept) {
+          return {
+            quest_id: quest.id,
+            quest_title: quest.title,
+            reason: 'Quest in a familiar category',
+            match_score: 0.7,
+          }
+        }
       }
     }
   }
 
-  // Strategy 3: Popular quests (most accepted)
-  const { data: popularQuestsData } = await supabase
+  // Strategy 3: Any available quests (not accepted, not locked)
+  const { data: availableQuestsData } = await supabase
     .from('quests')
     .select('id, title')
     .eq('status', 'published')
     .not('id', 'in', `(${acceptedQuestIds.length > 0 ? acceptedQuestIds.map(id => `'${id}'`).join(',') : "''"})`)
     .order('created_at', { ascending: true }) // Older quests likely more popular
-    .limit(3)
+    .limit(10)
 
-  const popularQuests = popularQuestsData as Array<{ id: string; title: string }> | null
+  const availableQuests = availableQuestsData as Array<{ id: string; title: string }> | null
 
-  if (popularQuests && popularQuests.length > 0) {
-    return {
-      quest_id: popularQuests[0].id,
-      quest_title: popularQuests[0].title,
-      reason: 'Popular guild quest',
-      match_score: 0.5,
+  if (availableQuests && availableQuests.length > 0) {
+    for (const quest of availableQuests) {
+      const canAccept = await canAcceptQuest(supabase, userId, quest.id)
+      if (canAccept) {
+        return {
+          quest_id: quest.id,
+          quest_title: quest.title,
+          reason: 'Available guild quest',
+          match_score: 0.5,
+        }
+      }
     }
   }
 

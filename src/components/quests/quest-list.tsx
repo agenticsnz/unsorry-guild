@@ -2,8 +2,13 @@
 
 import { ScrollText } from 'lucide-react'
 import { QuestCard } from './quest-card'
-import type { Quest } from '@/lib/types/quest'
+import type { Quest, QuestPrerequisite } from '@/lib/types/quest'
 import { cn } from '@/lib/utils'
+
+interface QuestLockStatus {
+  isLocked: boolean
+  incompletePrerequisites: QuestPrerequisite[]
+}
 
 interface QuestListProps {
   quests: Quest[]
@@ -13,6 +18,8 @@ interface QuestListProps {
   activeQuestIds?: Map<string, string>
   /** Map of questId -> {userQuestId, status} for all user quests */
   userQuestStatuses?: Map<string, { userQuestId: string; status: string }>
+  /** Map of questId -> lock status with incomplete prerequisites */
+  questLockStatuses?: Map<string, QuestLockStatus>
 }
 
 function QuestListSkeleton() {
@@ -53,7 +60,7 @@ function EmptyState() {
   )
 }
 
-export function QuestList({ quests, isLoading, className, activeQuestIds, userQuestStatuses }: QuestListProps) {
+export function QuestList({ quests, isLoading, className, activeQuestIds, userQuestStatuses, questLockStatuses }: QuestListProps) {
   if (isLoading) {
     return <QuestListSkeleton />
   }
@@ -66,12 +73,15 @@ export function QuestList({ quests, isLoading, className, activeQuestIds, userQu
     <div className={cn('grid gap-4 sm:grid-cols-2 lg:grid-cols-3', className)}>
       {quests.map((quest) => {
         const userQuest = userQuestStatuses?.get(quest.id)
+        const lockStatus = questLockStatuses?.get(quest.id)
         return (
           <QuestCard
             key={quest.id}
             quest={quest}
             userQuestId={userQuest?.userQuestId || activeQuestIds?.get(quest.id)}
             userQuestStatus={userQuest?.status as any}
+            isLocked={lockStatus?.isLocked}
+            incompletePrerequisites={lockStatus?.incompletePrerequisites}
           />
         )
       })}
