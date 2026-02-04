@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { QuestList } from '@/components/quests/quest-list'
+import { SideQuestSection } from '@/components/quests/side-quest-section'
 import { QuestFilters } from '@/components/quests/quest-filters'
 import { QuestSearch } from '@/components/quests/quest-search'
 import { DifficultyFilter } from '@/components/quests/difficulty-filter'
@@ -84,15 +85,46 @@ export default function QuestsPage() {
           </p>
         </div>
       ) : (
-        <QuestList
-          quests={quests || []}
-          isLoading={questsLoading}
-          activeQuestIds={activeQuestIds}
-          userQuestStatuses={userQuestStatuses}
-          questLockStatuses={questLockStatuses}
-          hideCompleted={hideCompleted}
-          sortByLockedStatus={true}
-        />
+        <>
+          {/* Mobile: Side Quests above main quests */}
+          <div className="lg:hidden">
+            <SideQuestSection
+              quests={quests || []}
+              isLoading={questsLoading}
+              activeQuestIds={activeQuestIds}
+              userQuestStatuses={userQuestStatuses}
+              questLockStatuses={questLockStatuses}
+              hideCompleted={hideCompleted}
+              className="mb-8"
+            />
+          </div>
+
+          <div className="flex gap-8">
+            {/* Main Quest List - filter out side quests */}
+            <div className="flex-1 min-w-0">
+              <QuestList
+                quests={(quests || []).filter(q => !(q as any).is_side_quest)}
+                isLoading={questsLoading}
+                activeQuestIds={activeQuestIds}
+                userQuestStatuses={userQuestStatuses}
+                questLockStatuses={questLockStatuses}
+                hideCompleted={hideCompleted}
+                sortByLockedStatus={true}
+              />
+            </div>
+
+            {/* Desktop: Side Quests on the right side */}
+            <SideQuestSection
+              quests={quests || []}
+              isLoading={questsLoading}
+              activeQuestIds={activeQuestIds}
+              userQuestStatuses={userQuestStatuses}
+              questLockStatuses={questLockStatuses}
+              hideCompleted={hideCompleted}
+              className="w-80 flex-shrink-0 hidden lg:block"
+            />
+          </div>
+        </>
       )}
     </div>
   )
