@@ -138,6 +138,22 @@ export function QuestDetail({
             </p>
           </div>
 
+          {/* Featured Image */}
+          {quest.featured_image_url && (
+            <div className="w-full">
+              <div className="relative w-full rounded-lg overflow-hidden">
+                <Image
+                  src={quest.featured_image_url}
+                  alt={`${quest.title} featured image`}
+                  width={800}
+                  height={450}
+                  className="w-full h-auto object-contain"
+                  priority
+                />
+              </div>
+            </div>
+          )}
+
           {/* Narrative Context */}
           {quest.narrative_context && (
             <div className="rounded-lg bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 p-4">

@@ -116,6 +116,7 @@ export interface Quest {
   design_notes: string | null
   featured: boolean
   badge_url: string | null
+  featured_image_url: string | null
   is_exclusive: boolean
   exclusive_code: string | null
   is_side_quest: boolean

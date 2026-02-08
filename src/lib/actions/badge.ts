@@ -144,3 +144,138 @@ export async function removeQuestBadge(questId: string): Promise<BadgeUploadResu
 
   return { success: true }
 }
+
+/**
+ * Upload a quest featured image to Supabase Storage
+ */
+export async function uploadQuestFeaturedImage(questId: string, formData: FormData): Promise<BadgeUploadResult> {
+  const supabase = await createClient()
+
+  // Get current user and verify GM role
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { success: false, error: 'Not authenticated' }
+  }
+
+  // Verify user is a GM
+  const { data: isGm } = await supabase.rpc('is_gm')
+  if (!isGm) {
+    return { success: false, error: 'Not authorized' }
+  }
+
+  const file = formData.get('file') as File | null
+  if (!file) {
+    return { success: false, error: 'No file provided' }
+  }
+
+  // Validate file type
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    return { success: false, error: 'Invalid file type. Please upload a JPEG, PNG, GIF, or WebP image.' }
+  }
+
+  // Validate file size
+  if (file.size > MAX_FILE_SIZE) {
+    return { success: false, error: 'File too large. Maximum size is 5MB.' }
+  }
+
+  // Generate unique filename
+  const fileExt = file.name.split('.').pop()?.toLowerCase() || 'png'
+  const fileName = `featured-images/${questId}/featured-${Date.now()}.${fileExt}`
+
+  // Delete old featured image if exists
+  const { data: existingFiles } = await supabase.storage
+    .from('avatars')
+    .list(`featured-images/${questId}`)
+
+  if (existingFiles && existingFiles.length > 0) {
+    const filesToDelete = existingFiles.map(f => `featured-images/${questId}/${f.name}`)
+    await supabase.storage.from('avatars').remove(filesToDelete)
+  }
+
+  // Upload new featured image
+  const { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(fileName, file, {
+      cacheControl: '3600',
+      upsert: true,
+    })
+
+  if (uploadError) {
+    console.error('Featured image upload error:', uploadError)
+    return { success: false, error: uploadError.message }
+  }
+
+  // Get public URL
+  const { data: { publicUrl } } = supabase.storage
+    .from('avatars')
+    .getPublicUrl(fileName)
+
+  // Update quest with new featured image URL
+  const { error: updateError } = await (supabase
+    .from('quests') as ReturnType<typeof supabase.from>)
+    .update({ featured_image_url: publicUrl, updated_at: new Date().toISOString() } as Record<string, unknown>)
+    .eq('id', questId)
+
+  if (updateError) {
+    console.error('Quest update error:', updateError)
+    return { success: false, error: 'Failed to update quest with new featured image' }
+  }
+
+  revalidatePath('/gm/quests')
+  revalidatePath(`/gm/quests/${questId}`)
+  revalidatePath('/quests')
+  revalidatePath(`/quests/${questId}`)
+  revalidatePath('/dashboard')
+  revalidatePath('/my-quests')
+
+  return { success: true, url: publicUrl }
+}
+
+/**
+ * Remove a quest's featured image
+ */
+export async function removeQuestFeaturedImage(questId: string): Promise<BadgeUploadResult> {
+  const supabase = await createClient()
+
+  // Get current user and verify GM role
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { success: false, error: 'Not authenticated' }
+  }
+
+  // Verify user is a GM
+  const { data: isGm } = await supabase.rpc('is_gm')
+  if (!isGm) {
+    return { success: false, error: 'Not authorized' }
+  }
+
+  // Delete featured image files
+  const { data: existingFiles } = await supabase.storage
+    .from('avatars')
+    .list(`featured-images/${questId}`)
+
+  if (existingFiles && existingFiles.length > 0) {
+    const filesToDelete = existingFiles.map(f => `featured-images/${questId}/${f.name}`)
+    await supabase.storage.from('avatars').remove(filesToDelete)
+  }
+
+  // Clear featured image URL in quest
+  const { error: updateError } = await (supabase
+    .from('quests') as ReturnType<typeof supabase.from>)
+    .update({ featured_image_url: null, updated_at: new Date().toISOString() } as Record<string, unknown>)
+    .eq('id', questId)
+
+  if (updateError) {
+    console.error('Quest update error:', updateError)
+    return { success: false, error: 'Failed to update quest' }
+  }
+
+  revalidatePath('/gm/quests')
+  revalidatePath(`/gm/quests/${questId}`)
+  revalidatePath('/quests')
+  revalidatePath(`/quests/${questId}`)
+  revalidatePath('/dashboard')
+  revalidatePath('/my-quests')
+
+  return { success: true }
+}
