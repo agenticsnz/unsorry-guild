@@ -7,13 +7,13 @@ Guild Hall is a quest-based engagement platform where Game Masters (GMs) create 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](./tsconfig.json)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](./package.json)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E)](https://supabase.com)
-[![Version](https://img.shields.io/badge/version-1.2.1-green)](https://github.com/cgbarlow/guild-hall/releases/tag/v1.2.1)
+[![Version](https://img.shields.io/badge/version-1.3.0-green)](https://github.com/cgbarlow/guild-hall/releases/tag/v1.3.0)
 
 ---
 
 ## Current Status
 
-**Version 1.2.1** - [Release Notes](https://github.com/cgbarlow/guild-hall/releases/tag/v1.2.1)
+**Version 1.3.0** - [Release Notes](https://github.com/cgbarlow/guild-hall/releases/tag/v1.3.0)
 
 | Feature | Status |
 |---------|--------|
@@ -34,6 +34,8 @@ Guild Hall is a quest-based engagement platform where Game Masters (GMs) create 
 | Dark Mode | ✅ Working |
 | Change Password | ✅ Working |
 | Data Export | ✅ Working |
+| Quest Featured Images | ✅ Working |
+| Social Media Previews | ✅ Working |
 
 See [Delivery Report](docs/DELIVERY-REPORT.md) for detailed coverage.
 
