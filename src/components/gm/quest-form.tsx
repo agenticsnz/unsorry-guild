@@ -127,6 +127,17 @@ export function QuestForm({ initialData, onSuccess }: QuestFormProps) {
             )}
           </div>
 
+          {/* Featured Image Placeholder */}
+          <div className="space-y-2">
+            <Label>Featured Image</Label>
+            <p className="text-sm text-muted-foreground">
+              Save the quest first, then edit to add a featured image
+            </p>
+            <div className="h-32 rounded-lg border-2 border-dashed border-muted flex items-center justify-center text-muted-foreground text-sm">
+              Available after quest creation
+            </div>
+          </div>
+
           {/* Description */}
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>

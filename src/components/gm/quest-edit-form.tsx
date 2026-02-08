@@ -34,7 +34,8 @@ import { ObjectiveEditor } from './objective-editor'
 import { PrerequisiteSelector } from './prerequisite-selector'
 import { QuestionEditor } from './question-editor'
 import { ImageUpload } from '@/components/ui/image-upload'
-import { uploadQuestBadge, removeQuestBadge } from '@/lib/actions/badge'
+import { uploadQuestBadge, removeQuestBadge, uploadQuestFeaturedImage, removeQuestFeaturedImage } from '@/lib/actions/badge'
+import { cn } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { questFormSchema, type QuestFormData, type QuestDifficultyType } from '@/lib/schemas/quest.schema'
 import type { Quest, QuestDbStatus, QuestResource } from '@/lib/types/quest'
@@ -89,6 +90,27 @@ export function QuestEditForm({ quest }: QuestEditFormProps) {
 
   const handleBadgeRemove = async () => {
     const result = await removeQuestBadge(quest.id)
+    if (result.success) {
+      queryClient.invalidateQueries({ queryKey: ['quest', quest.id] })
+      queryClient.invalidateQueries({ queryKey: ['quests'] })
+    }
+    return result
+  }
+
+  // Featured image handlers
+  const handleFeaturedImageUpload = async (file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    const result = await uploadQuestFeaturedImage(quest.id, formData)
+    if (result.success) {
+      queryClient.invalidateQueries({ queryKey: ['quest', quest.id] })
+      queryClient.invalidateQueries({ queryKey: ['quests'] })
+    }
+    return result
+  }
+
+  const handleFeaturedImageRemove = async () => {
+    const result = await removeQuestFeaturedImage(quest.id)
     if (result.success) {
       queryClient.invalidateQueries({ queryKey: ['quest', quest.id] })
       queryClient.invalidateQueries({ queryKey: ['quests'] })
@@ -333,7 +355,26 @@ export function QuestEditForm({ quest }: QuestEditFormProps) {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+      {/* Top Save Button */}
+      <div className="flex justify-end">
+        <Button
+          type="submit"
+          form="quest-edit-form"
+          disabled={isSaving || !isDirty}
+          className={cn(
+            "transition-colors",
+            isDirty
+              ? "bg-green-600 hover:bg-green-700 text-white"
+              : "bg-muted text-muted-foreground"
+          )}
+        >
+          {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <Save className="mr-2 h-4 w-4" />
+          Save Changes
+        </Button>
+      </div>
+
+      <form id="quest-edit-form" onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Basic Info */}
         <Card>
           <CardHeader>
@@ -369,6 +410,22 @@ export function QuestEditForm({ quest }: QuestEditFormProps) {
                   placeholderText="Badge"
                 />
               </div>
+            </div>
+
+            {/* Featured Image */}
+            <div className="space-y-2">
+              <Label>Featured Image</Label>
+              <p className="text-sm text-muted-foreground">
+                Banner image for quest detail view (16:9 recommended)
+              </p>
+              <ImageUpload
+                currentImageUrl={quest.featured_image_url}
+                onUpload={handleFeaturedImageUpload}
+                onRemove={handleFeaturedImageRemove}
+                aspectRatio="video"
+                size="lg"
+                placeholderText="Featured Image"
+              />
             </div>
 
             {/* Description */}
@@ -710,7 +767,16 @@ export function QuestEditForm({ quest }: QuestEditFormProps) {
 
         {/* Save button */}
         <div className="flex justify-end">
-          <Button type="submit" disabled={isSaving || !isDirty}>
+          <Button
+            type="submit"
+            disabled={isSaving || !isDirty}
+            className={cn(
+              "transition-colors",
+              isDirty
+                ? "bg-green-600 hover:bg-green-700 text-white"
+                : "bg-muted text-muted-foreground"
+            )}
+          >
             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             <Save className="mr-2 h-4 w-4" />
             Save Changes
