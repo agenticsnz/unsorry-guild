@@ -271,9 +271,11 @@ export default function QuestProgressPage() {
             {canClaimReward && (
               <ClaimRewardButton
                 userQuestId={userQuestId}
+                visibleBy={userQuest.user_id}
                 questTitle={userQuest.quest?.title || 'Quest'}
                 points={userQuest.quest?.points || 0}
                 requiresApproval={userQuest.quest?.requires_final_approval}
+                badgeUrl={userQuest.quest?.badge_url}
               />
             )}
             {isReadyToClaim && !canClaimReward && (

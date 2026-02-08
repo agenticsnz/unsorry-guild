@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Trophy, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,19 +18,24 @@ import { useClaimQuest } from '@/lib/hooks/use-claim-quest'
 
 interface ClaimRewardButtonProps {
   userQuestId: string
+  visibleBy: string
   questTitle: string
   points: number
   requiresApproval?: boolean
+  badgeUrl?: string | null
   className?: string
 }
 
 export function ClaimRewardButton({
   userQuestId,
+  visibleBy,
   questTitle,
   points,
   requiresApproval = false,
+  badgeUrl,
   className,
 }: ClaimRewardButtonProps) {
+  const router = useRouter()
   const [showConfirm, setShowConfirm] = useState(false)
   const [result, setResult] = useState<{
     status: 'idle' | 'success' | 'pending_approval' | 'error'
@@ -50,6 +56,13 @@ export function ClaimRewardButton({
           status: 'success',
           pointsAwarded: claimResult.pointsAwarded,
         })
+        // If quest has a badge, redirect to user page to show it
+        if (badgeUrl) {
+          // Short delay to show success message before redirecting
+          setTimeout(() => {
+            router.push(`/users/${visibleBy}?newBadge=${userQuestId}`)
+          }, 1500)
+        }
       } else if (claimResult.status === 'awaiting_final_approval') {
         setResult({ status: 'pending_approval' })
       }
@@ -65,7 +78,10 @@ export function ClaimRewardButton({
     return (
       <div className="flex items-center gap-2 text-green-600 font-medium">
         <CheckCircle2 className="h-5 w-5" />
-        <span>Quest Completed! +{result.pointsAwarded} pts</span>
+        <span>
+          Quest Completed! +{result.pointsAwarded} pts
+          {badgeUrl && ' — Taking you to your new badge...'}
+        </span>
       </div>
     )
   }

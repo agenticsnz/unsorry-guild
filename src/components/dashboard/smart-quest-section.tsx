@@ -66,6 +66,7 @@ export function SmartQuestSection({ activeQuests, isLoading }: SmartQuestSection
     }
 
     // Fill with additional open quests that are NOT locked (sorted by difficulty - easiest first)
+    // Never include side quests unless they explicitly have featured flag (already in `featured` list)
     const featuredIds = new Set(featured.map(q => q.id))
     const additionalQuests = (allQuests ?? [])
       .filter(quest => {
@@ -74,7 +75,8 @@ export function SmartQuestSection({ activeQuests, isLoading }: SmartQuestSection
           !allUserQuestIds?.has(quest.id) && // Not already taken
           !featuredIds.has(quest.id) && // Not already in featured
           quest.status === 'published' && // Only published quests
-          !lockStatus?.isLocked // Only unlocked quests for fill slots
+          !lockStatus?.isLocked && // Only unlocked quests for fill slots
+          !quest.is_side_quest // Never auto-fill with side quests
         )
       })
       .sort((a, b) => getDifficultyOrder(a.difficulty) - getDifficultyOrder(b.difficulty)) // Easiest first
@@ -85,12 +87,6 @@ export function SmartQuestSection({ activeQuests, isLoading }: SmartQuestSection
       (a, b) => getDifficultyOrder(a.difficulty) - getDifficultyOrder(b.difficulty)
     )
   }, [featuredQuests, allQuests, allUserQuestIds, questLockStatuses])
-
-  // Transform active quests to quest format for QuestList
-  const activeQuestsData = activeQuests.map(uq => ({
-    ...uq.quests,
-    category_id: uq.quests.category_id,
-  }))
 
   return (
     <Card>
@@ -124,23 +120,23 @@ export function SmartQuestSection({ activeQuests, isLoading }: SmartQuestSection
             </TabsList>
 
             <TabsContent value="continue">
-              {activeQuestsData.length > 0 ? (
+              {activeQuests.length > 0 ? (
                 <div className="space-y-4">
-                  {activeQuestsData.map(quest => (
+                  {activeQuests.map(userQuest => (
                     <Link
-                      key={quest.id}
-                      href={`/quests/${quest.id}`}
+                      key={userQuest.id}
+                      href={`/my-quests/${userQuest.id}`}
                       className="block p-4 rounded-lg border hover:bg-muted/50 transition-colors"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <h4 className="font-medium">{quest.title}</h4>
+                          <h4 className="font-medium">{userQuest.quests.title}</h4>
                           <p className="text-sm text-muted-foreground line-clamp-1 mt-1">
-                            {quest.description}
+                            {userQuest.quests.description}
                           </p>
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {quest.points} pts
+                          {userQuest.quests.points} pts
                         </div>
                       </div>
                     </Link>

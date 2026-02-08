@@ -20,6 +20,10 @@ export function useClaimQuest() {
       queryClient.invalidateQueries({ queryKey: ['userObjectives'] })
       queryClient.invalidateQueries({ queryKey: ['profile'] })
       queryClient.invalidateQueries({ queryKey: ['leaderboard'] })
+      queryClient.invalidateQueries({ queryKey: ['nudge-context'] })
+      queryClient.invalidateQueries({ queryKey: ['userQuestBadges'] })
+      queryClient.invalidateQueries({ queryKey: ['quest-recommendation'] })
+      queryClient.invalidateQueries({ queryKey: ['enriched-stats'] })
     },
   })
 }

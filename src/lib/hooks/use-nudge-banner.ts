@@ -5,6 +5,31 @@ import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import type { NudgeBannerData, NudgePriority } from '@/lib/types/engagement'
 
+/**
+ * Check if user can accept a quest (all prerequisites completed)
+ */
+async function canAcceptQuest(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+  questId: string
+): Promise<boolean> {
+  try {
+    const { data, error } = await (supabase.rpc as CallableFunction)(
+      'can_accept_quest',
+      { p_user_id: userId, p_quest_id: questId }
+    )
+
+    if (error) {
+      // Function might not exist, assume can accept
+      return true
+    }
+
+    return data as boolean
+  } catch {
+    return true // Assume can accept if function doesn't exist
+  }
+}
+
 // Session storage key for dismissed nudges
 const NUDGE_DISMISSED_KEY = 'guild-hall-nudge-dismissed'
 
@@ -14,6 +39,7 @@ interface NudgeContext {
   activeQuestsCount: number
   recommendedQuest: { id: string; title: string } | null
   recentMilestone: { type: 'tier' | 'quest' | 'streak'; message: string } | null
+  badgesReadyToClaim: Array<{ user_quest_id: string; quest_title: string; badge_url: string }>
 }
 
 /**
@@ -71,7 +97,19 @@ export function getRecommendedAction(context: NudgeContext): NudgeBannerData | n
     }
   }
 
-  // Priority 2: Approaching deadline (< 3 days)
+  // Priority 2: Badge ready to claim (quest completed with badge)
+  if (context.badgesReadyToClaim && context.badgesReadyToClaim.length > 0) {
+    const badge = context.badgesReadyToClaim[0]
+    return {
+      priority: 'badge_ready_to_claim',
+      message: `You've earned a badge for "${badge.quest_title}"! Claim your reward.`,
+      actionUrl: `/my-quests/${badge.user_quest_id}`,
+      actionLabel: 'Claim Badge',
+      variant: 'celebration',
+    }
+  }
+
+  // Priority 3: Approaching deadline (< 3 days)
   const urgentDeadline = context.upcomingDeadlines.find(d => d.days_remaining <= 3)
   if (urgentDeadline) {
     return {
@@ -136,6 +174,23 @@ async function fetchNudgeContext(userId: string): Promise<NudgeContext> {
     approvedCount = count ?? 0
   }
 
+  // Fetch quests ready to claim that have badges
+  const { data: badgeQuestsData } = await supabase
+    .from('user_quests')
+    .select('id, quests!inner(title, badge_url)')
+    .eq('user_id', userId)
+    .eq('status', 'ready_to_claim')
+    .not('quests.badge_url', 'is', null)
+    .limit(5)
+
+  const badgesReadyToClaim = (badgeQuestsData || [])
+    .filter((q: any) => q.quests?.badge_url)
+    .map((q: any) => ({
+      user_quest_id: q.id,
+      quest_title: q.quests?.title || 'Unknown Quest',
+      badge_url: q.quests?.badge_url,
+    }))
+
   // Fetch upcoming deadlines
   const { data: deadlines } = await supabase
     .from('user_quests')
@@ -163,7 +218,7 @@ async function fetchNudgeContext(userId: string): Promise<NudgeContext> {
 
   const userQuestIds = (userQuestsData as Array<{ quest_id: string }> | null)?.map(q => q.quest_id) ?? []
 
-  // Fetch recommended quest (featured quest user hasn't accepted)
+  // Fetch recommended quest (featured quest user hasn't accepted AND can accept)
   let featuredQuestsQuery = supabase
     .from('quests')
     .select('id, title')
@@ -174,7 +229,8 @@ async function fetchNudgeContext(userId: string): Promise<NudgeContext> {
     featuredQuestsQuery = featuredQuestsQuery.not('id', 'in', `(${userQuestIds.map(id => `'${id}'`).join(',')})`)
   }
 
-  const { data: featuredQuestsData } = await featuredQuestsQuery.limit(1)
+  // Fetch multiple featured quests to check prerequisites
+  const { data: featuredQuestsData } = await featuredQuestsQuery.limit(5)
   const featuredQuests = featuredQuestsData as Array<{ id: string; title: string }> | null
 
   const upcomingDeadlines = (deadlines || []).map((d: any) => ({
@@ -183,9 +239,17 @@ async function fetchNudgeContext(userId: string): Promise<NudgeContext> {
     days_remaining: Math.ceil((new Date(d.deadline).getTime() - now.getTime()) / (24 * 60 * 60 * 1000)),
   }))
 
-  const recommendedQuest = featuredQuests && featuredQuests.length > 0
-    ? { id: featuredQuests[0].id, title: featuredQuests[0].title }
-    : null
+  // Find first featured quest user can actually accept (prerequisites met)
+  let recommendedQuest: { id: string; title: string } | null = null
+  if (featuredQuests && featuredQuests.length > 0) {
+    for (const quest of featuredQuests) {
+      const canAccept = await canAcceptQuest(supabase, userId, quest.id)
+      if (canAccept) {
+        recommendedQuest = { id: quest.id, title: quest.title }
+        break
+      }
+    }
+  }
 
   return {
     approvedObjectivesCount: approvedCount || 0,
@@ -193,13 +257,21 @@ async function fetchNudgeContext(userId: string): Promise<NudgeContext> {
     activeQuestsCount: activeCount || 0,
     recommendedQuest,
     recentMilestone: null, // Could be extended to check recent achievements
+    badgesReadyToClaim,
   }
 }
 
 /**
  * Hook to get the current nudge banner (if any)
+ * @param userId - The user's ID
+ * @param enableNudges - Whether nudges are enabled (default: true)
+ * @param skipPriorities - Array of nudge priorities to skip (to avoid duplication with other components)
  */
-export function useNudgeBanner(userId: string | undefined, enableNudges: boolean = true) {
+export function useNudgeBanner(
+  userId: string | undefined,
+  enableNudges: boolean = true,
+  skipPriorities: NudgePriority[] = []
+) {
   const [dismissed, setDismissed] = useState<NudgePriority[]>([])
 
   // Load dismissed state on mount
@@ -234,8 +306,11 @@ export function useNudgeBanner(userId: string | undefined, enableNudges: boolean
     // Check if this nudge was dismissed
     if (dismissed.includes(recommended.priority)) return null
 
+    // Skip priorities that are handled by other components (e.g., ContextualGreeting, YourPathSection)
+    if (skipPriorities.includes(recommended.priority)) return null
+
     return recommended
-  }, [context, enableNudges, dismissed])
+  }, [context, enableNudges, dismissed, skipPriorities])
 
   // Dismiss handler
   const handleDismiss = () => {
