@@ -9,7 +9,8 @@ Guild Hall is a quest-based engagement platform where Game Masters (GMs) create 
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E)](https://supabase.com)
 [![Version](https://img.shields.io/badge/version-1.3.0-green)](https://github.com/cgbarlow/guild-hall/releases/tag/v1.3.0)
 
-Jump right in! https://guild-hall.netlify.com
+Jump right in! https://guild-hall.netlify.app
+
 ---
 
 ## Current Status
