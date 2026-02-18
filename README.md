@@ -2,6 +2,8 @@
 
 > *Quests, not goals.*
 
+**[Try it live](https://guild-hall.netlify.app)**
+
 You have probably set goals before. And you have probably abandoned most of them. That is not a character flaw — it is a design flaw. Goals frame the present as inadequate, turn obstacles into failures, and make progress feel like obligation.
 
 Quests flip this entirely. On a quest, obstacles are *expected*. Challenges are part of the story. Struggle is proof you are on the right path. And when you finish, you have not just checked a box — you have become someone different.
