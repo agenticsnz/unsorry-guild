@@ -1,6 +1,6 @@
 # Welcome to the Guild Hall, adventurer! Make yourself at home.
 
-> *Quests, not goals.*
+> *Do quests, not goals.*
 
 **[Try it live](https://guild-hall.netlify.app)**
 
