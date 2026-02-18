@@ -1,4 +1,4 @@
-# Guild Hall
+# Welcome to the Guild Hall, adventurer! Make yourself at home.
 
 > *Quests, not goals.*
 
