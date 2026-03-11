@@ -2,7 +2,7 @@
 
 > *Do quests, not goals.*
 
-**[Try it live](https://guild-hall.netlify.app)**
+**[Try it live](https://guildhall.agentics.org.nz)**
 
 You have probably set goals before. And you have probably abandoned most of them. That is not a character flaw — it is a design flaw. Goals frame the present as inadequate, turn obstacles into failures, and make progress feel like obligation.
 
