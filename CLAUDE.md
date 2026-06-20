@@ -1,5 +1,9 @@
 # Claude Code Configuration - Guild Hall
 
+## ⚙️ Engineering Protocols (non-negotiable)
+
+This project follows the engineering protocols in [`protocols.md`](./protocols.md) (reference as `@protocols.md`) — TDD, ADRs + specs, feature branches (no direct commits to `main`), changelog + SemVer releases, **production-ready code only** (no mocks/stubs/placeholders), DRY, Context7 for library research, and latest-stable dependencies. **These must be followed in plan mode and during implementation.** When planning or building `unsorry-guild`, read and apply `@protocols.md`.
+
 ## 🗄️ DATABASE CONFIGURATION (IMPORTANT!)
 
 **This project uses REMOTE Supabase, NOT local.**
