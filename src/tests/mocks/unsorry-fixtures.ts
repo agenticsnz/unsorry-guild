@@ -1,4 +1,12 @@
-import type { GoalEffort, QueueData, UnsorryLeaderboardRecord } from '@/lib/unsorry/types'
+import type {
+  GoalEffort,
+  LeaderboardSummary,
+  ModelStat,
+  QueueData,
+  SourcingEntry,
+  Timelines,
+  UnsorryLeaderboardRecord,
+} from '@/lib/unsorry/types'
 
 /** Trimmed real rows from docs/metrics/leaderboard-ui.json (contributors[]). */
 export const LEADERBOARD_FIXTURE: UnsorryLeaderboardRecord[] = [
@@ -89,6 +97,41 @@ export const LIBRARY_INDEX_S4S3S3 = `⟦Ω:Lemma⟧{sha≜099627ba2c13; goal≜s
 /** A record with no solver (must be skipped by the map builder). */
 export const LIBRARY_INDEX_NO_SOLVER = `⟦Ω:Lemma⟧{sha≜deadbeef; goal≜some-other-goal; name≜foo}
 `
+
+/** Trimmed real models[] from leaderboard-ui.json. */
+export const MODELS_FIXTURE: ModelStat[] = [
+  { provider_model: 'python / sympy', verified_proofs: 1148, runs: 361, run_success_rate: 1 },
+  { provider_model: 'lean / decide', verified_proofs: 283, runs: 0, run_success_rate: null },
+  { provider_model: 'claude / opus', verified_proofs: 59, runs: 24, run_success_rate: 0.5417 },
+  { provider_model: 'zero / proofs', verified_proofs: 0, runs: 3, run_success_rate: 0 },
+]
+
+/** Trimmed real timelines from leaderboard-ui.json. */
+export const TIMELINES_FIXTURE: Timelines = {
+  default: 'merge',
+  merge: [
+    { t: '2026-06-10T05:00:00Z', proofs: 1, cumulative_proofs: 1 },
+    { t: '2026-06-15T05:00:00Z', proofs: 50, cumulative_proofs: 800 },
+    { t: '2026-06-21T05:00:00Z', proofs: 28, cumulative_proofs: 2027 },
+  ],
+  solve: [
+    { t: '2026-06-10T05:00:00Z', proofs: 2, cumulative_proofs: 2 },
+    { t: '2026-06-21T05:00:00Z', proofs: 10, cumulative_proofs: 500 },
+  ],
+}
+
+export const SUMMARY_FIXTURE: LeaderboardSummary = {
+  verified_proofs: 1791,
+  attributed_proofs: 1483,
+  inferred_git_proofs: 308,
+  terminal_runs: 591,
+  credited_contributors: 9,
+}
+
+export const SOURCING_FIXTURE: SourcingEntry[] = [
+  { sourcer: 'cgbarlow', github: 'cgbarlow', display_name: 'Chris Barlow', sourced_goals: 1314, proved: 419, open: 12, difficulty_points: 2805 },
+  { sourcer: 'ohdearquant', github: 'ohdearquant', display_name: '@ohdearquant', sourced_goals: 200, proved: 150, open: 4, difficulty_points: 600 },
+]
 
 /** Trimmed real docs/queue.json. */
 export const QUEUE_FIXTURE: QueueData = {
