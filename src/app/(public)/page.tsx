@@ -8,7 +8,9 @@ import { SurfaceCards } from '@/components/layout/surface-cards'
 import type { LeaderboardSummary, Timelines } from '@/lib/unsorry/types'
 
 export const metadata = { title: 'unsorry swarm' }
-export const revalidate = 60
+// Recompute-on-read from the git snapshot — render per request, not at build
+// (avoids build-time GitHub calls; ADR-024).
+export const dynamic = 'force-dynamic'
 
 export default async function LandingPage() {
   let summary: LeaderboardSummary | undefined

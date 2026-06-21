@@ -5,7 +5,7 @@ import { PrizeCard } from '@/components/prizes/prize-card'
 import type { GoalEffort } from '@/lib/unsorry/types'
 
 export const metadata = { title: 'Goals · Math · unsorry-guild' }
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function GoalsPage() {
   const prizes = await getPrizes('math')

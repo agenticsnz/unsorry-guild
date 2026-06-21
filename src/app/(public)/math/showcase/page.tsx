@@ -4,7 +4,7 @@ import { buildShowcase } from '@/lib/unsorry/showcase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export const metadata = { title: 'Showcase · Math · unsorry-guild' }
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function ShowcasePage() {
   const [goalEffort, solverMap] = await Promise.all([getGoalEffort(), getGoalSolverMap()])
