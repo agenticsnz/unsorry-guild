@@ -12,7 +12,7 @@ export function SourcingBar({
   entries: SourcingEntry[]
   topN?: number
 }) {
-  const { labels, values } = sourcingBarSeries(entries, topN)
+  const { labels, values, hrefs } = sourcingBarSeries(entries, topN)
   if (labels.length === 0) return null
-  return <HorizontalBarChart labels={labels} values={values} label="Sourced goals" />
+  return <HorizontalBarChart labels={labels} values={values} hrefs={hrefs} label="Sourced goals" />
 }

@@ -12,6 +12,16 @@ the engineering protocols this project follows.
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-06-21
+
+### Fixed
+- **Global leaderboard ranking was wrong** (e.g. ohdearquant showed 2nd instead of 1st). The recompute-from-raw-git derivation could not reproduce unsorry's canonical score: `score = difficulty_points*100 + credited_proofs*25 + dispatch_points*100`, where `dispatch_points` come from PR provenance and `credited_proofs` include archived proofs — neither is present in the raw lemma/goal records. The global **leaderboard, model breakdown, proofs-over-time series, and summary** now read the canonical `leaderboard-ui.json` (correct, and fresh via agenticsnz/unsorry#3735). The git snapshot is retained only for **goal→solver attribution** (per-target boards, podiums, proof graph, showcase) — the one thing it computes correctly and the source of the slow-goal-page fix (#10). Unused snapshot derivations removed.
+- `NODE_VERSION` → 22 (`netlify.toml` + `.nvmrc`), clearing the Netlify Node-version plugin warning.
+
+### Added
+- **Proofs-over-time combo chart**: per-period proof bars overlaid under the cumulative line, like the original.
+- **Clickable contributor bars**: the leaderboard and sourcing bar charts link each bar to the contributor's profile.
+
 ## [2.0.1] - 2026-06-21
 
 ### Fixed

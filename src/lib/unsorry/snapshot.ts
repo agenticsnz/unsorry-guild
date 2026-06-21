@@ -1,16 +1,14 @@
 import { extract } from 'tar-stream'
 import { createGunzip } from 'node:zlib'
 import { Readable } from 'node:stream'
-import { parseProof, parseGoal, parseRun } from './snapshot-parse'
+import { parseProof } from './snapshot-parse'
 import type { UnsorrySnapshot } from './snapshot-parse'
 
 /**
- * The single cached git snapshot (ADR-024 / Decision #2). One authenticated
- * tarball fetch of the unsorry repo (~3 MB gzip) per TTL window, streamed through
- * gunzip + tar and parsed in-memory into the raw AISP records. This is the source
- * of truth for fresh, on-read standings: it replaces both the per-file
- * `library/index` scan (fixing the slow goal pages, #10) and the lagging baked
- * `leaderboard-ui.json` (#17).
+ * The single cached git snapshot (ADR-024) used for goal→solver attribution. One
+ * authenticated tarball fetch of the unsorry repo (~3 MB gzip) per TTL window,
+ * streamed through gunzip + tar and parsed in-memory — one request instead of the
+ * hundreds of per-file `library/index` fetches that made goal pages slow (#10).
  *
  * tar-stream is used (not nanotar) because GitHub's archive relies on GNU/PAX
  * long-name headers for the 64-hex `library/index` filenames, which simpler
@@ -39,47 +37,27 @@ async function fetchSnapshot(token: string): Promise<UnsorrySnapshot | null> {
   })
   if (!res.ok) {
     console.warn(
-      `[snapshot] tarball fetch failed: ${res.status} ${res.statusText} — check GITHUB_TOKEN (read-only Contents:Read on ${TARBALL_URL.split('/repos/')[1]?.split('/tarball')[0]}). Falling back to baked artifacts.`,
+      `[snapshot] tarball fetch failed: ${res.status} ${res.statusText} — check GITHUB_TOKEN (read-only Contents:Read on agenticsnz/unsorry). Falling back to the GitHub-API scan.`,
     )
     return null
   }
 
   const gzip = Buffer.from(await res.arrayBuffer())
-  const snap: UnsorrySnapshot = { proofs: [], goals: [], runs: [] }
+  const snap: UnsorrySnapshot = { proofs: [] }
   const ext = extract()
 
   ext.on('entry', (header, stream, next) => {
     const rel = relativePath(header.name)
-    const bucket = !header.name.endsWith('.aisp')
-      ? null
-      : rel.startsWith('library/index/')
-        ? 'proofs'
-        : rel.startsWith('goals/')
-          ? 'goals'
-          : rel.startsWith('proof-runs/')
-            ? 'runs'
-            : null
-
-    if (!bucket) {
+    if (!header.name.endsWith('.aisp') || !rel.startsWith('library/index/')) {
       stream.on('end', next)
       stream.resume()
       return
     }
-
     const chunks: Buffer[] = []
     stream.on('data', (c: Buffer) => chunks.push(c))
     stream.on('end', () => {
-      const text = Buffer.concat(chunks).toString('utf8')
-      if (bucket === 'proofs') {
-        const p = parseProof(text)
-        if (p) snap.proofs.push(p)
-      } else if (bucket === 'goals') {
-        const g = parseGoal(text)
-        if (g) snap.goals.push(g)
-      } else {
-        const r = parseRun(text)
-        if (r) snap.runs.push(r)
-      }
+      const proof = parseProof(Buffer.concat(chunks).toString('utf8'))
+      if (proof) snap.proofs.push(proof)
       next()
     })
   })
@@ -96,7 +74,7 @@ async function fetchSnapshot(token: string): Promise<UnsorrySnapshot | null> {
 /**
  * Load the snapshot, memoised for `TTL_MS` within a warm server instance. Returns
  * null when `GITHUB_TOKEN` is unset or the fetch/parse fails or yields nothing —
- * callers then fall back to the baked artifacts (graceful degradation, no mocks).
+ * callers then fall back to the GitHub-API scan (graceful degradation, no mocks).
  */
 export async function loadSnapshot(): Promise<UnsorrySnapshot | null> {
   const token = process.env.GITHUB_TOKEN
@@ -111,7 +89,7 @@ export async function loadSnapshot(): Promise<UnsorrySnapshot | null> {
     }
     return memo?.snap ?? null
   } catch (err) {
-    console.warn('[snapshot] load failed, falling back to baked artifacts:', err)
+    console.warn('[snapshot] load failed, falling back to the GitHub-API scan:', err)
     return memo?.snap ?? null
   }
 }

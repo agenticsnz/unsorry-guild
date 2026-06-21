@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  proofsOverTimeSeries,
+  proofsOverTimeCombo,
   leaderboardBarSeries,
   sourcingBarSeries,
   modelBarSeries,
@@ -12,27 +12,28 @@ import type {
   TimelinePoint,
 } from '@/lib/unsorry/types'
 
-describe('proofsOverTimeSeries', () => {
-  it('maps cumulative proofs to labels (date) + values', () => {
+describe('proofsOverTimeCombo', () => {
+  it('maps per-period proofs and cumulative with date labels', () => {
     const series: TimelinePoint[] = [
       { t: '2026-06-01T00:00:00Z', proofs: 2, cumulative_proofs: 2 },
       { t: '2026-06-02T00:00:00Z', proofs: 3, cumulative_proofs: 5 },
     ]
-    expect(proofsOverTimeSeries(series)).toEqual({
+    expect(proofsOverTimeCombo(series)).toEqual({
       labels: ['2026-06-01', '2026-06-02'],
-      values: [2, 5],
+      proofs: [2, 3],
+      cumulative: [2, 5],
     })
   })
 
   it('handles an empty series', () => {
-    expect(proofsOverTimeSeries([])).toEqual({ labels: [], values: [] })
+    expect(proofsOverTimeCombo([])).toEqual({ labels: [], proofs: [], cumulative: [] })
   })
 })
 
 describe('leaderboardBarSeries', () => {
-  const entry = (displayName: string, score: number): GuildLeaderboardEntry => ({
-    github: displayName,
-    displayName,
+  const entry = (github: string, score: number): GuildLeaderboardEntry => ({
+    github,
+    displayName: `@${github}`,
     avatarUrl: '',
     profileUrl: '',
     rank: 0,
@@ -44,25 +45,24 @@ describe('leaderboardBarSeries', () => {
     badges: { proofs: 0, difficulty: 0, success_rate_percent: 0 },
   })
 
-  it('takes the top-N entries by their existing order', () => {
-    const entries = [entry('a', 30), entry('b', 20), entry('c', 10)]
-    expect(leaderboardBarSeries(entries, 2)).toEqual({
-      labels: ['a', 'b'],
-      values: [30, 20],
-    })
+  it('takes the top-N and links each bar to the contributor profile', () => {
+    const out = leaderboardBarSeries([entry('a', 30), entry('b', 20), entry('c', 10)], 2)
+    expect(out.labels).toEqual(['@a', '@b'])
+    expect(out.values).toEqual([30, 20])
+    expect(out.hrefs).toEqual(['/math/contributors/a', '/math/contributors/b'])
   })
 })
 
 describe('sourcingBarSeries', () => {
-  it('sorts by sourced goals and exposes only the sourced value', () => {
+  it('sorts by sourced goals, exposes only sourced, and links profiles', () => {
     const entries: SourcingEntry[] = [
       { sourcer: 'b', github: 'b', display_name: 'B', sourced_goals: 5, proved: 1, open: 1, difficulty_points: 9 },
       { sourcer: 'a', github: 'a', sourced_goals: 12, proved: 4, open: 0, difficulty_points: 30 },
     ]
-    expect(sourcingBarSeries(entries)).toEqual({
-      labels: ['@a', 'B'],
-      values: [12, 5],
-    })
+    const out = sourcingBarSeries(entries)
+    expect(out.labels).toEqual(['@a', 'B'])
+    expect(out.values).toEqual([12, 5])
+    expect(out.hrefs).toEqual(['/math/contributors/a', '/math/contributors/b'])
   })
 })
 

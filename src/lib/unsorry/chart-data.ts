@@ -1,25 +1,28 @@
-import type {
-  GuildLeaderboardEntry,
-  ModelStat,
-  SourcingEntry,
-  TimelinePoint,
-} from './types'
+import type { GuildLeaderboardEntry, ModelStat, SourcingEntry, TimelinePoint } from './types'
 
-/** Labels + values pair consumed by the Chart.js wrappers. */
+/** Labels + values (+ optional per-bar links) consumed by the Chart.js wrappers. */
 export interface SeriesData {
   labels: string[]
   values: number[]
+  hrefs?: string[]
 }
 
-/** Cumulative-proofs series for the proofs-over-time line chart (#4). */
-export function proofsOverTimeSeries(series: TimelinePoint[]): SeriesData {
+/** Combo series for proofs-over-time: per-period bars + cumulative line (#4). */
+export interface ComboSeries {
+  labels: string[]
+  proofs: number[]
+  cumulative: number[]
+}
+
+export function proofsOverTimeCombo(series: TimelinePoint[]): ComboSeries {
   return {
     labels: series.map((p) => p.t.slice(0, 10)),
-    values: series.map((p) => p.cumulative_proofs),
+    proofs: series.map((p) => p.proofs),
+    cumulative: series.map((p) => p.cumulative_proofs),
   }
 }
 
-/** Top-N contributors by score for the leaderboard horizontal bar (#3). */
+/** Top-N contributors by score for the leaderboard bar; bars link to profiles (#3). */
 export function leaderboardBarSeries(
   entries: GuildLeaderboardEntry[],
   topN = 15,
@@ -28,10 +31,11 @@ export function leaderboardBarSeries(
   return {
     labels: top.map((e) => e.displayName),
     values: top.map((e) => e.score),
+    hrefs: top.map((e) => `/math/contributors/${e.github}`),
   }
 }
 
-/** Top-N sourcers by *sourced goals only* for the sourcing bar (#5). */
+/** Top-N sourcers by *sourced goals only*; bars link to profiles (#5). */
 export function sourcingBarSeries(entries: SourcingEntry[], topN = 15): SeriesData {
   const top = [...entries]
     .sort((a, b) => b.sourced_goals - a.sourced_goals)
@@ -39,6 +43,7 @@ export function sourcingBarSeries(entries: SourcingEntry[], topN = 15): SeriesDa
   return {
     labels: top.map((s) => s.display_name ?? `@${s.github}`),
     values: top.map((s) => s.sourced_goals),
+    hrefs: top.map((s) => `/math/contributors/${s.github}`),
   }
 }
 
