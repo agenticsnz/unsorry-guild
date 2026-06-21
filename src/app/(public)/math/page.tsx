@@ -24,6 +24,16 @@ export default function MathHome() {
             </CardContent>
           </Card>
         </Link>
+        <Link href="/math/prizes">
+          <Card className="hover:border-primary transition-colors h-full">
+            <CardHeader>
+              <CardTitle>Prizes</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-foreground/70">
+              Flagship targets with per-prize leaderboards, podiums, and badges.
+            </CardContent>
+          </Card>
+        </Link>
       </div>
     </div>
   )
