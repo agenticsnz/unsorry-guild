@@ -13,7 +13,7 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://guild.unsorry.agentics.org.nz';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://swarm.unsorry.agentics.org.nz';
 const ogImageUrl = `${siteUrl}/og-image.jpg`;
 const description = 'Engagement layer for the unsorry theorem-proving swarm — prizes, leaderboards, and badges.';
 

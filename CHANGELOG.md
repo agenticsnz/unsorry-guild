@@ -25,7 +25,7 @@ the engineering protocols this project follows.
 - **Ported unsorry pages** under `/math` (ADR-021): `/math/queue` (native, from `queue.json`), `/math/proof-graph` (embeds `proof-graph.svg` + link), `/math/showcase` (embeds `showcase.html` + link). All in nav + landing. Queue types + `fetchQueueData`; `QueueBoard` component + test.
 
 - **Re-scope docs**: ADR-014 (fork re-scope, supersedes the quest-lifecycle scope) and a rewritten README accurately describing unsorry-guild.
-- **Deploy prep**: `.env.example` documents `NEXT_PUBLIC_UNSORRY_BASE_URL` and marks Supabase optional; site metadata/OG rebranded to unsorry-guild at `guild.unsorry.agentics.org.nz`.
+- **Deploy prep**: `.env.example` documents `NEXT_PUBLIC_UNSORRY_BASE_URL` and marks Supabase optional; site metadata/OG rebranded to unsorry-guild at `swarm.unsorry.agentics.org.nz`.
 
 ### Fixed
 - Prize admin write actions used strict Supabase write types unsupported by the repo's hand-maintained `Database` types; now use the established builder+payload cast pattern (restores green type-check/build).
