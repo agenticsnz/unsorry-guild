@@ -10,6 +10,9 @@ import { DomainSwitcher } from './domain-switcher'
 const nav = [
   { href: '/math/leaderboard', label: 'Leaderboard' },
   { href: '/math/prizes', label: 'Prizes' },
+  { href: '/math/showcase', label: 'Showcase' },
+  { href: '/math/proof-graph', label: 'Proof graph' },
+  { href: '/math/queue', label: 'Queue' },
 ]
 
 export function PublicHeader() {

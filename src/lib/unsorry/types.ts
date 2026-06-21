@@ -89,3 +89,29 @@ export interface TargetLeaderboardEntry {
   score: number
   rank: number
 }
+
+/** docs/queue.json — in-flight proving work. */
+export interface QueueSolver {
+  solver: string
+  github: string
+  display_name?: string
+  profile_url?: string
+  submissions: number
+  waiting: number
+  in_flight: number
+  distinct_goals: number
+}
+
+export interface QueueSummary {
+  queued_submissions: number
+  waiting: number
+  in_flight: number
+  distinct_goals: number
+  solvers: number
+}
+
+export interface QueueData {
+  schema_version?: number
+  summary: QueueSummary
+  solvers: QueueSolver[]
+}

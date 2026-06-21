@@ -5,7 +5,13 @@ import {
   rawQueueUrl,
   REVALIDATE_SECONDS,
 } from './constants'
-import type { CommunityStats, GoalEffort, LeaderboardUi, UnsorryLeaderboardRecord } from './types'
+import type {
+  CommunityStats,
+  GoalEffort,
+  LeaderboardUi,
+  QueueData,
+  UnsorryLeaderboardRecord,
+} from './types'
 
 export class UnsorryFetchError extends Error {
   constructor(message: string) {
@@ -49,4 +55,8 @@ export async function fetchGoalEffort(): Promise<GoalEffort[]> {
 
 export async function fetchQueue<T = unknown>(): Promise<T> {
   return fetchJson<T>(queueUrl(), rawQueueUrl())
+}
+
+export async function fetchQueueData(): Promise<QueueData> {
+  return fetchJson<QueueData>(queueUrl(), rawQueueUrl())
 }
