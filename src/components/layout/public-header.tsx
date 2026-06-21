@@ -7,7 +7,10 @@ import { Button } from '@/components/ui/button'
 import { ThemeToggleCompact } from '@/components/settings/theme-toggle'
 import { DomainSwitcher } from './domain-switcher'
 
-const nav = [{ href: '/math/leaderboard', label: 'Leaderboard' }]
+const nav = [
+  { href: '/math/leaderboard', label: 'Leaderboard' },
+  { href: '/math/prizes', label: 'Prizes' },
+]
 
 export function PublicHeader() {
   const pathname = usePathname()
