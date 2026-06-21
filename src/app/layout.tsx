@@ -13,35 +13,36 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://guild-hall.agentics.nz';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://guild.unsorry.agentics.org.nz';
 const ogImageUrl = `${siteUrl}/og-image.jpg`;
+const description = 'Engagement layer for the unsorry theorem-proving swarm — prizes, leaderboards, and badges.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Guild Hall",
-    template: "%s | Guild Hall",
+    default: "unsorry-guild",
+    template: "%s",
   },
-  description: "Quest-based engagement platform",
+  description,
   openGraph: {
     type: 'website',
-    siteName: 'Guild Hall',
-    title: 'Guild Hall',
-    description: 'Quest-based engagement platform',
+    siteName: 'unsorry-guild',
+    title: 'unsorry-guild',
+    description,
     url: siteUrl,
     images: [
       {
         url: ogImageUrl,
         width: 1200,
         height: 630,
-        alt: 'Guild Hall - Quest-based engagement platform',
+        alt: 'unsorry-guild',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Guild Hall',
-    description: 'Quest-based engagement platform',
+    title: 'unsorry-guild',
+    description,
     images: [ogImageUrl],
   },
 };
