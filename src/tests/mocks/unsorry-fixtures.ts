@@ -1,4 +1,4 @@
-import type { GoalEffort, UnsorryLeaderboardRecord } from '@/lib/unsorry/types'
+import type { GoalEffort, QueueData, UnsorryLeaderboardRecord } from '@/lib/unsorry/types'
 
 /** Trimmed real rows from docs/metrics/leaderboard-ui.json (contributors[]). */
 export const LEADERBOARD_FIXTURE: UnsorryLeaderboardRecord[] = [
@@ -89,3 +89,31 @@ export const LIBRARY_INDEX_S4S3S3 = `⟦Ω:Lemma⟧{sha≜099627ba2c13; goal≜s
 /** A record with no solver (must be skipped by the map builder). */
 export const LIBRARY_INDEX_NO_SOLVER = `⟦Ω:Lemma⟧{sha≜deadbeef; goal≜some-other-goal; name≜foo}
 `
+
+/** Trimmed real docs/queue.json. */
+export const QUEUE_FIXTURE: QueueData = {
+  schema_version: 1,
+  summary: { queued_submissions: 1398, waiting: 1385, in_flight: 13, distinct_goals: 1398, solvers: 2 },
+  solvers: [
+    {
+      solver: 'ohdearquant',
+      github: 'ohdearquant',
+      display_name: '@ohdearquant',
+      profile_url: 'https://github.com/ohdearquant',
+      submissions: 1294,
+      waiting: 1288,
+      in_flight: 6,
+      distinct_goals: 1294,
+    },
+    {
+      solver: 'cgbarlow',
+      github: 'cgbarlow',
+      display_name: '@cgbarlow',
+      profile_url: 'https://github.com/cgbarlow',
+      submissions: 104,
+      waiting: 97,
+      in_flight: 7,
+      distinct_goals: 104,
+    },
+  ],
+}

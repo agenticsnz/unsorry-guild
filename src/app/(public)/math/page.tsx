@@ -34,6 +34,36 @@ export default function MathHome() {
             </CardContent>
           </Card>
         </Link>
+        <Link href="/math/showcase">
+          <Card className="hover:border-primary transition-colors h-full">
+            <CardHeader>
+              <CardTitle>Showcase</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-foreground/70">
+              Highlighted proofs from the Math corpus.
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/math/proof-graph">
+          <Card className="hover:border-primary transition-colors h-full">
+            <CardHeader>
+              <CardTitle>Proof graph</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-foreground/70">
+              Proofs and contributors, visualised.
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/math/queue">
+          <Card className="hover:border-primary transition-colors h-full">
+            <CardHeader>
+              <CardTitle>Queue</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-foreground/70">
+              In-flight proving work waiting to merge.
+            </CardContent>
+          </Card>
+        </Link>
       </div>
     </div>
   )
