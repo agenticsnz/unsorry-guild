@@ -36,7 +36,7 @@ export async function createPrizeAction(formData: FormData) {
   } as Record<string, unknown>)
 
   revalidatePath('/gm/prizes')
-  revalidatePath('/math/prizes')
+  revalidatePath('/math/goals')
 }
 
 export async function openSeasonAction(formData: FormData) {
@@ -90,5 +90,5 @@ export async function closeAndAwardAction(formData: FormData) {
     .eq('id', prizeId)
 
   revalidatePath('/gm/prizes')
-  revalidatePath('/math/prizes')
+  revalidatePath('/math/goals')
 }

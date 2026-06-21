@@ -5,7 +5,7 @@ const MEDAL: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' }
 
 export function TargetBadges({ badges }: { badges: PrizeBadge[] }) {
   if (badges.length === 0) {
-    return <p className="text-sm text-foreground/70">No prize contributions yet.</p>
+    return <p className="text-sm text-foreground/70">No goal contributions yet.</p>
   }
 
   return (
@@ -13,7 +13,7 @@ export function TargetBadges({ badges }: { badges: PrizeBadge[] }) {
       {badges.map((b) => (
         <Link
           key={b.headlineGoalId}
-          href={`/math/prizes/${b.headlineGoalId}`}
+          href={`/math/goals/${b.headlineGoalId}`}
           className="rounded-lg border p-4 flex items-center gap-3 hover:border-primary transition-colors"
         >
           <span className="text-2xl" aria-hidden>

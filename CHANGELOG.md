@@ -28,12 +28,21 @@ the engineering protocols this project follows.
 - **Re-scope docs**: ADR-014 (fork re-scope, supersedes the quest-lifecycle scope) and a rewritten README accurately describing unsorry-guild.
 - **Deploy prep**: `.env.example` documents `NEXT_PUBLIC_UNSORRY_BASE_URL` and marks Supabase optional; site metadata/OG rebranded to unsorry-guild at `swarm.unsorry.agentics.org.nz`.
 
+#### v2.0.0 — issue #1 fixes (in progress)
+- **Header branding** (#1, #2): far-left Agentics logo linking to `https://agentics.org.nz`; title rendered as **unsorry** + **swarm** (in a new "claude orange" `brand` token defined across all themes). SPEC-021-B.
+- **Root `/` landing page** (#12): the root now renders a hero + live swarm summary + surface cards instead of redirecting to `/math`. Shared `SurfaceCards` component (DRY, reused by the `/math` home). SPEC-021-B.
+- **Copy-goal-id control** (#7): goal cards show a hover copy button that copies the goal id (for `run.sh`) without navigating. ADR-022 / SPEC-022-A.
+- **Standard-competition tie handling** (#11): equal scores now share a rank ("1224") via a shared `assignRanks` utility applied to the global and per-target leaderboards. ADR-018 refinement / SPEC-018-B.
+- Docs: ADR-022 (Goals rename), SPEC-022-A, SPEC-021-B, SPEC-018-B.
+
 ### Fixed
 - Prize admin write actions used strict Supabase write types unsupported by the repo's hand-maintained `Database` types; now use the established builder+payload cast pattern (restores green type-check/build).
 
 ### Changed
 - Default theme is now **dark** (was `warm`); the light/warm/system toggle is retained (ADR-020, SPEC-008).
 - **Auth stripped to admin-only**: only `/gm` is gated (admin/gm role); everything else is public read-only. `signIn`→`/gm`, `signOut`→`/math`; the login form is now admin email/password only (ADR-016, SPEC-016-A).
+- **Public "Prizes" surface renamed to "Goals"** (#6): route moved to `/math/goals` (permanent redirect from `/math/prizes`); nav, headings, and metadata relabelled. Internal `prize`/Supabase naming is unchanged by design (ADR-022).
+- Global leaderboard ranks are now computed guild-side by score (so ties are honoured) rather than echoing upstream rank numbers (SPEC-018-B).
 
 ### Removed
 - Public sign-up (`/register`) and password-reset (`/reset-password`) routes.
