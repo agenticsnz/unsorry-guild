@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Scroll, ClipboardCheck, Clock, Users, FileText } from 'lucide-react'
+import { Scroll, ClipboardCheck, Clock, Users, FileText, Trophy } from 'lucide-react'
 
 interface NavItem {
   href: string
@@ -12,6 +12,11 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
+  {
+    href: '/gm/prizes',
+    label: 'Prizes',
+    icon: <Trophy className="h-4 w-4" />,
+  },
   {
     href: '/gm/quests',
     label: 'Quests',
