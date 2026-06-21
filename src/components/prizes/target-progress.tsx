@@ -7,6 +7,7 @@ const STATUS_LABEL: Record<TargetStatus, string> = {
   blocked: 'Blocked',
   open: 'Open',
   archived: 'Archived',
+  translated: 'Translated',
 }
 
 export function TargetProgressView({ progress }: { progress: TargetProgress }) {

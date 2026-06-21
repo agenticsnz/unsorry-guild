@@ -24,17 +24,13 @@ import { createClient } from '@/lib/supabase/client'
 import { NotificationBell } from '@/components/notifications/notification-bell'
 import { cn } from '@/lib/utils'
 
+// unsorry-guild is a read-only engagement layer (ADR-014); the only admin
+// surface is curating Goals/prizes. Quest-platform sections (quests, review,
+// extensions, users, banners, templates, emails, quotes, tiers) are hidden as
+// not relevant to this fork (ADR-016 / SPEC-016-B, issue #1 #16).
 const gmNavItems = [
   { href: '/gm', label: 'Overview' },
-  { href: '/gm/quests', label: 'Quests' },
-  { href: '/gm/review', label: 'Review' },
-  { href: '/gm/extensions', label: 'Extensions' },
-  { href: '/gm/users', label: 'Users' },
-  { href: '/gm/banners', label: 'Banners' },
-  { href: '/gm/templates', label: 'Templates' },
-  { href: '/gm/emails', label: 'Emails' },
-  { href: '/gm/quotes', label: 'Quotes' },
-  { href: '/gm/tiers', label: 'Tiers' },
+  { href: '/gm/prizes', label: 'Goals' },
 ]
 
 export function GMHeader() {

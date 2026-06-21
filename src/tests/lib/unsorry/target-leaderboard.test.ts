@@ -41,4 +41,19 @@ describe('computeTargetLeaderboard', () => {
   it('returns an empty board when nothing is attributed', () => {
     expect(computeTargetLeaderboard(SQ_TARGET, SQ_GOAL_EFFORT, new Map())).toEqual([])
   })
+
+  it('gives contributors with equal scores the same rank (tie, SPEC-018-B)', () => {
+    // cgbarlow (s1, s2) and Rauxon (s4-s1, s4-s3-s1) each discharge two diff-1
+    // subtree goals → identical score → both rank 1, next contributor rank 3.
+    const tied = new Map<string, GoalSolver>([
+      solver('sq-add-sq-eq-three-mul-sq-s1', 'cgbarlow'),
+      solver('sq-add-sq-eq-three-mul-sq-s2', 'cgbarlow'),
+      solver('sq-add-sq-eq-three-mul-sq-s4-s1', 'Rauxon'),
+      solver('sq-add-sq-eq-three-mul-sq-s4-s3-s1', 'Rauxon'),
+    ])
+    const board = computeTargetLeaderboard(SQ_TARGET, SQ_GOAL_EFFORT, tied)
+    expect(board).toHaveLength(2)
+    expect(board[0].score).toBe(board[1].score)
+    expect(board.map((e) => e.rank)).toEqual([1, 1])
+  })
 })

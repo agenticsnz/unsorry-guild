@@ -2,8 +2,10 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { GlobalLeaderboard } from './global-leaderboard'
+import { LeaderboardBar } from './leaderboard-bar'
 import { ModelDistribution } from './model-distribution'
 import { ProofsOverTime } from './proofs-over-time'
+import { SourcingBar } from './sourcing-bar'
 import { SourcingTable } from './sourcing-table'
 import type {
   GuildLeaderboardEntry,
@@ -32,6 +34,12 @@ export function LeaderboardTabs({
       </TabsList>
 
       <TabsContent value="leaderboard" className="space-y-8">
+        {entries.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="text-lg font-semibold">Top contributors</h2>
+            <LeaderboardBar entries={entries} />
+          </section>
+        )}
         <GlobalLeaderboard entries={entries} />
         {models.length > 0 && (
           <section className="space-y-3">
@@ -54,11 +62,14 @@ export function LeaderboardTabs({
         )}
       </TabsContent>
 
-      <TabsContent value="sourcing" className="space-y-3">
-        <h2 className="text-lg font-semibold">Goals sourced</h2>
-        <p className="text-xs text-foreground/60">
-          Who proposed the goals the swarm proves (from git provenance).
-        </p>
+      <TabsContent value="sourcing" className="space-y-6">
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold">Goals sourced</h2>
+          <p className="text-xs text-foreground/60">
+            Who proposed the goals the swarm proves (from git provenance).
+          </p>
+          <SourcingBar entries={sourcing} />
+        </div>
         <SourcingTable entries={sourcing} />
       </TabsContent>
     </Tabs>

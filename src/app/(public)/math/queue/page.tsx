@@ -3,7 +3,7 @@ import { QueueBoard } from '@/components/queue/queue-board'
 import type { QueueData } from '@/lib/unsorry/types'
 
 export const metadata = { title: 'Queue · Math · unsorry-guild' }
-export const revalidate = 600
+export const revalidate = 60
 
 export default async function QueuePage() {
   let queue: QueueData | null = null

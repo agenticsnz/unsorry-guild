@@ -1,6 +1,4 @@
-import { fetchGlobalLeaderboard, fetchGoalEffort } from '@/lib/unsorry/fetchers'
-import { toGuildLeaderboard } from '@/lib/unsorry/leaderboard-mapper'
-import { buildGoalSolverMap } from '@/lib/unsorry/attribution'
+import { getGlobalLeaderboard, getGoalEffort, getGoalSolverMap } from '@/lib/unsorry/standings'
 import { computeTargetLeaderboard } from '@/lib/unsorry/target-leaderboard'
 import { getPrizes } from '@/lib/prizes/prizes'
 import type { GuildLeaderboardEntry } from '@/lib/unsorry/types'
@@ -28,7 +26,7 @@ export interface ContributorProfile {
  * per-target leaderboard (git attribution) — no badge storage needed.
  */
 export async function getContributor(handle: string): Promise<ContributorProfile> {
-  const rows = toGuildLeaderboard(await fetchGlobalLeaderboard())
+  const rows = await getGlobalLeaderboard()
   const global = rows.find((r) => r.github.toLowerCase() === handle.toLowerCase()) ?? null
 
   const github = global?.github ?? handle
@@ -40,8 +38,8 @@ export async function getContributor(handle: string): Promise<ContributorProfile
   try {
     const [prizes, goalEffort, solverMap] = await Promise.all([
       getPrizes('math'),
-      fetchGoalEffort(),
-      buildGoalSolverMap(),
+      getGoalEffort(),
+      getGoalSolverMap(),
     ])
     for (const prize of prizes) {
       const board = computeTargetLeaderboard(prize.headlineGoalId, goalEffort, solverMap)

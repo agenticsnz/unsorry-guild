@@ -1,3 +1,4 @@
+import { assignRanks } from './ranking'
 import { subtreeGoals } from './subtree'
 import type { GoalEffort, GoalSolver, TargetLeaderboardEntry } from './types'
 
@@ -30,14 +31,15 @@ export function computeTargetLeaderboard(
     byContributor.set(attribution.solver, current)
   }
 
-  return [...byContributor.entries()]
+  const sorted = [...byContributor.entries()]
     .map(([github, v]) => ({
       github,
       difficultyPoints: v.difficultyPoints,
       creditedProofs: v.creditedProofs,
       score: targetScore(v.difficultyPoints, v.creditedProofs),
-      rank: 0,
     }))
     .sort((a, b) => b.score - a.score || a.github.localeCompare(b.github))
-    .map((entry, i) => ({ ...entry, rank: i + 1 }))
+
+  // Standard competition ranking — equal scores tie (SPEC-018-B).
+  return assignRanks(sorted, (e) => e.score)
 }

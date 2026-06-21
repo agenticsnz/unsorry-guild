@@ -20,6 +20,6 @@ describe('TargetBadges', () => {
 
   it('shows an empty state', () => {
     render(<TargetBadges badges={[]} />)
-    expect(screen.getByText(/no prize contributions/i)).toBeInTheDocument()
+    expect(screen.getByText(/no goal contributions/i)).toBeInTheDocument()
   })
 })

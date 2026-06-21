@@ -14,36 +14,29 @@ const inter = Inter({
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://swarm.unsorry.agentics.org.nz';
-const ogImageUrl = `${siteUrl}/og-image.jpg`;
-const description = 'Engagement layer for the unsorry theorem-proving swarm — prizes, leaderboards, and badges.';
+const description = 'Engagement layer for the unsorry theorem-proving swarm — live leaderboards, goals, and badges.';
 
+// The social preview image is generated from the live proofs-over-time graph via
+// the file-based `opengraph-image`/`twitter-image` conventions (ADR-026, #13), so
+// no explicit `images` are set here — that would override the generated ones.
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "unsorry-guild",
+    default: "unsorry swarm",
     template: "%s",
   },
   description,
   openGraph: {
     type: 'website',
-    siteName: 'unsorry-guild',
-    title: 'unsorry-guild',
+    siteName: 'unsorry swarm',
+    title: 'unsorry swarm',
     description,
     url: siteUrl,
-    images: [
-      {
-        url: ogImageUrl,
-        width: 1200,
-        height: 630,
-        alt: 'unsorry-guild',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'unsorry-guild',
+    title: 'unsorry swarm',
     description,
-    images: [ogImageUrl],
   },
 };
 

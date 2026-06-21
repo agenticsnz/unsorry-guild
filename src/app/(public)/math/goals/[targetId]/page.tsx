@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation'
-import { getPrize } from '@/lib/prizes/prizes'
-import { fetchGoalEffort } from '@/lib/unsorry/fetchers'
-import { buildGoalSolverMap } from '@/lib/unsorry/attribution'
+import { getPrize, getPrizes } from '@/lib/prizes/prizes'
+import { getGoalEffort, getGoalSolverMap } from '@/lib/unsorry/standings'
 import { computeTargetProgress } from '@/lib/unsorry/subtree'
 import { computeTargetLeaderboard } from '@/lib/unsorry/target-leaderboard'
 import { TargetProgressView } from '@/components/prizes/target-progress'
@@ -9,7 +8,13 @@ import { TargetLeaderboardTable } from '@/components/prizes/target-leaderboard-t
 import { Podium } from '@/components/prizes/podium'
 import type { GoalEffort, TargetLeaderboardEntry, TargetProgress } from '@/lib/unsorry/types'
 
-export const revalidate = 600
+export const revalidate = 60
+
+// Pre-render the known goal pages so navigation is instant (perf, #10).
+export async function generateStaticParams() {
+  const prizes = await getPrizes('math')
+  return prizes.map((p) => ({ targetId: p.headlineGoalId }))
+}
 
 export default async function PrizeDetailPage({
   params,
@@ -23,8 +28,8 @@ export default async function PrizeDetailPage({
   let goalEffort: GoalEffort[] = []
   let board: TargetLeaderboardEntry[] = []
   try {
-    goalEffort = await fetchGoalEffort()
-    const solverMap = await buildGoalSolverMap()
+    goalEffort = await getGoalEffort()
+    const solverMap = await getGoalSolverMap()
     board = computeTargetLeaderboard(prize.headlineGoalId, goalEffort, solverMap)
   } catch {
     // progress still renders from goalEffort (possibly empty); board stays empty

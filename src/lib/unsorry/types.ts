@@ -1,5 +1,5 @@
 /** Status of a goal in unsorry's worklist. */
-export type TargetStatus = 'open' | 'blocked' | 'proved' | 'archived'
+export type TargetStatus = 'open' | 'blocked' | 'proved' | 'archived' | 'translated'
 
 export interface UnsorryBadges {
   proofs: number
@@ -161,6 +161,15 @@ export interface TargetLeaderboardEntry {
 }
 
 /** docs/queue.json — in-flight proving work. */
+export interface QueueItem {
+  goal: string
+  branch?: string
+  sha?: string
+  model?: string
+  date?: string
+  state?: string
+}
+
 export interface QueueSolver {
   solver: string
   github: string
@@ -170,6 +179,7 @@ export interface QueueSolver {
   waiting: number
   in_flight: number
   distinct_goals: number
+  queued?: QueueItem[]
 }
 
 export interface QueueSummary {

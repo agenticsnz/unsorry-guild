@@ -1,32 +1,29 @@
-import { UNSORRY_BASE_URL } from '@/lib/unsorry/constants'
+import { getGoalEffort, getGoalSolverMap } from '@/lib/unsorry/standings'
+import { buildProofGraph } from '@/lib/unsorry/graph'
+import { ProofGraphCanvas } from '@/components/graph/proof-graph-canvas'
 
 export const metadata = { title: 'Proof graph · Math · unsorry-guild' }
-export const revalidate = 600
+export const revalidate = 60
 
-export default function ProofGraphPage() {
-  const viz = `${UNSORRY_BASE_URL}/proofs-contributors-visualisation.html`
-  const svg = `${UNSORRY_BASE_URL}/proof-graph.svg`
+export default async function ProofGraphPage() {
+  const [goalEffort, solverMap] = await Promise.all([getGoalEffort(), getGoalSolverMap()])
+  const graph = buildProofGraph(goalEffort, solverMap)
+
   return (
     <div className="space-y-4">
       <div className="space-y-1">
         <h1 className="text-3xl font-bold">Proof graph</h1>
         <p className="text-sm text-foreground/70">
-          Proofs and contributors across the Math corpus — filter and zoom in the interactive view.{' '}
-          <a href={viz} className="underline" target="_blank" rel="noreferrer">
-            Open full ↗
-          </a>{' '}
-          ·{' '}
-          <a href={svg} className="underline" target="_blank" rel="noreferrer">
-            SVG
-          </a>
+          Every verified proof links a goal to the contributor who discharged it. Drag nodes, scroll
+          to zoom, hover for names. <span className="text-brand">Orange</span> = contributors,{' '}
+          grey = goals.
         </p>
       </div>
-      <iframe
-        src={viz}
-        title="unsorry proof graph (interactive)"
-        className="w-full rounded-lg border bg-white"
-        style={{ height: '80vh' }}
-      />
+      {graph.links.length > 0 ? (
+        <ProofGraphCanvas graph={graph} />
+      ) : (
+        <p className="text-sm text-foreground/70">No proof attribution available right now.</p>
+      )}
     </div>
   )
 }

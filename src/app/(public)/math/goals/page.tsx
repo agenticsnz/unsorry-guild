@@ -1,18 +1,18 @@
 import { getPrizes } from '@/lib/prizes/prizes'
-import { fetchGoalEffort } from '@/lib/unsorry/fetchers'
+import { getGoalEffort } from '@/lib/unsorry/standings'
 import { computeTargetProgress } from '@/lib/unsorry/subtree'
 import { PrizeCard } from '@/components/prizes/prize-card'
 import type { GoalEffort } from '@/lib/unsorry/types'
 
-export const metadata = { title: 'Prizes · Math · unsorry-guild' }
-export const revalidate = 600
+export const metadata = { title: 'Goals · Math · unsorry-guild' }
+export const revalidate = 60
 
-export default async function PrizesPage() {
+export default async function GoalsPage() {
   const prizes = await getPrizes('math')
 
   let goalEffort: GoalEffort[] = []
   try {
-    goalEffort = await fetchGoalEffort()
+    goalEffort = await getGoalEffort()
   } catch {
     goalEffort = []
   }
@@ -25,13 +25,14 @@ export default async function PrizesPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h1 className="text-3xl font-bold">Prizes</h1>
+        <h1 className="text-3xl font-bold">Goals</h1>
         <p className="text-sm text-foreground/70">
-          Flagship targets the swarm is racing to complete. Open a prize for its leaderboard.
+          Flagship targets the swarm is racing to complete. Open a goal for its leaderboard, or
+          copy its id straight into your <code>run.sh</code>.
         </p>
       </div>
       {items.length === 0 ? (
-        <p className="text-sm text-foreground/70">No prizes yet.</p>
+        <p className="text-sm text-foreground/70">No goals yet.</p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {items.map(({ prize, progress }) => (
