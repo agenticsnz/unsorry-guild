@@ -26,10 +26,80 @@ export interface UnsorryLeaderboardRecord {
   badges?: UnsorryBadges
 }
 
+/** docs/metrics/leaderboard-ui.json → models[] (provider/model breakdown). */
+export interface ModelStat {
+  provider_model: string
+  verified_proofs: number
+  runs: number
+  run_success_rate: number | null
+}
+
+/** A point in timelines.merge / timelines.solve. */
+export interface TimelinePoint {
+  t: string
+  proofs: number
+  cumulative_proofs: number
+}
+
+export interface Timelines {
+  default?: string
+  merge: TimelinePoint[]
+  solve: TimelinePoint[]
+}
+
+export interface HistoricalContributor {
+  rank: number
+  github: string
+  display_name?: string
+  avatar_url?: string
+  profile_url?: string
+  difficulty_points: number
+  index_files_added?: number
+  solver_provenance_proofs?: number
+  missing_solver_provenance?: number
+  solver_credit?: boolean
+  attribution_source?: string
+}
+
+export interface LeaderboardSummary {
+  verified_proofs?: number
+  attributed_proofs?: number
+  inferred_git_proofs?: number
+  terminal_runs?: number
+  credited_contributors?: number
+  [key: string]: number | undefined
+}
+
 export interface LeaderboardUi {
   schema_version?: number
   generated_at?: string
+  score_policy?: string
   contributors: UnsorryLeaderboardRecord[]
+  historical_contributors?: HistoricalContributor[]
+  models?: ModelStat[]
+  timelines?: Timelines
+  summary?: LeaderboardSummary
+}
+
+/** docs/metrics/sourcing-leaderboard.json → sourcers[]. */
+export interface SourcingEntry {
+  sourcer: string
+  github: string
+  display_name?: string
+  avatar_url?: string
+  profile_url?: string
+  sourced_goals: number
+  proved: number
+  open: number
+  difficulty_points: number
+  earliest_sourced?: string
+  latest_sourced?: string
+}
+
+export interface SourcingLeaderboard {
+  schema_version?: number
+  sourcers: SourcingEntry[]
+  totals?: Record<string, number>
 }
 
 /** One entry of docs/metrics/community-stats.json → goal_effort[]. */

@@ -1,19 +1,27 @@
-import { fetchGlobalLeaderboard } from '@/lib/unsorry/fetchers'
+import { fetchLeaderboardUi, fetchSourcing } from '@/lib/unsorry/fetchers'
 import { toGuildLeaderboard } from '@/lib/unsorry/leaderboard-mapper'
-import { GlobalLeaderboard } from '@/components/leaderboard/global-leaderboard'
-import type { GuildLeaderboardEntry } from '@/lib/unsorry/types'
+import { SummaryStats } from '@/components/leaderboard/summary-stats'
+import { LeaderboardTabs } from '@/components/leaderboard/leaderboard-tabs'
+import type { LeaderboardUi, SourcingEntry } from '@/lib/unsorry/types'
 
 export const metadata = { title: 'Leaderboard · Math · unsorry-guild' }
 export const revalidate = 600
 
 export default async function LeaderboardPage() {
-  let entries: GuildLeaderboardEntry[] = []
-  let failed = false
+  let ui: LeaderboardUi | null = null
+  let sourcing: SourcingEntry[] = []
   try {
-    entries = toGuildLeaderboard(await fetchGlobalLeaderboard())
+    ui = await fetchLeaderboardUi()
   } catch {
-    failed = true
+    ui = null
   }
+  try {
+    sourcing = await fetchSourcing()
+  } catch {
+    sourcing = []
+  }
+
+  const entries = ui ? toGuildLeaderboard(ui.contributors) : []
 
   return (
     <div className="space-y-6">
@@ -23,10 +31,18 @@ export default async function LeaderboardPage() {
           Difficulty-weighted contribution to the unsorry Math corpus. Source: unsorry git.
         </p>
       </div>
-      {failed ? (
-        <p className="text-sm text-foreground/70">Couldn&rsquo;t load leaderboard data right now.</p>
+
+      {ui?.summary && <SummaryStats summary={ui.summary} />}
+
+      {ui ? (
+        <LeaderboardTabs
+          entries={entries}
+          models={ui.models ?? []}
+          timelines={ui.timelines ?? null}
+          sourcing={sourcing}
+        />
       ) : (
-        <GlobalLeaderboard entries={entries} />
+        <p className="text-sm text-foreground/70">Couldn&rsquo;t load leaderboard data right now.</p>
       )}
     </div>
   )

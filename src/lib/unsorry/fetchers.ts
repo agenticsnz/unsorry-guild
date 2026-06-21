@@ -10,6 +10,8 @@ import type {
   GoalEffort,
   LeaderboardUi,
   QueueData,
+  SourcingEntry,
+  SourcingLeaderboard,
   UnsorryLeaderboardRecord,
 } from './types'
 
@@ -33,12 +35,25 @@ export async function fetchJson<T>(primary: string, fallback: string): Promise<T
   throw new UnsorryFetchError(`Unable to fetch unsorry artifact: ${primary}`)
 }
 
-export async function fetchGlobalLeaderboard(): Promise<UnsorryLeaderboardRecord[]> {
-  const data = await fetchJson<LeaderboardUi>(
+/** The full leaderboard-ui.json (contributors + models + timelines + summary). */
+export async function fetchLeaderboardUi(): Promise<LeaderboardUi> {
+  return fetchJson<LeaderboardUi>(
     metricsUrl('leaderboard-ui.json'),
     rawMetricsUrl('leaderboard-ui.json'),
   )
+}
+
+export async function fetchGlobalLeaderboard(): Promise<UnsorryLeaderboardRecord[]> {
+  const data = await fetchLeaderboardUi()
   return data.contributors ?? []
+}
+
+export async function fetchSourcing(): Promise<SourcingEntry[]> {
+  const data = await fetchJson<SourcingLeaderboard>(
+    metricsUrl('sourcing-leaderboard.json'),
+    rawMetricsUrl('sourcing-leaderboard.json'),
+  )
+  return data.sourcers ?? []
 }
 
 export async function fetchCommunityStats(): Promise<CommunityStats> {
