@@ -12,6 +12,13 @@ the engineering protocols this project follows.
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-06-21
+
+The v2.0.0 release delivers the issue #1 punch-list: branding, the Prizes→Goals rename, interactive
+charts, the recompute-from-raw-git data layer, native showcase/proof-graph/queue, generated social &
+README images, mobile nav, admin scope reduction, and the standing tie rule — on top of the prior
+port of unsorry's public pages.
+
 ### Added
 - Engineering protocols (`protocols.md`) referenced from `CLAUDE.md` (#2).
 - ADR-020 and a `ThemeProvider` test covering the default theme.
