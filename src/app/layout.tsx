@@ -55,7 +55,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`}>
         <DynamicFavicon />
-        <ThemeProvider defaultTheme="warm">
+        <ThemeProvider defaultTheme="dark">
           <QueryProvider>
             <AuthProvider>
               <PendingActionProvider>

@@ -38,9 +38,9 @@ function resolveTheme(theme: Theme): ResolvedTheme {
   return theme
 }
 
-export function ThemeProvider({ children, defaultTheme = 'warm' }: ThemeProviderProps) {
+export function ThemeProvider({ children, defaultTheme = 'dark' }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>(defaultTheme)
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>('warm')
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>('dark')
   const [mounted, setMounted] = useState(false)
 
   // Initialize theme from localStorage on mount
