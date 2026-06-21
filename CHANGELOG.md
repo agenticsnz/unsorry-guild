@@ -33,7 +33,8 @@ the engineering protocols this project follows.
 - **Root `/` landing page** (#12): the root now renders a hero + live swarm summary + surface cards instead of redirecting to `/math`. Shared `SurfaceCards` component (DRY, reused by the `/math` home). SPEC-021-B.
 - **Copy-goal-id control** (#7): goal cards show a hover copy button that copies the goal id (for `run.sh`) without navigating. ADR-022 / SPEC-022-A.
 - **Standard-competition tie handling** (#11): equal scores now share a rank ("1224") via a shared `assignRanks` utility applied to the global and per-target leaderboards. ADR-018 refinement / SPEC-018-B.
-- Docs: ADR-022 (Goals rename), SPEC-022-A, SPEC-021-B, SPEC-018-B.
+- **Interactive charts** (#3, #4, #5): adopted Chart.js v4 + react-chartjs-2 v5. Proofs-over-time is now a dynamic line chart with data points, horizontal gridlines, and an `index`-mode hover tooltip beside the cursor; the Leaderboard tab gains a top-contributors horizontal bar chart; the Sourcing tab mirrors the leaderboard with a bar chart of *sourced goals only*. Reusable `LineChart`/`HorizontalBarChart` wrappers over pure, unit-tested data mappers. The landing page renders the proofs-over-time chart. ADR-023 / SPEC-023-A.
+- Docs: ADR-022 (Goals rename), ADR-023 (charts), SPEC-022-A, SPEC-021-B, SPEC-018-B, SPEC-023-A.
 
 ### Fixed
 - Prize admin write actions used strict Supabase write types unsupported by the repo's hand-maintained `Database` types; now use the established builder+payload cast pattern (restores green type-check/build).

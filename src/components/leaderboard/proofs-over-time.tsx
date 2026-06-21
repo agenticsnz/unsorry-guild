@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { buildAreaChart } from '@/lib/unsorry/chart'
+import { proofsOverTimeSeries } from '@/lib/unsorry/chart-data'
+import { LineChart } from '@/components/charts/line-chart'
 import type { Timelines } from '@/lib/unsorry/types'
 
 export function ProofsOverTime({ timelines }: { timelines: Timelines }) {
@@ -10,9 +11,11 @@ export function ProofsOverTime({ timelines }: { timelines: Timelines }) {
     timelines.default === 'solve' ? 'solve' : 'merge',
   )
   const series = (mode === 'solve' ? timelines.solve : timelines.merge) ?? []
-  const chart = buildAreaChart(series, 720, 200)
+  const { labels, values } = proofsOverTimeSeries(series)
   const total = series.length ? series[series.length - 1].cumulative_proofs : 0
-  const span = series.length ? `${series[0].t.slice(0, 10)} → ${series[series.length - 1].t.slice(0, 10)}` : ''
+  const span = series.length
+    ? `${series[0].t.slice(0, 10)} → ${series[series.length - 1].t.slice(0, 10)}`
+    : ''
 
   return (
     <div className="space-y-3">
@@ -39,16 +42,7 @@ export function ProofsOverTime({ timelines }: { timelines: Timelines }) {
       {series.length === 0 ? (
         <p className="text-sm text-foreground/70">No timeline data.</p>
       ) : (
-        <svg
-          viewBox={`0 0 ${chart.width} ${chart.height}`}
-          className="w-full h-auto rounded-lg border bg-card"
-          preserveAspectRatio="none"
-          role="img"
-          aria-label={`Cumulative proofs over time, by ${mode}`}
-        >
-          <path d={chart.areaPath} className="text-primary/15" fill="currentColor" />
-          <path d={chart.linePath} className="text-primary" fill="none" stroke="currentColor" strokeWidth="2" />
-        </svg>
+        <LineChart labels={labels} values={values} label={`Cumulative proofs (by ${mode})`} />
       )}
     </div>
   )

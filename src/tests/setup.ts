@@ -18,6 +18,15 @@ vi.mock('next/navigation', () => ({
   notFound: vi.fn(),
 }))
 
+// Mock react-chartjs-2 — jsdom has no <canvas> 2D context, so render lightweight
+// stand-ins. The chart *data* is unit-tested separately (chart-data.test.ts);
+// these tests only assert the surrounding component chrome (ADR-023).
+vi.mock('react-chartjs-2', () => ({
+  Line: () => null,
+  Bar: () => null,
+  Chart: () => null,
+}))
+
 // Mock Next.js headers
 vi.mock('next/headers', () => ({
   cookies: () => ({

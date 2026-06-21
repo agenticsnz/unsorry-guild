@@ -3,16 +3,20 @@ import Link from 'next/link'
 import { fetchLeaderboardUi } from '@/lib/unsorry/fetchers'
 import { Button } from '@/components/ui/button'
 import { SummaryStats } from '@/components/leaderboard/summary-stats'
+import { ProofsOverTime } from '@/components/leaderboard/proofs-over-time'
 import { SurfaceCards } from '@/components/layout/surface-cards'
-import type { LeaderboardSummary } from '@/lib/unsorry/types'
+import type { LeaderboardSummary, Timelines } from '@/lib/unsorry/types'
 
 export const metadata = { title: 'unsorry swarm' }
 export const revalidate = 600
 
 export default async function LandingPage() {
   let summary: LeaderboardSummary | undefined
+  let timelines: Timelines | null = null
   try {
-    summary = (await fetchLeaderboardUi()).summary
+    const ui = await fetchLeaderboardUi()
+    summary = ui.summary
+    timelines = ui.timelines ?? null
   } catch {
     summary = undefined
   }
@@ -51,6 +55,13 @@ export default async function LandingPage() {
           <SummaryStats summary={summary} />
         </section>
       )}
+
+      {timelines && (timelines.merge?.length || timelines.solve?.length) ? (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Proofs over time</h2>
+          <ProofsOverTime timelines={timelines} />
+        </section>
+      ) : null}
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Explore</h2>
