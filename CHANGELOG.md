@@ -37,7 +37,8 @@ the engineering protocols this project follows.
 - **Recompute-from-raw-git data layer** (#10, #17): standings are now recomputed on read from a single authenticated ~3 MB tarball snapshot of the unsorry repo (cached ~90 s), instead of the 1–2 h-stale baked `leaderboard-ui.json` and the slow unauthenticated per-file `library/index` scan. Derives the global + per-target leaderboards, attribution, models, and proofs-over-time timelines from the raw AISP records; falls back gracefully to the baked artifacts when `GITHUB_TOKEN` is absent. Goal pages gain `generateStaticParams` + a loading skeleton and drop to a 60 s revalidate. `tar-stream` added (handles GitHub's GNU/PAX long filenames). ADR-024 / SPEC-024-A.
 - **Native showcase, proof-graph & queue** (#8, #9): the proof-graph page is now an interactive force-directed node graph (contributors↔goals, drag/zoom/hover) via `react-force-graph-2d` instead of an iframe; the showcase is native difficulty-ranked cards; and the queue surfaces per-goal queued work (goal, model, state, date) and distinct-goal counts, not just totals. All read the same fresh git snapshot. ADR-025 / SPEC-025-A.
 - **Generated social & README images** (#13, #14): the social preview (Open Graph + Twitter) is now the live proofs-over-time graph, generated with `next/og`; stable `/api/og/proofs-over-time` and `/api/og/leaderboard` PNG endpoints back the upstream unsorry README (a cross-repo PR repoints its images at them). Static `og-image.jpg` reference removed. ADR-026 / SPEC-026-A.
-- Docs: ADR-022 (Goals rename), ADR-023 (charts), ADR-024 (recompute-from-git), ADR-025 (native pages), ADR-026 (generated images), SPEC-022-A, SPEC-021-B, SPEC-018-B, SPEC-023-A, SPEC-024-A, SPEC-025-A, SPEC-026-A.
+- **Mobile navigation** (#15): the public header gains a hamburger dropdown menu below `md`, so the full nav is reachable on phones. SPEC-016-B.
+- Docs: ADR-022 (Goals rename), ADR-023 (charts), ADR-024 (recompute-from-git), ADR-025 (native pages), ADR-026 (generated images), SPEC-022-A, SPEC-021-B, SPEC-018-B, SPEC-023-A, SPEC-024-A, SPEC-025-A, SPEC-026-A, SPEC-016-B.
 
 ### Fixed
 - Prize admin write actions used strict Supabase write types unsupported by the repo's hand-maintained `Database` types; now use the established builder+payload cast pattern (restores green type-check/build).
@@ -47,6 +48,7 @@ the engineering protocols this project follows.
 - **Auth stripped to admin-only**: only `/gm` is gated (admin/gm role); everything else is public read-only. `signIn`→`/gm`, `signOut`→`/math`; the login form is now admin email/password only (ADR-016, SPEC-016-A).
 - **Public "Prizes" surface renamed to "Goals"** (#6): route moved to `/math/goals` (permanent redirect from `/math/prizes`); nav, headings, and metadata relabelled. Internal `prize`/Supabase naming is unchanged by design (ADR-022).
 - Global leaderboard ranks are now computed guild-side by score (so ties are honoured) rather than echoing upstream rank numbers (SPEC-018-B).
+- **Admin trimmed to the engagement-layer scope** (#16): the GM nav now shows only Overview + Goals (the prize console); quest-platform sections (quests, review, extensions, users, banners, templates, emails, quotes, tiers) are hidden as not relevant to this fork. ADR-016 / SPEC-016-B.
 
 ### Removed
 - Public sign-up (`/register`) and password-reset (`/reset-password`) routes.

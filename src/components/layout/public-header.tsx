@@ -3,8 +3,16 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { Menu, X } from 'lucide-react'
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { ThemeToggleCompact } from '@/components/settings/theme-toggle'
 import { DomainSwitcher } from './domain-switcher'
 
@@ -18,6 +26,7 @@ const nav = [
 
 export function PublicHeader() {
   const pathname = usePathname()
+  const [mobileOpen, setMobileOpen] = useState(false)
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
 
   return (
@@ -67,6 +76,25 @@ export function PublicHeader() {
           <Button asChild variant="ghost" size="sm">
             <Link href="/login">Admin</Link>
           </Button>
+
+          {/* Mobile nav — hamburger dropdown (#15) */}
+          <DropdownMenu open={mobileOpen} onOpenChange={setMobileOpen}>
+            <DropdownMenuTrigger asChild className="md:hidden">
+              <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
+                {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                <span className="sr-only">Menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              {nav.map((item) => (
+                <DropdownMenuItem key={item.href} asChild>
+                  <Link href={item.href} className={cn('cursor-pointer', isActive(item.href) && 'bg-accent')}>
+                    {item.label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
