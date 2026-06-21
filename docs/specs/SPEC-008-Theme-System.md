@@ -20,8 +20,8 @@ This specification defines the dark mode theme system for Guild Hall, enabling u
 
 - **Storage Key:** `guild-hall-theme`
 - **Storage Type:** localStorage
-- **Default Value:** `system`
-- **Value Type:** `'light' | 'dark' | 'system'`
+- **Default Value:** `dark` (unsorry-guild default; the inherited light/warm options and the toggle are retained — see ADR-020)
+- **Value Type:** `'light' | 'warm' | 'dark' | 'system'`
 
 ## CSS Approach
 
