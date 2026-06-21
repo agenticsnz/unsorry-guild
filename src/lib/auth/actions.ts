@@ -4,8 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
 /**
- * Sign in with email and password
- * Redirects to /dashboard on success
+ * Sign in with email and password (admin console).
+ * Redirects to /gm on success.
  * @throws Error if authentication fails
  */
 export async function signIn(email: string, password: string) {
@@ -20,7 +20,7 @@ export async function signIn(email: string, password: string) {
     throw new Error(error.message)
   }
 
-  redirect('/dashboard')
+  redirect('/gm')
 }
 
 /**
@@ -52,12 +52,12 @@ export async function signUp(email: string, password: string, displayName: strin
 
 /**
  * Sign out the current user
- * Redirects to /login after signing out
+ * Redirects to the public app (/math) after signing out
  */
 export async function signOut() {
   const supabase = await createClient()
   await supabase.auth.signOut()
-  redirect('/login')
+  redirect('/math')
 }
 
 /**

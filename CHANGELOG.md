@@ -15,6 +15,11 @@ the engineering protocols this project follows.
 ### Added
 - Engineering protocols (`protocols.md`) referenced from `CLAUDE.md` (#2).
 - ADR-020 and a `ThemeProvider` test covering the default theme.
+- ADR-016 + SPEC-016-A (admin-only auth) and a middleware test suite.
 
 ### Changed
 - Default theme is now **dark** (was `warm`); the light/warm/system toggle is retained (ADR-020, SPEC-008).
+- **Auth stripped to admin-only**: only `/gm` is gated (admin/gm role); everything else is public read-only. `signIn`→`/gm`, `signOut`→`/math`; the login form is now admin email/password only (ADR-016, SPEC-016-A).
+
+### Removed
+- Public sign-up (`/register`) and password-reset (`/reset-password`) routes.
