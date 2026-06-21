@@ -1,27 +1,27 @@
-import { fetchLeaderboardUi, fetchSourcing } from '@/lib/unsorry/fetchers'
-import { toGuildLeaderboard } from '@/lib/unsorry/leaderboard-mapper'
+import { fetchSourcing } from '@/lib/unsorry/fetchers'
+import { getGlobalLeaderboard, getLeaderboardExtras } from '@/lib/unsorry/standings'
 import { SummaryStats } from '@/components/leaderboard/summary-stats'
 import { LeaderboardTabs } from '@/components/leaderboard/leaderboard-tabs'
-import type { LeaderboardUi, SourcingEntry } from '@/lib/unsorry/types'
+import type { GuildLeaderboardEntry, SourcingEntry } from '@/lib/unsorry/types'
 
 export const metadata = { title: 'Leaderboard · Math · unsorry-guild' }
-export const revalidate = 600
+// Short revalidate: standings recompute from the git snapshot on read (ADR-024).
+export const revalidate = 60
 
 export default async function LeaderboardPage() {
-  let ui: LeaderboardUi | null = null
+  let entries: GuildLeaderboardEntry[] = []
   let sourcing: SourcingEntry[] = []
   try {
-    ui = await fetchLeaderboardUi()
+    entries = await getGlobalLeaderboard()
   } catch {
-    ui = null
+    entries = []
   }
   try {
     sourcing = await fetchSourcing()
   } catch {
     sourcing = []
   }
-
-  const entries = ui ? toGuildLeaderboard(ui.contributors) : []
+  const { models, timelines, summary } = await getLeaderboardExtras()
 
   return (
     <div className="space-y-6">
@@ -32,13 +32,13 @@ export default async function LeaderboardPage() {
         </p>
       </div>
 
-      {ui?.summary && <SummaryStats summary={ui.summary} />}
+      {summary && <SummaryStats summary={summary} />}
 
-      {ui ? (
+      {entries.length > 0 ? (
         <LeaderboardTabs
           entries={entries}
-          models={ui.models ?? []}
-          timelines={ui.timelines ?? null}
+          models={models}
+          timelines={timelines}
           sourcing={sourcing}
         />
       ) : (

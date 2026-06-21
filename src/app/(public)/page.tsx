@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { fetchLeaderboardUi } from '@/lib/unsorry/fetchers'
+import { getLeaderboardExtras } from '@/lib/unsorry/standings'
 import { Button } from '@/components/ui/button'
 import { SummaryStats } from '@/components/leaderboard/summary-stats'
 import { ProofsOverTime } from '@/components/leaderboard/proofs-over-time'
@@ -8,15 +8,15 @@ import { SurfaceCards } from '@/components/layout/surface-cards'
 import type { LeaderboardSummary, Timelines } from '@/lib/unsorry/types'
 
 export const metadata = { title: 'unsorry swarm' }
-export const revalidate = 600
+export const revalidate = 60
 
 export default async function LandingPage() {
   let summary: LeaderboardSummary | undefined
   let timelines: Timelines | null = null
   try {
-    const ui = await fetchLeaderboardUi()
-    summary = ui.summary
-    timelines = ui.timelines ?? null
+    const extras = await getLeaderboardExtras()
+    summary = extras.summary
+    timelines = extras.timelines
   } catch {
     summary = undefined
   }

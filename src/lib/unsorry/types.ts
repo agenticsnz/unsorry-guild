@@ -1,5 +1,5 @@
 /** Status of a goal in unsorry's worklist. */
-export type TargetStatus = 'open' | 'blocked' | 'proved' | 'archived'
+export type TargetStatus = 'open' | 'blocked' | 'proved' | 'archived' | 'translated'
 
 export interface UnsorryBadges {
   proofs: number

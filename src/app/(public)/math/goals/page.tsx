@@ -1,18 +1,18 @@
 import { getPrizes } from '@/lib/prizes/prizes'
-import { fetchGoalEffort } from '@/lib/unsorry/fetchers'
+import { getGoalEffort } from '@/lib/unsorry/standings'
 import { computeTargetProgress } from '@/lib/unsorry/subtree'
 import { PrizeCard } from '@/components/prizes/prize-card'
 import type { GoalEffort } from '@/lib/unsorry/types'
 
 export const metadata = { title: 'Goals · Math · unsorry-guild' }
-export const revalidate = 600
+export const revalidate = 60
 
 export default async function GoalsPage() {
   const prizes = await getPrizes('math')
 
   let goalEffort: GoalEffort[] = []
   try {
-    goalEffort = await fetchGoalEffort()
+    goalEffort = await getGoalEffort()
   } catch {
     goalEffort = []
   }
