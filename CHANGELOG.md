@@ -12,6 +12,15 @@ the engineering protocols this project follows.
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-06-21
+
+### Fixed
+- **Netlify build failure** (prerender → GitHub `403`). The snapshot-backed pages (landing, leaderboard, goals, goal detail, showcase, proof-graph, contributor) and the `next/og` image routes are now rendered **dynamically** (`force-dynamic`) instead of being statically prerendered at build. The build no longer makes any GitHub API calls, so it cannot fail on rate-limit/403; the snapshot (and its baked-JSON fallback) run at request time. Also:
+  - The standings facade getters are now **total** — they return safe empty values instead of throwing, so a transient upstream failure degrades a surface gracefully rather than crashing the render.
+  - The GitHub-API attribution fallback (`buildGoalSolverMap`) is now **authenticated** with `GITHUB_TOKEN` and sends a `User-Agent` (it was unauthenticated → 403 on shared CI/build IPs).
+  - Added snapshot fetch-failure logging so an invalid/missing token is visible in the runtime logs (the app still falls back to baked artifacts).
+  - Removed `generateStaticParams` from the goal detail route (it forced build-time data fetches).
+
 ## [2.0.0] - 2026-06-21
 
 The v2.0.0 release delivers the issue #1 punch-list: branding, the Prizes→Goals rename, interactive

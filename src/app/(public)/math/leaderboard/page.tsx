@@ -5,8 +5,8 @@ import { LeaderboardTabs } from '@/components/leaderboard/leaderboard-tabs'
 import type { GuildLeaderboardEntry, SourcingEntry } from '@/lib/unsorry/types'
 
 export const metadata = { title: 'Leaderboard · Math · unsorry-guild' }
-// Short revalidate: standings recompute from the git snapshot on read (ADR-024).
-export const revalidate = 60
+// Standings recompute from the git snapshot on read — render per request (ADR-024).
+export const dynamic = 'force-dynamic'
 
 export default async function LeaderboardPage() {
   let entries: GuildLeaderboardEntry[] = []

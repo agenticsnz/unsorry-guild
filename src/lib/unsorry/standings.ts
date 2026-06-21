@@ -22,26 +22,41 @@ import type {
 /**
  * Single data facade for all standings (ADR-024). Each getter prefers the fresh
  * git snapshot and falls back to the baked artifacts when the snapshot is
- * unavailable (no token / fetch failure). `loadSnapshot` is memoised, so multiple
- * getters in one render share a single tarball fetch+parse.
+ * unavailable. Every getter is total — it returns a safe empty value rather than
+ * throwing, so a transient upstream failure degrades a surface gracefully instead
+ * of crashing the render/prerender (the public Pages JSON has no rate limit; the
+ * GitHub-API attribution fallback can 403, hence the guard). `loadSnapshot` is
+ * memoised, so co-rendered getters share a single tarball fetch+parse.
  */
 
 export async function getGlobalLeaderboard(): Promise<GuildLeaderboardEntry[]> {
-  const snap = await loadSnapshot()
-  if (snap) return deriveGlobalLeaderboard(snap)
-  return toGuildLeaderboard(await fetchGlobalLeaderboard())
+  try {
+    const snap = await loadSnapshot()
+    if (snap) return deriveGlobalLeaderboard(snap)
+    return toGuildLeaderboard(await fetchGlobalLeaderboard())
+  } catch {
+    return []
+  }
 }
 
 export async function getGoalEffort(): Promise<GoalEffort[]> {
-  const snap = await loadSnapshot()
-  if (snap) return deriveGoalEffort(snap)
-  return fetchGoalEffort()
+  try {
+    const snap = await loadSnapshot()
+    if (snap) return deriveGoalEffort(snap)
+    return await fetchGoalEffort()
+  } catch {
+    return []
+  }
 }
 
 export async function getGoalSolverMap(): Promise<Map<string, GoalSolver>> {
-  const snap = await loadSnapshot()
-  if (snap) return deriveGoalSolverMap(snap)
-  return buildGoalSolverMap()
+  try {
+    const snap = await loadSnapshot()
+    if (snap) return deriveGoalSolverMap(snap)
+    return await buildGoalSolverMap()
+  } catch {
+    return new Map()
+  }
 }
 
 export interface LeaderboardExtras {
@@ -51,15 +66,15 @@ export interface LeaderboardExtras {
 }
 
 export async function getLeaderboardExtras(): Promise<LeaderboardExtras> {
-  const snap = await loadSnapshot()
-  if (snap) {
-    return {
-      models: deriveModels(snap),
-      timelines: deriveTimelines(snap),
-      summary: deriveSummary(snap),
-    }
-  }
   try {
+    const snap = await loadSnapshot()
+    if (snap) {
+      return {
+        models: deriveModels(snap),
+        timelines: deriveTimelines(snap),
+        summary: deriveSummary(snap),
+      }
+    }
     const ui = await fetchLeaderboardUi()
     return { models: ui.models ?? [], timelines: ui.timelines ?? null, summary: ui.summary }
   } catch {

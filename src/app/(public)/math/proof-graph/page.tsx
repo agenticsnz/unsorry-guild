@@ -3,7 +3,7 @@ import { buildProofGraph } from '@/lib/unsorry/graph'
 import { ProofGraphCanvas } from '@/components/graph/proof-graph-canvas'
 
 export const metadata = { title: 'Proof graph · Math · unsorry-guild' }
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function ProofGraphPage() {
   const [goalEffort, solverMap] = await Promise.all([getGoalEffort(), getGoalSolverMap()])

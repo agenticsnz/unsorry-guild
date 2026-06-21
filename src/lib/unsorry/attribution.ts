@@ -8,11 +8,25 @@ interface TreeEntry {
   type: string
 }
 
+/**
+ * Headers for GitHub API requests. Authenticates with GITHUB_TOKEN when present
+ * (5000 req/h vs the 60 req/h unauthenticated limit that 403s on shared CI/build
+ * IPs). A User-Agent is required by the GitHub API.
+ */
+function githubApiHeaders(): Record<string, string> {
+  const token = process.env.GITHUB_TOKEN
+  return {
+    Accept: 'application/vnd.github+json',
+    'User-Agent': 'unsorry-guild',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  }
+}
+
 /** List every library/index/*.aisp path via the GitHub Git Trees API. */
 export async function listLibraryIndexPaths(): Promise<string[]> {
   const res = await fetch(treesApiUrl(), {
     next: { revalidate: REVALIDATE_SECONDS },
-    headers: { Accept: 'application/vnd.github+json' },
+    headers: githubApiHeaders(),
   })
   if (!res.ok) {
     throw new UnsorryFetchError(`Unable to list unsorry tree (${res.status})`)
@@ -40,7 +54,10 @@ export async function buildGoalSolverMap(): Promise<Map<string, GoalSolver>> {
     const texts = await Promise.all(
       batch.map(async (path) => {
         try {
-          const res = await fetch(rawRepoUrl(path), { next: { revalidate: REVALIDATE_SECONDS } })
+          const res = await fetch(rawRepoUrl(path), {
+            next: { revalidate: REVALIDATE_SECONDS },
+            headers: githubApiHeaders(),
+          })
           return res.ok ? await res.text() : ''
         } catch {
           return ''

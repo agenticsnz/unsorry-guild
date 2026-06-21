@@ -37,7 +37,12 @@ async function fetchSnapshot(token: string): Promise<UnsorrySnapshot | null> {
     },
     cache: 'no-store',
   })
-  if (!res.ok) return null
+  if (!res.ok) {
+    console.warn(
+      `[snapshot] tarball fetch failed: ${res.status} ${res.statusText} — check GITHUB_TOKEN (read-only Contents:Read on ${TARBALL_URL.split('/repos/')[1]?.split('/tarball')[0]}). Falling back to baked artifacts.`,
+    )
+    return null
+  }
 
   const gzip = Buffer.from(await res.arrayBuffer())
   const snap: UnsorrySnapshot = { proofs: [], goals: [], runs: [] }
@@ -105,7 +110,8 @@ export async function loadSnapshot(): Promise<UnsorrySnapshot | null> {
       return snap
     }
     return memo?.snap ?? null
-  } catch {
+  } catch (err) {
+    console.warn('[snapshot] load failed, falling back to baked artifacts:', err)
     return memo?.snap ?? null
   }
 }

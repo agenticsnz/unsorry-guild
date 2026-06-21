@@ -2,7 +2,7 @@ import { getContributor } from '@/lib/profiles/contributor'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { TargetBadges } from '@/components/profile/target-badges'
 
-export const revalidate = 600
+export const dynamic = 'force-dynamic'
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (

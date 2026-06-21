@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { getPrize, getPrizes } from '@/lib/prizes/prizes'
+import { getPrize } from '@/lib/prizes/prizes'
 import { getGoalEffort, getGoalSolverMap } from '@/lib/unsorry/standings'
 import { computeTargetProgress } from '@/lib/unsorry/subtree'
 import { computeTargetLeaderboard } from '@/lib/unsorry/target-leaderboard'
@@ -8,13 +8,10 @@ import { TargetLeaderboardTable } from '@/components/prizes/target-leaderboard-t
 import { Podium } from '@/components/prizes/podium'
 import type { GoalEffort, TargetLeaderboardEntry, TargetProgress } from '@/lib/unsorry/types'
 
-export const revalidate = 60
-
-// Pre-render the known goal pages so navigation is instant (perf, #10).
-export async function generateStaticParams() {
-  const prizes = await getPrizes('math')
-  return prizes.map((p) => ({ targetId: p.headlineGoalId }))
-}
+// Recompute-on-read; render per request (the loading.tsx skeleton covers the
+// fetch). Rendered dynamically rather than prerendered to keep GitHub calls out
+// of the build (ADR-024, perf #10).
+export const dynamic = 'force-dynamic'
 
 export default async function PrizeDetailPage({
   params,
