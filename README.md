@@ -1,162 +1,80 @@
-# Welcome to the Guild Hall, adventurer! Make yourself at home.
+# unsorry-guild
 
-> *Do quests, not goals.*
+> An engagement layer for the [unsorry](https://github.com/agenticsnz/unsorry) theorem-proving swarm.
 
-**[Try it live](https://guildhall.agentics.org.nz)**
+unsorry-guild presents unsorry's proof goals as **prizes** and ranks the contributors who
+discharge them, to pull swarm effort toward specified targets. It is a public, read-only site:
+**git is the source of truth** — the guild reads unsorry's git-published artifacts and computes
+standings on the fly. The only authenticated role is a single **admin** who curates prizes.
 
-You have probably set goals before. And you have probably abandoned most of them. That is not a character flaw — it is a design flaw. Goals frame the present as inadequate, turn obstacles into failures, and make progress feel like obligation.
+It is a fork of [cgbarlow/guild-hall](https://github.com/cgbarlow/guild-hall), re-scoped for unsorry
+(see [ADR-014](docs/adrs/ADR-014-Fork-Rescope.md)). Design + decision log:
+[agenticsnz/unsorry-guild#1](https://github.com/agenticsnz/unsorry-guild/issues/1).
 
-Quests flip this entirely. On a quest, obstacles are *expected*. Challenges are part of the story. Struggle is proof you are on the right path. And when you finish, you have not just checked a box — you have become someone different.
+## What's here
 
-Guild Hall is a platform where Game Masters design quests for their communities — and community members actually complete them.
+| Surface | Route | Source |
+|---------|-------|--------|
+| **Global leaderboard** | `/math/leaderboard` | unsorry `leaderboard-ui.json`, keyed on GitHub handle |
+| **Prizes** (flagship targets) | `/math/prizes`, `/math/prizes/[targetId]` | progress + per-target leaderboard + podium, attributed live from `library/index/*.aisp` |
+| **Contributor profiles** | `/math/contributors/[handle]` | global standing + git-derived prize badges |
+| **Showcase / Proof graph / Queue** | `/math/showcase`, `/math/proof-graph`, `/math/queue` | unsorry `showcase.html` / `proof-graph.svg` / `queue.json` |
+| **Admin console** | `/gm/prizes` | create prizes, open seasons, confirm podiums (Supabase overlay) |
 
-![Guild Hall Dashboard](files/guild-hall-dashboard.png)
+A **prize** is a flagship target — a headline goal id plus its decomposition subtree (suffix
+convention `<headline>-sN`). Contributors are ranked by difficulty-weighted discharge of that
+subtree (`difficulty_points*100 + credited_proofs*25`); the season closes when the headline goal is
+proved, and an admin confirms the 1st/2nd/3rd podium plus contributor badges.
 
-## What a Quest Looks Like
+## Architecture
 
-You run a local AI community. You have a chat group, monthly meetups, and members who keep asking: *"What should I learn next?"*
+- **git = source of truth.** Proof/contributor data is read from unsorry's artifacts
+  (`docs/metrics/*.json`, `library/index/*.aisp`, `goals/*.aisp`) — see
+  [`src/lib/unsorry/`](src/lib/unsorry/) and [ADR-015](docs/adrs/ADR-015-Unsorry-Data-Source.md).
+- **Slim Supabase overlay** holds only guild-authored config (prizes, seasons, awards). The app
+  runs read-only **without** Supabase via a typed config fallback (`src/lib/prizes/config.ts`).
+- **Admin-only auth** ([ADR-016](docs/adrs/ADR-016-Admin-Only-Auth.md)); everything else is public.
+- **Dark theme** by default, toggle retained ([ADR-020](docs/adrs/ADR-020-Default-Theme-Dark.md)).
 
-You open Guild Hall and create a quest called **"The Prompt Whisperer."** It is an Apprentice-level challenge worth 50 points. You write three objectives: read a prompting guide, build prompt templates, and share your results with the group. You set a two-week deadline and require link evidence for the final objective. You hit publish. The quest appears on the **Bounty Board**.
-
-That evening, a new member browses the Bounty Board without logging in. She sees your quest, reads the description, and signs up. Over the next week she works through the objectives, submitting evidence as she goes. You get a notification, review her submission, leave feedback, and approve it. She earns 50 points, unlocks her first badge, and levels up from **Apprentice** to **Journeyman**. Guild Hall recommends her next quest: **"Local Model Liberation"** — a harder challenge worth 100 points.
-
-She did not set a goal. She went on a quest. The difference is not semantic. The difference is that she finished.
-
-## What You Get
-
-**As a Quester**, you choose your own adventure:
-
-| Capability | What it means |
-|------------|---------------|
-| Bounty Board | Browse and filter quests without signing up |
-| Quest Progress | Track objectives, submit evidence, earn points |
-| Skill Tiers | Progress from Apprentice through Journeyman, Expert, Master, to Legend |
-| Side Quests | Optional challenges for bonus rewards |
-| Achievements & Badges | Unlock milestones and earn visual recognition |
-| Leaderboard | Compete for rankings — with privacy controls so you choose your visibility |
-
-**As a Game Master**, you design the experience:
-
-| Capability | What it means |
-|------------|---------------|
-| Quest Builder | Create quests with multiple objectives, difficulty levels, and deadlines |
-| Evidence Review | Approve or reject submissions with feedback that helps your community grow |
-| Side Quests | Create optional challenges alongside main quests |
-| Templates | Save your best quest designs for reuse |
-| Skill Tier Config | Customise tier thresholds, icons, and colours for your guild |
-| Community Tools | Manage banners, philosophy quotes, and email digests |
-
-## How It Works
-
-The quest loop is simple:
-
-**Create → Accept → Complete → Review → Reward**
-
-A Game Master creates a quest with objectives, deadlines, and a difficulty level. Community members browse the Bounty Board and accept quests that resonate. They work through objectives at their own pace, submitting evidence along the way. The GM reviews submissions — approving with encouragement or sending back with feedback. Completed quests earn points, badges, and skill tier progression.
-
-## Getting Started
+## Getting started
 
 ### Prerequisites
-
-- Node.js 20+
-- npm
-- [Supabase](https://supabase.com) account (free tier works)
+- Node.js 20+ and npm
+- (Optional) a [Supabase](https://supabase.com) project — only needed for the admin prize console;
+  the public site runs without it.
 
 ### Setup
-
 ```bash
-git clone https://github.com/cgbarlow/guild-hall.git
-cd guild-hall
+git clone https://github.com/agenticsnz/unsorry-guild.git
+cd unsorry-guild
 npm install
-
-# Configure environment
-cp .env.example .env.local
-# Edit .env.local — at minimum you need:
-#   NEXT_PUBLIC_SUPABASE_URL
-#   NEXT_PUBLIC_SUPABASE_ANON_KEY
-#   SUPABASE_SERVICE_ROLE_KEY
-# See .env.example for all optional variables (branding, email, events)
-
-# Push database schema
-npx supabase login
-npx supabase link --project-ref YOUR_PROJECT_REF
-npx supabase db push
-
-# Start dev server
-npm run dev
-# Open http://localhost:3000
+cp .env.example .env.local   # all vars optional for the public, read-only site
+npm run dev                  # http://localhost:3000  → redirects to /math
 ```
 
-<details>
-<summary>Testing</summary>
+Environment variables (all optional):
+- `NEXT_PUBLIC_UNSORRY_BASE_URL` — override the unsorry data base (default `https://unsorry.agentics.org.nz/docs`).
+- `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY` — enable the admin overlay; `npx supabase db push` applies the `domains`/`prizes`/`prize_seasons`/`prize_awards` migrations.
 
+### Checks
 ```bash
-npm test              # Run all tests
-npm run test:watch    # Watch mode
-npm run type-check    # TypeScript checking
-npm run lint          # ESLint
+npm test            # vitest
+npm run type-check   # tsc --noEmit
+npm run lint         # eslint
+npm run build        # next build
 ```
 
-</details>
+## Engineering protocols
 
-### Deployment
+This project follows [`protocols.md`](protocols.md): TDD, ADRs (`docs/adrs/`) + SPECs
+(`docs/specs/`), feature branches, [CHANGELOG](CHANGELOG.md) + SemVer, production-ready code only,
+and DRY.
 
-Deploys to Netlify on push to `main`. The included `netlify.toml` is pre-configured with the Next.js plugin, security headers, and static asset caching. Set your environment variables in the Netlify dashboard.
+## Tech stack
 
-## Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| Frontend | Next.js 15 (App Router) |
-| Runtime | React 18 |
-| Backend | Supabase (PostgreSQL, Auth, Realtime) |
-| Hosting | Netlify |
-| Styling | Tailwind CSS |
-| UI Components | shadcn/ui + Radix |
-| State | TanStack Query |
-| Forms | React Hook Form + Zod |
-| Testing | Vitest + Testing Library |
-| Language | TypeScript |
-
-## Reference Guilds
-
-Guild Hall supports multiple guilds, each with their own themes, quests, and communities.
-
-The first reference implementation is the **Agentics NZ Guild**, focused on building sovereign AI capability in New Zealand. It includes quests spanning Apprentice to Master difficulty across Learning, Challenge, Creative, and Community categories.
-
-[Guild Reference](docs/guilds/agentics-nz/GUILD-REFERENCE.md) | [Quest Catalog](docs/guilds/agentics-nz/QUEST-CATALOG-published.md) | [All Quests](docs/guilds/agentics-nz/quests/)
-
-## Documentation
-
-| Area | Contents |
-|------|----------|
-| Vision & Planning | [North Star](docs/NORTH-STAR.md) · [Roadmap](docs/ROADMAP.md) · [Requirements](docs/REQUIREMENTS.md) |
-| Architecture Decisions | [ADRs](docs/adrs/) — structured decision records in WH(Y) format |
-| Technical Specifications | [Specs](docs/specs/) — schemas, auth flows, configs, and more |
-| Delivery | [Delivery Report](docs/DELIVERY-REPORT.md) · [Implementation Plan](docs/IMPLEMENTATION-PLAN.md) |
-| Screenshots | [Full preview gallery](docs/SCREENSHOTS.md) |
-
-<details>
-<summary>Project Layout</summary>
-
-The app uses Next.js App Router with route groups: `(auth)` for login and registration, `(dashboard)` for user-facing pages (bounty board, quests, leaderboard, profile, settings), and `(gm)` for Game Master tools (quest management, evidence review, tier configuration, templates).
-
-Components, hooks, and utilities live under `src/components/`, `src/lib/hooks/`, and `src/lib/utils/`. Database migrations are in `supabase/migrations/` and edge functions (email digests) in `supabase/functions/`.
-
-</details>
-
-## Contributing
-
-Contribution guidelines coming soon.
-
-## License
-
-*License TBD*
+Next.js 15 (App Router) · React 18 · TypeScript · Supabase (overlay) · Tailwind CSS · shadcn/ui +
+Radix · TanStack Query · Vitest. Deploys to Netlify (`guild.unsorry.agentics.org.nz`).
 
 ## Acknowledgments
 
-Built on the philosophy from [Do Quests, Not Goals](https://www.raptitude.com/2024/08/do-quests-not-goals/) by David Cain — the insight that goals feel like obligations while quests feel like adventures.
-
----
-
-*"Every quest has a dragon. When you finally face it, victory is closer than you think."*
+Forked from [Guild Hall](https://github.com/cgbarlow/guild-hall) by Chris Barlow.

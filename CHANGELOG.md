@@ -24,6 +24,8 @@ the engineering protocols this project follows.
 - **Admin prize console** (`/gm/prizes`): create prizes, open a season, and "close & award" (computes the podium from the per-target leaderboard and writes frozen `prize_awards`). Server-action driven; `src/lib/prizes/awards.ts` (`derivePodiumAwards`, tested) + `admin-actions.ts`; added to the GM nav.
 - **Ported unsorry pages** under `/math` (ADR-021): `/math/queue` (native, from `queue.json`), `/math/proof-graph` (embeds `proof-graph.svg` + link), `/math/showcase` (embeds `showcase.html` + link). All in nav + landing. Queue types + `fetchQueueData`; `QueueBoard` component + test.
 
+- **Re-scope docs**: ADR-014 (fork re-scope, supersedes the quest-lifecycle scope) and a rewritten README accurately describing unsorry-guild.
+
 ### Fixed
 - Prize admin write actions used strict Supabase write types unsupported by the repo's hand-maintained `Database` types; now use the established builder+payload cast pattern (restores green type-check/build).
 
