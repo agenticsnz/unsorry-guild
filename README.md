@@ -73,7 +73,7 @@ and DRY.
 ## Tech stack
 
 Next.js 15 (App Router) · React 18 · TypeScript · Supabase (overlay) · Tailwind CSS · shadcn/ui +
-Radix · TanStack Query · Vitest. Deploys to Netlify (`guild.unsorry.agentics.org.nz`).
+Radix · TanStack Query · Vitest. Deploys to Netlify (`swarm.unsorry.agentics.org.nz`).
 
 ## Acknowledgments
 
