@@ -1,12 +1,5 @@
 import { loadSnapshot } from './snapshot'
-import {
-  deriveGlobalLeaderboard,
-  deriveGoalEffort,
-  deriveGoalSolverMap,
-  deriveModels,
-  deriveTimelines,
-  deriveSummary,
-} from './derive'
+import { deriveGoalSolverMap } from './derive'
 import { fetchGlobalLeaderboard, fetchGoalEffort, fetchLeaderboardUi } from './fetchers'
 import { toGuildLeaderboard } from './leaderboard-mapper'
 import { buildGoalSolverMap } from './attribution'
@@ -20,19 +13,25 @@ import type {
 } from './types'
 
 /**
- * Single data facade for all standings (ADR-024). Each getter prefers the fresh
- * git snapshot and falls back to the baked artifacts when the snapshot is
- * unavailable. Every getter is total — it returns a safe empty value rather than
- * throwing, so a transient upstream failure degrades a surface gracefully instead
- * of crashing the render/prerender (the public Pages JSON has no rate limit; the
- * GitHub-API attribution fallback can 403, hence the guard). `loadSnapshot` is
- * memoised, so co-rendered getters share a single tarball fetch+parse.
+ * Single data facade for all standings.
+ *
+ * The **global leaderboard, models, timelines, and summary** come from unsorry's
+ * canonical `leaderboard-ui.json` — its score policy includes `dispatch_points`
+ * (PR-provenance) and credits archived proofs, neither of which is derivable from
+ * the raw lemma/goal records, so recomputing them would mis-rank contributors.
+ * That artifact is now refreshed push-on-merge upstream (agenticsnz/unsorry#3735),
+ * so it is both correct and current.
+ *
+ * The **goal→solver attribution** map (per-target boards, podiums, proof graph,
+ * showcase) is read from the cached git snapshot — one tarball request instead of
+ * hundreds of per-file fetches (fixes the slow goal pages, #10) — with the
+ * GitHub-API scan as a fallback. `loadSnapshot` is memoised.
+ *
+ * Every getter is total: it returns a safe empty value rather than throwing.
  */
 
 export async function getGlobalLeaderboard(): Promise<GuildLeaderboardEntry[]> {
   try {
-    const snap = await loadSnapshot()
-    if (snap) return deriveGlobalLeaderboard(snap)
     return toGuildLeaderboard(await fetchGlobalLeaderboard())
   } catch {
     return []
@@ -41,8 +40,6 @@ export async function getGlobalLeaderboard(): Promise<GuildLeaderboardEntry[]> {
 
 export async function getGoalEffort(): Promise<GoalEffort[]> {
   try {
-    const snap = await loadSnapshot()
-    if (snap) return deriveGoalEffort(snap)
     return await fetchGoalEffort()
   } catch {
     return []
@@ -67,14 +64,6 @@ export interface LeaderboardExtras {
 
 export async function getLeaderboardExtras(): Promise<LeaderboardExtras> {
   try {
-    const snap = await loadSnapshot()
-    if (snap) {
-      return {
-        models: deriveModels(snap),
-        timelines: deriveTimelines(snap),
-        summary: deriveSummary(snap),
-      }
-    }
     const ui = await fetchLeaderboardUi()
     return { models: ui.models ?? [], timelines: ui.timelines ?? null, summary: ui.summary }
   } catch {

@@ -12,7 +12,7 @@ export function LeaderboardBar({
   entries: GuildLeaderboardEntry[]
   topN?: number
 }) {
-  const { labels, values } = leaderboardBarSeries(entries, topN)
+  const { labels, values, hrefs } = leaderboardBarSeries(entries, topN)
   if (labels.length === 0) return null
-  return <HorizontalBarChart labels={labels} values={values} label="Score" />
+  return <HorizontalBarChart labels={labels} values={values} hrefs={hrefs} label="Score" />
 }

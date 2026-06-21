@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { proofsOverTimeSeries } from '@/lib/unsorry/chart-data'
-import { LineChart } from '@/components/charts/line-chart'
+import { proofsOverTimeCombo } from '@/lib/unsorry/chart-data'
+import { ProofsComboChart } from '@/components/charts/proofs-combo-chart'
 import type { Timelines } from '@/lib/unsorry/types'
 
 export function ProofsOverTime({ timelines }: { timelines: Timelines }) {
@@ -11,7 +11,7 @@ export function ProofsOverTime({ timelines }: { timelines: Timelines }) {
     timelines.default === 'solve' ? 'solve' : 'merge',
   )
   const series = (mode === 'solve' ? timelines.solve : timelines.merge) ?? []
-  const { labels, values } = proofsOverTimeSeries(series)
+  const { labels, proofs, cumulative } = proofsOverTimeCombo(series)
   const total = series.length ? series[series.length - 1].cumulative_proofs : 0
   const span = series.length
     ? `${series[0].t.slice(0, 10)} → ${series[series.length - 1].t.slice(0, 10)}`
@@ -42,7 +42,7 @@ export function ProofsOverTime({ timelines }: { timelines: Timelines }) {
       {series.length === 0 ? (
         <p className="text-sm text-foreground/70">No timeline data.</p>
       ) : (
-        <LineChart labels={labels} values={values} label={`Cumulative proofs (by ${mode})`} />
+        <ProofsComboChart labels={labels} proofs={proofs} cumulative={cumulative} />
       )}
     </div>
   )

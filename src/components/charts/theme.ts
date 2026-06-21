@@ -2,6 +2,8 @@
 // "claude orange" brand accent matches the --brand CSS token (SPEC-021-B).
 export const BRAND = 'hsl(14, 70%, 62%)'
 export const BRAND_FILL = 'hsla(14, 70%, 62%, 0.15)'
+/** Translucent brand for per-period bars overlaid under the cumulative line. */
+export const BRAND_BAR = 'hsla(14, 70%, 60%, 0.45)'
 
 const GRID = 'rgba(148, 163, 184, 0.18)'
 const TICK = 'rgba(148, 163, 184, 0.9)'
