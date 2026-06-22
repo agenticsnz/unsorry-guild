@@ -55,7 +55,11 @@ export interface ModelResearch {
 
 export interface ModelProvenance {
   assigned_by: string
+  /** The model that named this one, in provider_model form ("claude / opus") —
+   *  so the UI can link to that model's own Pokémon page. */
   assigned_with: string
+  /** GitHub handle of the swarm contributor who ran the naming task. */
+  contributor: string
   sources: string[]
   assigned_at: string
 }

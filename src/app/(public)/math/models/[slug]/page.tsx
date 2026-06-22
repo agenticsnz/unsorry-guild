@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { Metadata } from 'next'
 import Image from 'next/image'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getModelProfile } from '@/lib/unsorry/model-registry'
 import { Stat } from '@/components/ui/stat'
@@ -53,8 +54,8 @@ export default async function ModelPage({
   const { slug } = await params
   const data = await getModelProfile(slug)
   if (!data) notFound()
-  const { entry, stat } = data
-  const { pokemon, research } = entry
+  const { entry, stat, namedBy } = data
+  const { pokemon, research, provenance } = entry
 
   return (
     <div className="space-y-8">
@@ -122,6 +123,49 @@ export default async function ModelPage({
           </div>
         </section>
       )}
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Provenance</h2>
+        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <Fact
+            label="Named by"
+            value={
+              namedBy ? (
+                <Link
+                  href={`/math/models/${namedBy.slug}`}
+                  className="inline-flex items-center gap-1.5 hover:underline"
+                >
+                  <Image
+                    src={namedBy.pokemon.sprite_url}
+                    alt={namedBy.pokemon.name}
+                    width={20}
+                    height={20}
+                    unoptimized
+                    className="h-5 w-5 [image-rendering:pixelated]"
+                  />
+                  {namedBy.pokemon.name}
+                  <span className="font-normal text-foreground/50">
+                    ({provenance.assigned_with})
+                  </span>
+                </Link>
+              ) : (
+                provenance.assigned_with
+              )
+            }
+          />
+          <Fact
+            label="Swarm contributor"
+            value={
+              <Link
+                href={`/math/contributors/${provenance.contributor}`}
+                className="text-brand hover:underline"
+              >
+                @{provenance.contributor}
+              </Link>
+            }
+          />
+        </dl>
+      </section>
     </div>
   )
 }

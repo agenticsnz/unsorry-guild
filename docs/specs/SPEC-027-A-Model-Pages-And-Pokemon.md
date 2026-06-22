@@ -29,7 +29,9 @@ interface ModelRegistry { schema_version?; generated_at?; models: ModelRegistryE
   - `getModelRegistryMap()` → `Map<provider_model, entry>`.
   - `joinModels(models, map)` → `ModelWithRegistry[]` (pure; preserves order; unmatched models keep
     no `registry`).
-  - `getModelProfile(slug)` → `{ entry, stat } | null` (joins registry entry with its `ModelStat`).
+  - `getModelProfile(slug)` → `{ entry, stat, namedBy } | null` — joins the registry entry with its
+    `ModelStat` and resolves `namedBy` (the registry entry for `provenance.assigned_with`, the model
+    that named this one, if it too is named).
 - `types.ts` — `ModelPokemon`, `ModelResearch`, `ModelProvenance`, `ModelRegistryEntry`,
   `ModelRegistry`, `ModelWithRegistry extends ModelStat`.
 
@@ -43,8 +45,10 @@ interface ModelRegistry { schema_version?; generated_at?; models: ModelRegistryE
 - **Model page** (`/math/models/[slug]/page.tsx`, `force-dynamic`): header (96px sprite · Pokémon
   name · `provider_model` · canonical link); **Why \<Pokémon\>?** (profile + Pokédex description);
   **Model** (research facts); **Performance** (verified proofs · runs · success rate from the joined
-  `ModelStat`, omitted when the model has no distribution row). `generateMetadata` titles the page.
-  Unknown slug → `notFound()`.
+  `ModelStat`, omitted when the model has no distribution row); **Provenance** (*Named by* — the
+  `namedBy` Pokémon + model, linking to that model's page when it too is named; and the *swarm
+  contributor* `provenance.contributor`, linking to `/math/contributors/<handle>`).
+  `generateMetadata` titles the page. Unknown slug → `notFound()`.
 - `src/components/ui/stat.tsx` — shared `Stat` box, extracted from the contributor page (DRY).
 
 ## 4. Image config
