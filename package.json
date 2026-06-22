@@ -9,7 +9,9 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "test": "vitest",
-    "test:watch": "vitest --watch"
+    "test:watch": "vitest --watch",
+    "changelog:preview": "node scripts/changelog.mjs --preview",
+    "changelog:release": "node scripts/changelog.mjs --release"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
