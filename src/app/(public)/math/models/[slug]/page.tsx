@@ -158,9 +158,17 @@ export default async function ModelPage({
             value={
               <Link
                 href={`/math/contributors/${provenance.contributor}`}
-                className="text-brand hover:underline"
+                className="inline-flex items-center gap-1.5 hover:underline"
               >
-                @{provenance.contributor}
+                <Image
+                  src={`https://github.com/${provenance.contributor}.png?size=48`}
+                  alt={provenance.contributor}
+                  width={24}
+                  height={24}
+                  unoptimized
+                  className="h-6 w-6 rounded-full"
+                />
+                <span className="text-brand">@{provenance.contributor}</span>
               </Link>
             }
           />
