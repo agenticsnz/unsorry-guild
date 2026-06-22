@@ -14,6 +14,13 @@ export const UNSORRY_RAW_BASE_URL =
 /** Match the upstream artifact refresh cadence. */
 export const REVALIDATE_SECONDS = 600
 
+/**
+ * The model → Pokémon registry changes one entry at a time as the swarm names
+ * models, so it's polled more eagerly than the other artifacts to surface new
+ * Pokémon within ~a minute rather than up to 10.
+ */
+export const MODEL_REGISTRY_REVALIDATE_SECONDS = 60
+
 export const metricsUrl = (file: string) => `${UNSORRY_BASE_URL}/metrics/${file}`
 export const rawMetricsUrl = (file: string) => `${UNSORRY_RAW_BASE_URL}/metrics/${file}`
 export const queueUrl = () => `${UNSORRY_BASE_URL}/queue.json`
