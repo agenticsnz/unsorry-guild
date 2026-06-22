@@ -4,6 +4,7 @@ import {
   queueUrl,
   rawQueueUrl,
   REVALIDATE_SECONDS,
+  MODEL_REGISTRY_REVALIDATE_SECONDS,
 } from './constants'
 import type {
   CommunityStats,
@@ -24,10 +25,14 @@ export class UnsorryFetchError extends Error {
 }
 
 /** Fetch JSON from the canonical Pages URL, falling back to raw.githubusercontent. */
-export async function fetchJson<T>(primary: string, fallback: string): Promise<T> {
+export async function fetchJson<T>(
+  primary: string,
+  fallback: string,
+  revalidate: number = REVALIDATE_SECONDS,
+): Promise<T> {
   for (const url of [primary, fallback]) {
     try {
-      const res = await fetch(url, { next: { revalidate: REVALIDATE_SECONDS } })
+      const res = await fetch(url, { next: { revalidate } })
       if (res.ok) return (await res.json()) as T
     } catch {
       // try the fallback
@@ -54,6 +59,7 @@ export async function fetchModelRegistry(): Promise<ModelRegistry> {
   return fetchJson<ModelRegistry>(
     metricsUrl('model-registry.json'),
     rawMetricsUrl('model-registry.json'),
+    MODEL_REGISTRY_REVALIDATE_SECONDS,
   )
 }
 
