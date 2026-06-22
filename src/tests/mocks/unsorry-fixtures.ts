@@ -1,6 +1,7 @@
 import type {
   GoalEffort,
   LeaderboardSummary,
+  ModelRegistry,
   ModelStat,
   QueueData,
   SourcingEntry,
@@ -105,6 +106,70 @@ export const MODELS_FIXTURE: ModelStat[] = [
   { provider_model: 'claude / opus', verified_proofs: 59, runs: 24, run_success_rate: 0.5417 },
   { provider_model: 'zero / proofs', verified_proofs: 0, runs: 3, run_success_rate: 0 },
 ]
+
+/**
+ * Trimmed model → Pokémon registry (docs/metrics/model-registry.json). Covers
+ * two of the MODELS_FIXTURE rows; the others stay unnamed to exercise the
+ * "no Pokémon yet" path.
+ */
+export const MODEL_REGISTRY_FIXTURE: ModelRegistry = {
+  schema_version: 1,
+  generated_at: '2026-06-22T00:00:00Z',
+  models: [
+    {
+      provider_model: 'claude / opus',
+      slug: 'claude-opus',
+      pokemon: {
+        name: 'Alakazam',
+        dex_id: 65,
+        sprite_url:
+          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/65.png',
+        description: 'Its brain can outperform a supercomputer.',
+      },
+      research: {
+        classification: 'closed',
+        publisher: 'Anthropic',
+        country: 'United States',
+        parameter_size: 'undisclosed',
+        license: 'proprietary',
+        canonical_url: 'https://www.anthropic.com/claude',
+      },
+      profile: "Alakazam's supercomputer-grade intellect mirrors Opus.",
+      provenance: {
+        assigned_by: 'model-registry-seed',
+        assigned_with: 'claude-opus-4-8',
+        sources: ['https://www.anthropic.com/claude'],
+        assigned_at: '2026-06-22T00:00:00Z',
+      },
+    },
+    {
+      provider_model: 'python / sympy',
+      slug: 'python-sympy',
+      pokemon: {
+        name: 'Metagross',
+        dex_id: 376,
+        sprite_url:
+          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/376.png',
+        description: 'Its four brains rival a supercomputer.',
+      },
+      research: {
+        classification: 'open',
+        publisher: 'SymPy Development Team',
+        country: 'International (open-source community)',
+        parameter_size: 'n/a (symbolic-algebra library)',
+        license: 'BSD-3-Clause',
+        canonical_url: 'https://www.sympy.org/',
+      },
+      profile: 'A deterministic symbolic powerhouse — Metagross in spirit.',
+      provenance: {
+        assigned_by: 'model-registry-seed',
+        assigned_with: 'claude-opus-4-8',
+        sources: ['https://www.sympy.org/'],
+        assigned_at: '2026-06-22T00:00:00Z',
+      },
+    },
+  ],
+}
 
 /** Trimmed real timelines from leaderboard-ui.json. */
 export const TIMELINES_FIXTURE: Timelines = {

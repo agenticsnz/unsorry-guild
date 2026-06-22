@@ -12,6 +12,18 @@ the engineering protocols this project follows.
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-06-22
+
+### Added
+- **Pokémon model identities & individual model pages.** Each model in the Leaderboard's *Model
+  distribution* now shows its front-default Pokémon sprite and name (assigned by the unsorry swarm —
+  upstream [ADR-083](https://github.com/agenticsnz/unsorry)) and links to a new `/math/models/[slug]`
+  page, modelled on the contributor page: the rationale for the Pokémon, the model's research
+  profile (open/closed source, publisher, country, parameters, licence, canonical Hugging Face /
+  website link) and its proof performance. Read from the upstream `model-registry.json` artifact via
+  the existing fetch contract; a model the swarm hasn't named yet renders normally (no sprite/link).
+  The contributor page's `Stat` box was extracted into a shared component. (ADR-027 / SPEC-027-A)
+
 ## [2.0.2] - 2026-06-21
 
 ### Fixed

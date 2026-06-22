@@ -9,7 +9,7 @@ import { SourcingBar } from './sourcing-bar'
 import { SourcingTable } from './sourcing-table'
 import type {
   GuildLeaderboardEntry,
-  ModelStat,
+  ModelWithRegistry,
   SourcingEntry,
   Timelines,
 } from '@/lib/unsorry/types'
@@ -21,7 +21,7 @@ export function LeaderboardTabs({
   sourcing,
 }: {
   entries: GuildLeaderboardEntry[]
-  models: ModelStat[]
+  models: ModelWithRegistry[]
   timelines: Timelines | null
   sourcing: SourcingEntry[]
 }) {

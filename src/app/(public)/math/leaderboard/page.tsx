@@ -1,5 +1,6 @@
 import { fetchSourcing } from '@/lib/unsorry/fetchers'
 import { getGlobalLeaderboard, getLeaderboardExtras } from '@/lib/unsorry/standings'
+import { getModelRegistryMap, joinModels } from '@/lib/unsorry/model-registry'
 import { SummaryStats } from '@/components/leaderboard/summary-stats'
 import { LeaderboardTabs } from '@/components/leaderboard/leaderboard-tabs'
 import type { GuildLeaderboardEntry, SourcingEntry } from '@/lib/unsorry/types'
@@ -22,6 +23,8 @@ export default async function LeaderboardPage() {
     sourcing = []
   }
   const { models, timelines, summary } = await getLeaderboardExtras()
+  const registryMap = await getModelRegistryMap()
+  const modelsWithPokemon = joinModels(models, registryMap)
 
   return (
     <div className="space-y-6">
@@ -37,7 +40,7 @@ export default async function LeaderboardPage() {
       {entries.length > 0 ? (
         <LeaderboardTabs
           entries={entries}
-          models={models}
+          models={modelsWithPokemon}
           timelines={timelines}
           sourcing={sourcing}
         />

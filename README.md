@@ -16,9 +16,10 @@ It is a fork of [cgbarlow/guild-hall](https://github.com/cgbarlow/guild-hall), r
 | Surface | Route | Source |
 |---------|-------|--------|
 | **Landing** | `/` | hero + live summary + proofs-over-time chart |
-| **Global leaderboard** | `/math/leaderboard` | recomputed from the git snapshot — ranked table, top-contributor bar chart, interactive proofs-over-time, model breakdown, sourcing |
+| **Global leaderboard** | `/math/leaderboard` | recomputed from the git snapshot — ranked table, top-contributor bar chart, interactive proofs-over-time, model breakdown (each model with its swarm-assigned Pokémon), sourcing |
 | **Goals** (flagship targets) | `/math/goals`, `/math/goals/[targetId]` | progress + per-target leaderboard + podium, attributed live from `library/index/*.aisp`; hover a card to copy its goal id |
 | **Contributor profiles** | `/math/contributors/[handle]` | global standing + git-derived goal badges |
+| **Model pages** | `/math/models/[slug]` | each model's Pokémon identity, research profile (open/closed source, publisher, country, parameters, licence, canonical link) and proof performance, from the upstream `model-registry.json` ([ADR-027](docs/adrs/ADR-027-Model-Pages-And-Pokemon.md)) |
 | **Showcase** | `/math/showcase` | native difficulty-ranked proof cards |
 | **Proof graph** | `/math/proof-graph` | native interactive force-directed contributors↔goals graph |
 | **Queue** | `/math/queue` | live proving queue (per-goal work, models, state) from `queue.json` |
