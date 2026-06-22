@@ -1,1 +1,0 @@
-Model pages now show a **larger hero Pokémon sprite** (160px), and the "Named by" line renders the naming model's Pokémon with a **leaderboard-sized icon** (28px) beside its name instead of a tiny one. (ADR-027)
