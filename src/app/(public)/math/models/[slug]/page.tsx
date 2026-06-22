@@ -63,10 +63,10 @@ export default async function ModelPage({
         <Image
           src={pokemon.sprite_url}
           alt={pokemon.name}
-          width={96}
-          height={96}
+          width={160}
+          height={160}
           unoptimized
-          className="h-24 w-24 shrink-0 [image-rendering:pixelated]"
+          className="h-40 w-40 shrink-0 [image-rendering:pixelated]"
         />
         <div className="space-y-1">
           <p className="text-xs uppercase tracking-wide text-foreground/50">
@@ -138,10 +138,10 @@ export default async function ModelPage({
                   <Image
                     src={namedBy.pokemon.sprite_url}
                     alt={namedBy.pokemon.name}
-                    width={20}
-                    height={20}
+                    width={28}
+                    height={28}
                     unoptimized
-                    className="h-5 w-5 [image-rendering:pixelated]"
+                    className="h-7 w-7 [image-rendering:pixelated]"
                   />
                   {namedBy.pokemon.name}
                   <span className="font-normal text-foreground/50">
