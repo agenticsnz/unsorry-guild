@@ -34,6 +34,57 @@ export interface ModelStat {
   run_success_rate: number | null
 }
 
+/** The Pokémon identity assigned to a model (docs/metrics/model-registry.json). */
+export interface ModelPokemon {
+  name: string
+  dex_id: number
+  sprite_url: string
+  description: string
+}
+
+/** Researched facts about a model, gathered by the swarm (ADR-083). */
+export interface ModelResearch {
+  classification: 'open' | 'closed' | 'n/a'
+  publisher: string
+  country: string
+  parameter_size: string
+  license: string
+  /** Hugging Face model page if open-source, official site if closed. */
+  canonical_url: string
+}
+
+export interface ModelProvenance {
+  assigned_by: string
+  assigned_with: string
+  sources: string[]
+  assigned_at: string
+}
+
+/** One model → Pokémon registry entry (docs/metrics/model-registry.json → models[]). */
+export interface ModelRegistryEntry {
+  /** Exact join key to ModelStat.provider_model. */
+  provider_model: string
+  /** URL-safe key for the /math/models/[slug] route. */
+  slug: string
+  pokemon: ModelPokemon
+  research: ModelResearch
+  /** The rationale: why this Pokémon represents this model. */
+  profile: string
+  provenance: ModelProvenance
+}
+
+/** docs/metrics/model-registry.json — the swarm-maintained registry artifact. */
+export interface ModelRegistry {
+  schema_version?: number
+  generated_at?: string
+  models: ModelRegistryEntry[]
+}
+
+/** A model-distribution row joined with its Pokémon identity (if assigned). */
+export interface ModelWithRegistry extends ModelStat {
+  registry?: ModelRegistryEntry
+}
+
 /** A point in timelines.merge / timelines.solve. */
 export interface TimelinePoint {
   t: string

@@ -1,17 +1,9 @@
 import { getContributor } from '@/lib/profiles/contributor'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Stat } from '@/components/ui/stat'
 import { TargetBadges } from '@/components/profile/target-badges'
 
 export const dynamic = 'force-dynamic'
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border p-4">
-      <div className="text-2xl font-bold tabular-nums">{value}</div>
-      <div className="text-xs text-foreground/70">{label}</div>
-    </div>
-  )
-}
 
 export default async function ContributorPage({
   params,

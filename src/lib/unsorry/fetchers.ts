@@ -9,6 +9,7 @@ import type {
   CommunityStats,
   GoalEffort,
   LeaderboardUi,
+  ModelRegistry,
   QueueData,
   SourcingEntry,
   SourcingLeaderboard,
@@ -46,6 +47,14 @@ export async function fetchLeaderboardUi(): Promise<LeaderboardUi> {
 export async function fetchGlobalLeaderboard(): Promise<UnsorryLeaderboardRecord[]> {
   const data = await fetchLeaderboardUi()
   return data.contributors ?? []
+}
+
+/** The swarm-maintained model → Pokémon registry (ADR-083 upstream). */
+export async function fetchModelRegistry(): Promise<ModelRegistry> {
+  return fetchJson<ModelRegistry>(
+    metricsUrl('model-registry.json'),
+    rawMetricsUrl('model-registry.json'),
+  )
 }
 
 export async function fetchSourcing(): Promise<SourcingEntry[]> {
