@@ -28,6 +28,24 @@ describe('proofsOverTimeCombo', () => {
   it('handles an empty series', () => {
     expect(proofsOverTimeCombo([])).toEqual({ labels: [], proofs: [], cumulative: [] })
   })
+
+  it('aggregates an hourly (merge-basis) series into one bar per calendar day', () => {
+    // The merge basis is bucketed hourly upstream; without daily aggregation each
+    // of a day's ~24 points renders as its own bar sharing the same date label, so
+    // the latest partial-hour bar (e.g. 14) reads as the whole day. ADR-029.
+    const series: TimelinePoint[] = [
+      { t: '2026-06-21T22:00:00Z', proofs: 36, cumulative_proofs: 2501 },
+      { t: '2026-06-21T23:00:00Z', proofs: 30, cumulative_proofs: 2531 },
+      { t: '2026-06-22T00:00:00Z', proofs: 24, cumulative_proofs: 2555 },
+      { t: '2026-06-22T01:00:00Z', proofs: 10, cumulative_proofs: 2565 },
+      { t: '2026-06-22T03:00:00Z', proofs: 14, cumulative_proofs: 2593 },
+    ]
+    expect(proofsOverTimeCombo(series)).toEqual({
+      labels: ['2026-06-21', '2026-06-22'],
+      proofs: [66, 48], // 36+30 ; 24+10+14 — the day total, not the last hour
+      cumulative: [2531, 2593], // end-of-day (max) cumulative
+    })
+  })
 })
 
 describe('leaderboardBarSeries', () => {
