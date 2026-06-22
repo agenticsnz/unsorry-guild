@@ -136,8 +136,9 @@ export const MODEL_REGISTRY_FIXTURE: ModelRegistry = {
       },
       profile: "Alakazam's supercomputer-grade intellect mirrors Opus.",
       provenance: {
-        assigned_by: 'model-registry-seed',
-        assigned_with: 'claude-opus-4-8',
+        assigned_by: 'housekeeping',
+        assigned_with: 'python / sympy',
+        contributor: 'cgbarlow',
         sources: ['https://www.anthropic.com/claude'],
         assigned_at: '2026-06-22T00:00:00Z',
       },
@@ -162,8 +163,9 @@ export const MODEL_REGISTRY_FIXTURE: ModelRegistry = {
       },
       profile: 'A deterministic symbolic powerhouse — Metagross in spirit.',
       provenance: {
-        assigned_by: 'model-registry-seed',
-        assigned_with: 'claude-opus-4-8',
+        assigned_by: 'housekeeping',
+        assigned_with: 'claude / opus',
+        contributor: 'cgbarlow',
         sources: ['https://www.sympy.org/'],
         assigned_at: '2026-06-22T00:00:00Z',
       },

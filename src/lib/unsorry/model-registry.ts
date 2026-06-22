@@ -47,12 +47,17 @@ export function joinModels(
  * distribution stats (or null stats if the model has no proofs recorded).
  * Returns null when no model carries that slug.
  */
-export async function getModelProfile(
-  slug: string,
-): Promise<{ entry: ModelRegistryEntry; stat: ModelStat | null } | null> {
+export async function getModelProfile(slug: string): Promise<{
+  entry: ModelRegistryEntry
+  stat: ModelStat | null
+  /** The registry entry for the model that named this one (if it too is named). */
+  namedBy: ModelRegistryEntry | null
+} | null> {
   const [reg, extras] = await Promise.all([getModelRegistry(), getLeaderboardExtras()])
   const entry = reg.models.find((e) => e.slug === slug)
   if (!entry) return null
   const stat = extras.models.find((m) => m.provider_model === entry.provider_model) ?? null
-  return { entry, stat }
+  const namedBy =
+    reg.models.find((e) => e.provider_model === entry.provenance.assigned_with) ?? null
+  return { entry, stat, namedBy }
 }
