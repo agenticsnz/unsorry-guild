@@ -17,6 +17,23 @@ the engineering protocols this project follows.
 `npm run changelog:preview`; a release folds them in here with
 `npm run changelog:release <version> <date>`. -->
 
+## [2.2.0] - 2026-06-22
+
+### Added
+
+- The model page's **Swarm contributor** now shows the contributor's GitHub avatar as a small icon beside the handle. (ADR-027)
+- Model pages now show **provenance**: a "Named by" line linking to the Pokémon/model that named this one (the swarm research agent, e.g. *Alakazam — claude / opus*), and the **swarm contributor** who ran the naming task, linking to their contributor profile. Reads the enriched `provenance` (`assigned_with`, `contributor`) the swarm now records upstream ([ADR-083](https://github.com/agenticsnz/unsorry)). (ADR-027 / SPEC-027-A)
+
+### Changed
+
+- Adopted the **`changelog.d/` one-file-per-change fragment** workflow (ADR-028 / SPEC-028-A), aligning with the upstream unsorry repo (its ADR-040). User-facing changes now ship a `changelog.d/<category>-<slug>.md` fragment instead of editing `CHANGELOG.md`'s `[Unreleased]` section directly, so concurrent PRs no longer conflict on the changelog. A small Node tool (`scripts/changelog.mjs`, run via `npm run changelog:preview` / `npm run changelog:release`) folds the fragments into a dated version section at release time. Pure fold/render logic is unit-tested.
+- Model pages now show a **larger hero Pokémon sprite** (160px), and the "Named by" line renders the naming model's Pokémon with a **leaderboard-sized icon** (28px) beside its name instead of a tiny one. (ADR-027)
+- The model → Pokémon registry is now refetched every **60s** (was 600s), so a model the swarm just named shows up on the leaderboard and its model page within about a minute. The other upstream artifacts keep the 10-minute cadence. (ADR-027)
+
+### Fixed
+
+- The **Proofs over time** chart's *merge* basis now labels each (hourly) point with its **date and hour** (e.g. `2026-06-22 03:00`) instead of a bare date (ADR-030). Because the upstream series is bucketed hourly but every point was labelled with just its date, the latest still-filling hour read as the whole day — `2026-06-22` looked like ~5 proofs when ~62 had merged. The hourly cadence is preserved (one bar per hour) and the current hour now reads clearly as an hour; the header's cumulative total and the cumulative line give the running/day totals. The date-only *solve* basis is unchanged.
+
 ## [2.1.0] - 2026-06-22
 
 ### Added

@@ -1,1 +1,0 @@
-The model → Pokémon registry is now refetched every **60s** (was 600s), so a model the swarm just named shows up on the leaderboard and its model page within about a minute. The other upstream artifacts keep the 10-minute cadence. (ADR-027)
