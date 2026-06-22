@@ -12,6 +12,11 @@ the engineering protocols this project follows.
 
 ## [Unreleased]
 
+<!-- Unreleased changes accumulate as one-file-per-change fragments under
+`changelog.d/` (ADR-028) — do NOT edit this section by hand. Preview with
+`npm run changelog:preview`; a release folds them in here with
+`npm run changelog:release <version> <date>`. -->
+
 ## [2.1.0] - 2026-06-22
 
 ### Added
