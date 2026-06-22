@@ -31,8 +31,10 @@ describe('ModelPage', () => {
     // Provenance: named by Metagross (python / sympy), contributor cgbarlow
     const namedByLink = screen.getByRole('link', { name: /Metagross/ })
     expect(namedByLink).toHaveAttribute('href', '/math/models/python-sympy')
-    const contributorLink = screen.getByRole('link', { name: '@cgbarlow' })
+    const contributorLink = screen.getByRole('link', { name: /@cgbarlow/ })
     expect(contributorLink).toHaveAttribute('href', '/math/contributors/cgbarlow')
+    // the contributor's GitHub avatar shows as a small icon
+    expect(screen.getByAltText('cgbarlow')).toBeInTheDocument()
   })
 
   it('omits the performance section when the model has no distribution row', async () => {
