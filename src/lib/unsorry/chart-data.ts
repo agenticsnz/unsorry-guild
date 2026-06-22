@@ -14,29 +14,25 @@ export interface ComboSeries {
   cumulative: number[]
 }
 
-export function proofsOverTimeCombo(series: TimelinePoint[]): ComboSeries {
-  // Aggregate to one bar per calendar day (ADR-029). The merge basis is bucketed
-  // hourly upstream, so a single day arrives as up to 24 points; mapping each to
-  // its date label rendered 24 same-labeled bars, and the latest (partial-hour)
-  // bar read as the whole day's total. Collapse by date: per-period = the day's
-  // summed proofs, cumulative = the day's end (max, since cumulative is monotonic)
-  // value. The solve basis is already daily, so this is a no-op for it.
-  const byDay = new Map<string, { proofs: number; cumulative: number }>()
-  for (const p of series) {
-    const day = p.t.slice(0, 10)
-    const acc = byDay.get(day)
-    if (acc) {
-      acc.proofs += p.proofs
-      acc.cumulative = Math.max(acc.cumulative, p.cumulative_proofs)
-    } else {
-      byDay.set(day, { proofs: p.proofs, cumulative: p.cumulative_proofs })
-    }
+/** Label a timeline point. The merge basis is bucketed hourly (`…THH:MM:SSZ`),
+ * so we keep the hour — `2026-06-22 03:00` — and the latest still-filling hour
+ * reads as an hour, not the whole day. The solve basis is date-only (`2026-06-20`),
+ * so it stays a bare date (ADR-030). */
+function pointLabel(t: string): string {
+  if (t.includes('T')) {
+    const [date, time] = t.split('T')
+    return `${date} ${time.slice(0, 5)}`
   }
-  const labels = [...byDay.keys()].sort() // ISO dates sort chronologically
+  return t.slice(0, 10)
+}
+
+export function proofsOverTimeCombo(series: TimelinePoint[]): ComboSeries {
+  // One bar per upstream bucket (hourly on the merge basis, daily on solve), with
+  // hour-aware labels (ADR-030, superseding the daily aggregation of ADR-029).
   return {
-    labels,
-    proofs: labels.map((d) => byDay.get(d)!.proofs),
-    cumulative: labels.map((d) => byDay.get(d)!.cumulative),
+    labels: series.map((p) => pointLabel(p.t)),
+    proofs: series.map((p) => p.proofs),
+    cumulative: series.map((p) => p.cumulative_proofs),
   }
 }
 

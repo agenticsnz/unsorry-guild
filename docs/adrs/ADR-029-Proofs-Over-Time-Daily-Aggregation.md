@@ -6,7 +6,9 @@
 | **Initiative** | unsorry-guild — leaderboard chart correctness |
 | **Proposed By** | Development Team |
 | **Date** | 2026-06-22 |
-| **Status** | Accepted |
+| **Status** | Superseded by [ADR-030](./ADR-030-Proofs-Over-Time-Hourly-Hour-Labels.md) |
+
+> **Superseded same day by [ADR-030](./ADR-030-Proofs-Over-Time-Hourly-Hour-Labels.md).** Daily aggregation removed the intra-day cadence the chart exists to show. ADR-030 keeps the hourly bars and fixes only the label (the actual bug), so the latest hour no longer reads as the whole day.
 
 ---
 

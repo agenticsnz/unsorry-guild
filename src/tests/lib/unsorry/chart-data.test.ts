@@ -13,38 +13,37 @@ import type {
 } from '@/lib/unsorry/types'
 
 describe('proofsOverTimeCombo', () => {
-  it('maps per-period proofs and cumulative with date labels', () => {
+  it('keeps hourly (merge-basis) points and labels each with date + hour', () => {
+    // The merge basis is bucketed hourly upstream. We keep one bar per hour (ADR-030)
+    // but label with the hour, so the latest still-filling hour reads as an hour —
+    // not the whole day (the original ADR-028/029 misread). Per-period/cumulative
+    // pass straight through.
     const series: TimelinePoint[] = [
-      { t: '2026-06-01T00:00:00Z', proofs: 2, cumulative_proofs: 2 },
-      { t: '2026-06-02T00:00:00Z', proofs: 3, cumulative_proofs: 5 },
+      { t: '2026-06-22T00:00:00Z', proofs: 24, cumulative_proofs: 2555 },
+      { t: '2026-06-22T03:00:00Z', proofs: 14, cumulative_proofs: 2593 },
+      { t: '2026-06-22T04:00:00Z', proofs: 1, cumulative_proofs: 2594 },
     ]
     expect(proofsOverTimeCombo(series)).toEqual({
-      labels: ['2026-06-01', '2026-06-02'],
-      proofs: [2, 3],
-      cumulative: [2, 5],
+      labels: ['2026-06-22 00:00', '2026-06-22 03:00', '2026-06-22 04:00'],
+      proofs: [24, 14, 1],
+      cumulative: [2555, 2593, 2594],
+    })
+  })
+
+  it('labels date-only (solve-basis) points with just the date', () => {
+    const series: TimelinePoint[] = [
+      { t: '2026-06-19', proofs: 1436, cumulative_proofs: 2587 },
+      { t: '2026-06-20', proofs: 7, cumulative_proofs: 2594 },
+    ]
+    expect(proofsOverTimeCombo(series)).toEqual({
+      labels: ['2026-06-19', '2026-06-20'],
+      proofs: [1436, 7],
+      cumulative: [2587, 2594],
     })
   })
 
   it('handles an empty series', () => {
     expect(proofsOverTimeCombo([])).toEqual({ labels: [], proofs: [], cumulative: [] })
-  })
-
-  it('aggregates an hourly (merge-basis) series into one bar per calendar day', () => {
-    // The merge basis is bucketed hourly upstream; without daily aggregation each
-    // of a day's ~24 points renders as its own bar sharing the same date label, so
-    // the latest partial-hour bar (e.g. 14) reads as the whole day. ADR-029.
-    const series: TimelinePoint[] = [
-      { t: '2026-06-21T22:00:00Z', proofs: 36, cumulative_proofs: 2501 },
-      { t: '2026-06-21T23:00:00Z', proofs: 30, cumulative_proofs: 2531 },
-      { t: '2026-06-22T00:00:00Z', proofs: 24, cumulative_proofs: 2555 },
-      { t: '2026-06-22T01:00:00Z', proofs: 10, cumulative_proofs: 2565 },
-      { t: '2026-06-22T03:00:00Z', proofs: 14, cumulative_proofs: 2593 },
-    ]
-    expect(proofsOverTimeCombo(series)).toEqual({
-      labels: ['2026-06-21', '2026-06-22'],
-      proofs: [66, 48], // 36+30 ; 24+10+14 — the day total, not the last hour
-      cumulative: [2531, 2593], // end-of-day (max) cumulative
-    })
   })
 })
 
