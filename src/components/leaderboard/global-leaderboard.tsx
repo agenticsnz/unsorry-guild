@@ -35,6 +35,7 @@ export function GlobalLeaderboard({ entries }: { entries: GuildLeaderboardEntry[
           <TableHead className="text-right">Score</TableHead>
           <TableHead className="text-right hidden sm:table-cell">Difficulty</TableHead>
           <TableHead className="text-right hidden sm:table-cell">Proofs</TableHead>
+          <TableHead className="text-right hidden sm:table-cell">Dispatch</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -59,6 +60,9 @@ export function GlobalLeaderboard({ entries }: { entries: GuildLeaderboardEntry[
             </TableCell>
             <TableCell className="text-right tabular-nums hidden sm:table-cell">
               {e.creditedProofs.toLocaleString()}
+            </TableCell>
+            <TableCell className="text-right tabular-nums hidden sm:table-cell">
+              {e.dispatchProofs > 0 ? e.dispatchProofs.toLocaleString() : '—'}
             </TableCell>
           </TableRow>
         ))}

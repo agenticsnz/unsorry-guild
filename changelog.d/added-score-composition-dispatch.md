@@ -1,0 +1,1 @@
+The leaderboard now shows a **Dispatch** column (proof PRs landed for other contributors), contributor profiles gain a **Score breakdown** that reconstructs the rank from its difficulty, proof, and dispatch terms, and a new **How scores are calculated** page (`/math/scoring`) documents the formula — so a standing driven by dispatch credit no longer looks unexplained (ADR-032).

@@ -18,6 +18,12 @@ describe('toGuildLeaderboard', () => {
     expect(rows[0].badges.success_rate_percent).toBe(100)
   })
 
+  it('carries dispatch credit through to the guild row', () => {
+    const rows = toGuildLeaderboard(LEADERBOARD_FIXTURE)
+    const cgbarlow = rows.find((r) => r.github === 'cgbarlow')
+    expect(cgbarlow).toMatchObject({ dispatchProofs: 300, dispatchPoints: 270 })
+  })
+
   it('derives avatar/profile/display defaults from the handle when missing', () => {
     const [row] = toGuildLeaderboard([
       { rank: 1, github: 'someone', score: 10, credited_proofs: 1, difficulty_points: 0 },
@@ -26,5 +32,8 @@ describe('toGuildLeaderboard', () => {
     expect(row.avatarUrl).toContain('github.com/someone.png')
     expect(row.profileUrl).toBe('https://github.com/someone')
     expect(row.badges.proofs).toBe(1)
+    // dispatch fields default to 0 when upstream omits them
+    expect(row.dispatchProofs).toBe(0)
+    expect(row.dispatchPoints).toBe(0)
   })
 })

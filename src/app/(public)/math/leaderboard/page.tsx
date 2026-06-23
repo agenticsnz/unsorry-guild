@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { fetchSourcing } from '@/lib/unsorry/fetchers'
 import { getGlobalLeaderboard, getLeaderboardExtras } from '@/lib/unsorry/standings'
 import { getModelRegistryMap, joinModels } from '@/lib/unsorry/model-registry'
@@ -31,7 +32,11 @@ export default async function LeaderboardPage() {
       <div className="space-y-1">
         <h1 className="text-3xl font-bold">Leaderboard</h1>
         <p className="text-sm text-foreground/70">
-          Difficulty-weighted contribution to the unsorry Math corpus. Source: unsorry git.
+          Difficulty-weighted contribution to the unsorry Math corpus, plus dispatch credit for
+          landing others&rsquo; proofs. Source: unsorry git.{' '}
+          <Link href="/math/scoring" className="underline hover:text-foreground">
+            How scores are calculated
+          </Link>
         </p>
       </div>
 
