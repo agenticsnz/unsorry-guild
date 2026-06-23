@@ -10,18 +10,18 @@ afterEach(() => {
 })
 
 describe('fetchers', () => {
-  it('fetchGlobalLeaderboard returns contributors from the canonical URL', async () => {
+  it('fetchGlobalLeaderboard reads raw-git first (tracks main; Pages can lag)', async () => {
     const fetchMock = vi.fn().mockResolvedValueOnce(ok({ contributors: LEADERBOARD_FIXTURE }))
     vi.stubGlobal('fetch', fetchMock)
     const rows = await fetchGlobalLeaderboard()
     expect(rows).toHaveLength(3)
     expect(fetchMock).toHaveBeenCalledTimes(1)
     expect(String(fetchMock.mock.calls[0][0])).toContain(
-      'unsorry.agentics.org.nz/docs/metrics/leaderboard-ui.json',
+      'raw.githubusercontent.com/agenticsnz/unsorry/main/docs/metrics/leaderboard-ui.json',
     )
   })
 
-  it('falls back to raw.githubusercontent when the primary is not ok', async () => {
+  it('falls back to the Pages URL when raw-git is not ok', async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(fail())
@@ -30,7 +30,7 @@ describe('fetchers', () => {
     const rows = await fetchGlobalLeaderboard()
     expect(rows).toHaveLength(3)
     expect(fetchMock).toHaveBeenCalledTimes(2)
-    expect(String(fetchMock.mock.calls[1][0])).toContain('raw.githubusercontent.com')
+    expect(String(fetchMock.mock.calls[1][0])).toContain('unsorry.agentics.org.nz')
   })
 
   it('throws UnsorryFetchError when both sources fail', async () => {
@@ -38,10 +38,10 @@ describe('fetchers', () => {
     await expect(fetchCommunityStats()).rejects.toBeInstanceOf(UnsorryFetchError)
   })
 
-  it('passes the Next revalidate option', async () => {
+  it('passes a short Next revalidate (push-on-merge freshness)', async () => {
     const fetchMock = vi.fn().mockResolvedValueOnce(ok({ contributors: [] }))
     vi.stubGlobal('fetch', fetchMock)
     await fetchGlobalLeaderboard()
-    expect(fetchMock.mock.calls[0][1]).toMatchObject({ next: { revalidate: 600 } })
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ next: { revalidate: 60 } })
   })
 })

@@ -1,7 +1,9 @@
 /**
  * Canonical locations for unsorry's git-published data. unsorry-guild reads these
- * read-only (git is the source of truth — see ADR-015). All artifacts are
- * CORS-enabled and cached ~600s upstream.
+ * read-only (git is the source of truth — see ADR-015). The **raw-git** URL is
+ * preferred over the Pages URL: Pages can fall hours behind `main` when a flood of
+ * proof-merge commits backs up its build queue, whereas raw.githubusercontent
+ * tracks `main` within minutes (ADR-031). Pages stays as the fallback.
  */
 export const UNSORRY_REPO = 'agenticsnz/unsorry'
 
@@ -11,8 +13,9 @@ export const UNSORRY_BASE_URL =
 export const UNSORRY_RAW_BASE_URL =
   'https://raw.githubusercontent.com/agenticsnz/unsorry/main/docs'
 
-/** Match the upstream artifact refresh cadence. */
-export const REVALIDATE_SECONDS = 600
+/** Guild-side cache for the git-published artifacts. Short, because the raw-git
+ * source updates push-on-merge — the board should reflect new proofs within ~1 min. */
+export const REVALIDATE_SECONDS = 60
 
 /**
  * The model → Pokémon registry changes one entry at a time as the swarm names
