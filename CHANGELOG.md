@@ -17,6 +17,12 @@ the engineering protocols this project follows.
 `npm run changelog:preview`; a release folds them in here with
 `npm run changelog:release <version> <date>`. -->
 
+## [2.2.1] - 2026-06-23
+
+### Fixed
+
+- The leaderboard, proofs-over-time, sourcing, summary, queue, and model registry now read **raw-git first** (`raw.githubusercontent.com/agenticsnz/unsorry/main`) instead of the GitHub Pages mirror, with the guild cache cut to 60s (ADR-031). During bursts of proof merges, GitHub Pages can fall **hours** behind `main` (its build queue backs up), which made the board look frozen even as solves landed — e.g. it sat at `2026-06-22 23:00` / 2881 proofs while `main` was already at 3016. Raw-git tracks `main` within minutes, so new proofs now show up in about a minute; Pages remains the fallback.
+
 ## [2.2.0] - 2026-06-22
 
 ### Added

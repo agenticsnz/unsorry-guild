@@ -24,7 +24,8 @@ export class UnsorryFetchError extends Error {
   }
 }
 
-/** Fetch JSON from the canonical Pages URL, falling back to raw.githubusercontent. */
+/** Fetch JSON, trying raw-git first (tracks `main` within minutes) and falling
+ * back to the Pages URL (which can lag hours behind during merge-commit floods). */
 export async function fetchJson<T>(
   primary: string,
   fallback: string,
@@ -44,8 +45,8 @@ export async function fetchJson<T>(
 /** The full leaderboard-ui.json (contributors + models + timelines + summary). */
 export async function fetchLeaderboardUi(): Promise<LeaderboardUi> {
   return fetchJson<LeaderboardUi>(
-    metricsUrl('leaderboard-ui.json'),
     rawMetricsUrl('leaderboard-ui.json'),
+    metricsUrl('leaderboard-ui.json'),
   )
 }
 
@@ -57,24 +58,24 @@ export async function fetchGlobalLeaderboard(): Promise<UnsorryLeaderboardRecord
 /** The swarm-maintained model → Pokémon registry (ADR-083 upstream). */
 export async function fetchModelRegistry(): Promise<ModelRegistry> {
   return fetchJson<ModelRegistry>(
-    metricsUrl('model-registry.json'),
     rawMetricsUrl('model-registry.json'),
+    metricsUrl('model-registry.json'),
     MODEL_REGISTRY_REVALIDATE_SECONDS,
   )
 }
 
 export async function fetchSourcing(): Promise<SourcingEntry[]> {
   const data = await fetchJson<SourcingLeaderboard>(
-    metricsUrl('sourcing-leaderboard.json'),
     rawMetricsUrl('sourcing-leaderboard.json'),
+    metricsUrl('sourcing-leaderboard.json'),
   )
   return data.sourcers ?? []
 }
 
 export async function fetchCommunityStats(): Promise<CommunityStats> {
   return fetchJson<CommunityStats>(
-    metricsUrl('community-stats.json'),
     rawMetricsUrl('community-stats.json'),
+    metricsUrl('community-stats.json'),
   )
 }
 
@@ -84,9 +85,9 @@ export async function fetchGoalEffort(): Promise<GoalEffort[]> {
 }
 
 export async function fetchQueue<T = unknown>(): Promise<T> {
-  return fetchJson<T>(queueUrl(), rawQueueUrl())
+  return fetchJson<T>(rawQueueUrl(), queueUrl())
 }
 
 export async function fetchQueueData(): Promise<QueueData> {
-  return fetchJson<QueueData>(queueUrl(), rawQueueUrl())
+  return fetchJson<QueueData>(rawQueueUrl(), queueUrl())
 }
