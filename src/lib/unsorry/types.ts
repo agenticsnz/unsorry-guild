@@ -18,7 +18,10 @@ export interface UnsorryLeaderboardRecord {
   score: number
   verified_proofs?: number
   credited_proofs: number
+  explicit_solver_proofs?: number
+  inferred_git_proofs?: number
   difficulty_points: number
+  dispatch_proofs?: number
   dispatch_points?: number
   runs?: number
   successes?: number
@@ -191,6 +194,11 @@ export interface GuildLeaderboardEntry {
   difficultyPoints: number
   creditedProofs: number
   verifiedProofs: number
+  /** Other contributors' proof PRs this contributor opened/landed (self-dispatch
+   *  excluded). The count behind the dispatch term of the score. */
+  dispatchProofs: number
+  /** Dispatch credit in difficulty-point units (0.9 per dispatched PR). */
+  dispatchPoints: number
   successRate: number
   badges: UnsorryBadges
 }

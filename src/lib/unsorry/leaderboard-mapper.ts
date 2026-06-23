@@ -17,6 +17,8 @@ export function toGuildLeaderboard(records: UnsorryLeaderboardRecord[]): GuildLe
     difficultyPoints: r.difficulty_points,
     creditedProofs: r.credited_proofs,
     verifiedProofs: r.verified_proofs ?? r.credited_proofs,
+    dispatchProofs: r.dispatch_proofs ?? 0,
+    dispatchPoints: r.dispatch_points ?? 0,
     successRate: r.run_success_rate ?? 0,
     badges: r.badges ?? {
       proofs: r.credited_proofs,

@@ -58,6 +58,8 @@ describe('leaderboardBarSeries', () => {
     difficultyPoints: 0,
     creditedProofs: 0,
     verifiedProofs: 0,
+    dispatchProofs: 0,
+    dispatchPoints: 0,
     successRate: 0,
     badges: { proofs: 0, difficulty: 0, success_rate_percent: 0 },
   })
