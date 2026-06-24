@@ -176,6 +176,38 @@ export interface CommunityStats {
   [key: string]: unknown
 }
 
+/** One goal in docs/metrics/registered-targets.json → suites[].goals[] (ADR-092). */
+export interface BenchmarkGoal {
+  id: string
+  difficulty: number
+  status: 'open' | 'proved'
+  credit: 'credited' | 'glue'
+  /** Copy-paste line: `./swarm/run.sh --goal <id>`. */
+  run_snippet: string
+}
+
+/** One registered benchmark suite in docs/metrics/registered-targets.json → suites[]. */
+export interface BenchmarkSuite {
+  id: string
+  domain: string
+  supplier: string
+  mathlib_pin: string
+  license: string
+  cohort: string
+  credited: number
+  glue: number
+  proved: number
+  pass_at: Record<string, number>
+  goals: BenchmarkGoal[]
+}
+
+/** docs/metrics/registered-targets.json — the ADR-092 benchmark *intent* surface,
+ *  segregated from the organic leaderboard (cohort: benchmark). */
+export interface RegisteredTargets {
+  schema_version?: number
+  suites: BenchmarkSuite[]
+}
+
 /** goal → credited solver, parsed from library/index/*.aisp. */
 export interface GoalSolver {
   goal: string

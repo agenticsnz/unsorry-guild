@@ -1,9 +1,15 @@
 import { loadSnapshot } from './snapshot'
 import { deriveGoalSolverMap } from './derive'
-import { fetchGlobalLeaderboard, fetchGoalEffort, fetchLeaderboardUi } from './fetchers'
+import {
+  fetchGlobalLeaderboard,
+  fetchGoalEffort,
+  fetchLeaderboardUi,
+  fetchRegisteredTargets,
+} from './fetchers'
 import { toGuildLeaderboard } from './leaderboard-mapper'
 import { buildGoalSolverMap } from './attribution'
 import type {
+  BenchmarkSuite,
   GoalEffort,
   GoalSolver,
   GuildLeaderboardEntry,
@@ -41,6 +47,15 @@ export async function getGlobalLeaderboard(): Promise<GuildLeaderboardEntry[]> {
 export async function getGoalEffort(): Promise<GoalEffort[]> {
   try {
     return await fetchGoalEffort()
+  } catch {
+    return []
+  }
+}
+
+/** The registered benchmark suites (ADR-092). Total: returns [] on any error. */
+export async function getRegisteredTargets(): Promise<BenchmarkSuite[]> {
+  try {
+    return (await fetchRegisteredTargets()).suites ?? []
   } catch {
     return []
   }

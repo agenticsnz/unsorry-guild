@@ -12,6 +12,7 @@ import type {
   LeaderboardUi,
   ModelRegistry,
   QueueData,
+  RegisteredTargets,
   SourcingEntry,
   SourcingLeaderboard,
   UnsorryLeaderboardRecord,
@@ -47,6 +48,14 @@ export async function fetchLeaderboardUi(): Promise<LeaderboardUi> {
   return fetchJson<LeaderboardUi>(
     rawMetricsUrl('leaderboard-ui.json'),
     metricsUrl('leaderboard-ui.json'),
+  )
+}
+
+/** The registered benchmark suites (ADR-092 / SPEC-092-A). */
+export async function fetchRegisteredTargets(): Promise<RegisteredTargets> {
+  return fetchJson<RegisteredTargets>(
+    rawMetricsUrl('registered-targets.json'),
+    metricsUrl('registered-targets.json'),
   )
 }
 
