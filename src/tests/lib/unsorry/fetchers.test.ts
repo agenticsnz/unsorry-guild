@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { fetchGlobalLeaderboard, fetchCommunityStats, UnsorryFetchError } from '@/lib/unsorry/fetchers'
+import {
+  fetchGlobalLeaderboard,
+  fetchCommunityStats,
+  fetchRegisteredTargets,
+  UnsorryFetchError,
+} from '@/lib/unsorry/fetchers'
+import { getRegisteredTargets } from '@/lib/unsorry/standings'
 import { LEADERBOARD_FIXTURE } from '@/tests/mocks/unsorry-fixtures'
 
 const ok = (body: unknown) => ({ ok: true, json: async () => body }) as unknown as Response
@@ -43,5 +49,22 @@ describe('fetchers', () => {
     vi.stubGlobal('fetch', fetchMock)
     await fetchGlobalLeaderboard()
     expect(fetchMock.mock.calls[0][1]).toMatchObject({ next: { revalidate: 60 } })
+  })
+
+  it('fetchRegisteredTargets reads registered-targets.json (raw-git first)', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(ok({ schema_version: 1, suites: [{ id: 'putnam-v1', goals: [] }] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const data = await fetchRegisteredTargets()
+    expect(data.suites).toHaveLength(1)
+    expect(String(fetchMock.mock.calls[0][0])).toContain(
+      'raw.githubusercontent.com/agenticsnz/unsorry/main/docs/metrics/registered-targets.json',
+    )
+  })
+
+  it('getRegisteredTargets is total — returns [] when both sources fail', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(fail()))
+    expect(await getRegisteredTargets()).toEqual([])
   })
 })
