@@ -1,7 +1,7 @@
 import { extract } from 'tar-stream'
 import { createGunzip } from 'node:zlib'
 import { Readable } from 'node:stream'
-import { parseProof } from './snapshot-parse'
+import { parseGoal, parseProof } from './snapshot-parse'
 import type { UnsorrySnapshot } from './snapshot-parse'
 
 /**
@@ -43,12 +43,21 @@ async function fetchSnapshot(token: string): Promise<UnsorrySnapshot | null> {
   }
 
   const gzip = Buffer.from(await res.arrayBuffer())
-  const snap: UnsorrySnapshot = { proofs: [] }
+  const snap: UnsorrySnapshot = { proofs: [], archivedProofs: [], goals: [] }
   const ext = extract()
+  // Archived proofs live at packages/unsorry-archive-<n>/library/index/*.aisp.
+  const ARCHIVED_PROOF_RE = /^packages\/unsorry-archive-[^/]+\/library\/index\/[^/]+\.aisp$/
 
   ext.on('entry', (header, stream, next) => {
     const rel = relativePath(header.name)
-    if (!header.name.endsWith('.aisp') || !rel.startsWith('library/index/')) {
+    // One pass over the tarball: active proof records (attribution), archived proof
+    // records (so the hardest, mostly-archived proofs reach the Showcase), and goal
+    // records (per-goal difficulty for the Showcase ranking).
+    const isAisp = header.name.endsWith('.aisp')
+    const isProof = isAisp && rel.startsWith('library/index/')
+    const isArchivedProof = isAisp && ARCHIVED_PROOF_RE.test(rel)
+    const isGoal = isAisp && rel.startsWith('goals/')
+    if (!isProof && !isArchivedProof && !isGoal) {
       stream.on('end', next)
       stream.resume()
       return
@@ -56,8 +65,14 @@ async function fetchSnapshot(token: string): Promise<UnsorrySnapshot | null> {
     const chunks: Buffer[] = []
     stream.on('data', (c: Buffer) => chunks.push(c))
     stream.on('end', () => {
-      const proof = parseProof(Buffer.concat(chunks).toString('utf8'))
-      if (proof) snap.proofs.push(proof)
+      const text = Buffer.concat(chunks).toString('utf8')
+      if (isGoal) {
+        const goal = parseGoal(text)
+        if (goal) snap.goals.push(goal)
+      } else {
+        const proof = parseProof(text)
+        if (proof) (isArchivedProof ? snap.archivedProofs : snap.proofs).push(proof)
+      }
       next()
     })
   })

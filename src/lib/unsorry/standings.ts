@@ -1,5 +1,10 @@
 import { loadSnapshot } from './snapshot'
-import { deriveGoalSolverMap } from './derive'
+import {
+  deriveGoalSolverMap,
+  deriveShowcaseSolverMap,
+  deriveGoalMetaMap,
+  type GoalMeta,
+} from './derive'
 import {
   fetchBenchmarkRuns,
   fetchGlobalLeaderboard,
@@ -88,6 +93,39 @@ export async function getGoalSolverMap(): Promise<Map<string, GoalSolver>> {
     const snap = await loadSnapshot()
     if (snap) return deriveGoalSolverMap(snap)
     return await buildGoalSolverMap()
+  } catch {
+    return new Map()
+  }
+}
+
+/**
+ * goal → credited solver across active AND archived proofs, for the Showcase
+ * (the hardest proofs are mostly archived). Falls back to the active-only
+ * GitHub-API scan when the snapshot is unavailable.
+ */
+export async function getShowcaseSolverMap(): Promise<Map<string, GoalSolver>> {
+  try {
+    const snap = await loadSnapshot()
+    if (snap) return deriveShowcaseSolverMap(snap)
+    return await buildGoalSolverMap()
+  } catch {
+    return new Map()
+  }
+}
+
+/**
+ * goal → {difficulty, status} for the whole corpus, preferred from the git
+ * snapshot's goal records (covers EVERY goal). Falls back to the telemetry-only
+ * `goal_effort` slice when the snapshot is unavailable (no GITHUB_TOKEN). The
+ * Showcase ranks over this so the hardest proved goals are visible, not just the
+ * recent ones that happen to carry proof-run telemetry.
+ */
+export async function getGoalMetaMap(): Promise<Map<string, GoalMeta>> {
+  try {
+    const snap = await loadSnapshot()
+    if (snap && snap.goals.length > 0) return deriveGoalMetaMap(snap)
+    const effort = await fetchGoalEffort()
+    return new Map(effort.map((e) => [e.goal, { difficulty: e.difficulty, status: e.status }]))
   } catch {
     return new Map()
   }
