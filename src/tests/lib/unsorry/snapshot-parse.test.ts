@@ -16,7 +16,16 @@ describe('parseProof (library/index/*.aisp)', () => {
     })
   })
 
-  it('returns null when there is no solver/goal', () => {
+  it('captures a proof with no explicit solver (inferred attribution)', () => {
+    const rec = '⟦Ω:Lemma⟧{sha≜abc; goal≜g-inferred; name≜g_inferred}'
+    expect(parseProof(rec)).toEqual({ goal: 'g-inferred', solver: undefined, name: 'g_inferred' })
+  })
+
+  it('treats the ∅ none-sentinel solver as no solver', () => {
+    expect(parseProof('⟦Ω:Lemma⟧{goal≜g; name≜g}\n⟦Π⟧{solver≜∅}')?.solver).toBeUndefined()
+  })
+
+  it('returns null when there is no goal', () => {
     expect(parseProof('garbage')).toBeNull()
   })
 })
