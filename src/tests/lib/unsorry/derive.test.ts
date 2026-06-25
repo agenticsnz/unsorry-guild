@@ -10,10 +10,12 @@ const SNAP: UnsorrySnapshot = {
   proofs: [
     { goal: 'g1', solver: 'alice', name: 'lemma_one' },
     { goal: 'g2', solver: 'bob' },
+    { goal: 'g4', name: 'inferred_lemma' }, // proved, no explicit solver
   ],
   archivedProofs: [
     { goal: 'g0', solver: 'carol', name: 'old_lemma' },
     { goal: 'g1', solver: 'stale', name: 'superseded' }, // active wins on conflict
+    { goal: 'g5', name: 'old_inferred' }, // archived, no explicit solver
   ],
   goals: [
     { goal: 'g1', difficulty: 4, status: 'proved' },
@@ -25,11 +27,12 @@ const SNAP: UnsorrySnapshot = {
 const EMPTY: UnsorrySnapshot = { proofs: [], archivedProofs: [], goals: [] }
 
 describe('deriveGoalSolverMap', () => {
-  it('maps each ACTIVE proved goal to its credited solver (archive excluded)', () => {
+  it('maps ACTIVE proofs WITH an explicit solver (archive + solverless excluded)', () => {
     const m = deriveGoalSolverMap(SNAP)
     expect(m.get('g1')).toEqual({ goal: 'g1', solver: 'alice', name: 'lemma_one' })
     expect(m.get('g2')?.solver).toBe('bob')
     expect(m.has('g0')).toBe(false) // archived not in the active map
+    expect(m.has('g4')).toBe(false) // no explicit solver → excluded (unchanged behaviour)
     expect(m.size).toBe(2)
   })
 
@@ -39,11 +42,13 @@ describe('deriveGoalSolverMap', () => {
 })
 
 describe('deriveShowcaseSolverMap', () => {
-  it('merges active + archived proofs, with active winning on conflict', () => {
+  it('merges active + archived, includes solverless proofs, active wins on conflict', () => {
     const m = deriveShowcaseSolverMap(SNAP)
     expect(m.get('g0')?.solver).toBe('carol') // archived-only goal included
     expect(m.get('g1')?.solver).toBe('alice') // active wins over the archived dup
-    expect(m.size).toBe(3) // g0, g1, g2
+    expect(m.get('g4')?.solver).toBe('') // solverless active proof included (inferred)
+    expect(m.get('g5')?.solver).toBe('') // solverless archived proof included
+    expect(m.size).toBe(5) // g0, g1, g2, g4, g5
   })
 })
 
