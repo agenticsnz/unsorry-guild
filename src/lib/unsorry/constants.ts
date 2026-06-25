@@ -33,6 +33,10 @@ export const rawQueueUrl = () => `${UNSORRY_RAW_BASE_URL}/queue.json`
 export const rawRepoUrl = (path: string) =>
   `https://raw.githubusercontent.com/${UNSORRY_REPO}/main/${path}`
 
+/** Human GitHub blob URL for any path in the unsorry repo (e.g. the goal record). */
+export const repoBlobUrl = (path: string) =>
+  `https://github.com/${UNSORRY_REPO}/blob/main/${path}`
+
 /** GitHub Git Trees API (recursive) for listing repo paths. */
 export const treesApiUrl = () =>
   `https://api.github.com/repos/${UNSORRY_REPO}/git/trees/main?recursive=1`
