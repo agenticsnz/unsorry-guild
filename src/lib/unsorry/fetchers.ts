@@ -81,6 +81,19 @@ export async function fetchGoalSource(goalId: string): Promise<string> {
   return fetchText(rawRepoUrl(`goals/${goalId}.lean`))
 }
 
+/** Goal slug → library proof module name (e.g. `putnam-1963-b1` → `Putnam1963B1`). */
+export function proofModule(goalId: string): string {
+  return goalId
+    .split('-')
+    .map((seg) => seg.charAt(0).toUpperCase() + seg.slice(1))
+    .join('')
+}
+
+/** A proved goal's Lean proof (`library/Unsorry/<Module>.lean`). */
+export async function fetchProofSource(goalId: string): Promise<string> {
+  return fetchText(rawRepoUrl(`library/Unsorry/${proofModule(goalId)}.lean`))
+}
+
 export async function fetchGlobalLeaderboard(): Promise<UnsorryLeaderboardRecord[]> {
   const data = await fetchLeaderboardUi()
   return data.contributors ?? []

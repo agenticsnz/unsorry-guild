@@ -24,28 +24,24 @@ export default async function ShowcasePage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
-            <Card key={item.goal} className="h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between gap-2 text-base">
-                  <span className="truncate font-mono">{item.name}</span>
-                  <span
-                    className="shrink-0 rounded-full bg-brand/15 px-2 py-0.5 text-xs font-medium text-brand"
-                    title="Difficulty"
-                  >
-                    δ {item.difficulty}
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-foreground/70">
-                Proved by{' '}
-                <Link
-                  href={`/math/contributors/${item.solver}`}
-                  className="font-medium text-foreground hover:underline"
-                >
-                  @{item.solver}
-                </Link>
-              </CardContent>
-            </Card>
+            <Link key={item.goal} href={`/math/showcase/${item.goal}`} className="group block">
+              <Card className="h-full transition-colors hover:border-primary">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between gap-2 text-base">
+                    <span className="truncate font-mono">{item.name}</span>
+                    <span
+                      className="shrink-0 rounded-full bg-brand/15 px-2 py-0.5 text-xs font-medium text-brand"
+                      title="Difficulty"
+                    >
+                      δ {item.difficulty}
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-foreground/70">
+                  Proved by <span className="font-medium text-foreground">@{item.solver}</span>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       )}

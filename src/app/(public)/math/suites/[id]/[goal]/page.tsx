@@ -51,7 +51,7 @@ export default async function BenchmarkGoalPage({
           The Lean statement the swarm must prove — kernel-verified at Gate A. The trailing{' '}
           <code>sorry</code> is the open obligation a proof replaces.
         </p>
-        <LeanStatement goalId={goalId} source={source} />
+        <LeanStatement path={`goals/${goalId}.lean`} source={source} />
       </section>
 
       <section className="space-y-3">

@@ -5,6 +5,7 @@ import {
   fetchGlobalLeaderboard,
   fetchGoalEffort,
   fetchGoalSource,
+  fetchProofSource,
   fetchLeaderboardUi,
   fetchRegisteredTargets,
 } from './fetchers'
@@ -78,6 +79,16 @@ export async function getBenchmarkRuns(): Promise<Record<string, BenchmarkRun[]>
 export async function getGoalSource(goalId: string): Promise<string> {
   try {
     return await fetchGoalSource(goalId)
+  } catch {
+    return ''
+  }
+}
+
+/** A proved goal's Lean proof source (library/Unsorry/<Module>.lean). Total: ''
+ *  on error (e.g. archived goals whose module path differs). */
+export async function getProofSource(goalId: string): Promise<string> {
+  try {
+    return await fetchProofSource(goalId)
   } catch {
     return ''
   }
