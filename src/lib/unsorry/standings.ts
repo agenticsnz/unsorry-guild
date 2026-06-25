@@ -97,12 +97,20 @@ export interface LeaderboardExtras {
   models: ModelStat[]
   timelines: Timelines | null
   summary?: LeaderboardSummary
+  /** When unsorry generated the artifact (ISO-8601). Surfaced so the board can show
+   *  freshness — the artifact stalls if upstream regen is starved (agenticsnz/unsorry#426). */
+  generatedAt?: string
 }
 
 export async function getLeaderboardExtras(): Promise<LeaderboardExtras> {
   try {
     const ui = await fetchLeaderboardUi()
-    return { models: ui.models ?? [], timelines: ui.timelines ?? null, summary: ui.summary }
+    return {
+      models: ui.models ?? [],
+      timelines: ui.timelines ?? null,
+      summary: ui.summary,
+      generatedAt: ui.generated_at,
+    }
   } catch {
     return { models: [], timelines: null }
   }
