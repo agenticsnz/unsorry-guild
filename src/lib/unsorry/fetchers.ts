@@ -7,6 +7,7 @@ import {
   MODEL_REGISTRY_REVALIDATE_SECONDS,
 } from './constants'
 import type {
+  BenchmarkRuns,
   CommunityStats,
   GoalEffort,
   LeaderboardUi,
@@ -56,6 +57,14 @@ export async function fetchRegisteredTargets(): Promise<RegisteredTargets> {
   return fetchJson<RegisteredTargets>(
     rawMetricsUrl('registered-targets.json'),
     metricsUrl('registered-targets.json'),
+  )
+}
+
+/** Per-run benchmark telemetry, keyed by suite id (ADR-092). */
+export async function fetchBenchmarkRuns(): Promise<BenchmarkRuns> {
+  return fetchJson<BenchmarkRuns>(
+    rawMetricsUrl('benchmark-runs.json'),
+    metricsUrl('benchmark-runs.json'),
   )
 }
 

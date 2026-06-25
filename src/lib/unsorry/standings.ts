@@ -1,6 +1,7 @@
 import { loadSnapshot } from './snapshot'
 import { deriveGoalSolverMap } from './derive'
 import {
+  fetchBenchmarkRuns,
   fetchGlobalLeaderboard,
   fetchGoalEffort,
   fetchLeaderboardUi,
@@ -9,6 +10,7 @@ import {
 import { toGuildLeaderboard } from './leaderboard-mapper'
 import { buildGoalSolverMap } from './attribution'
 import type {
+  BenchmarkRun,
   BenchmarkSuite,
   GoalEffort,
   GoalSolver,
@@ -58,6 +60,16 @@ export async function getRegisteredTargets(): Promise<BenchmarkSuite[]> {
     return (await fetchRegisteredTargets()).suites ?? []
   } catch {
     return []
+  }
+}
+
+/** Per-run benchmark telemetry keyed by suite id (ADR-092). Total: {} on error
+ *  (incl. before benchmark-runs.json first publishes). */
+export async function getBenchmarkRuns(): Promise<Record<string, BenchmarkRun[]>> {
+  try {
+    return (await fetchBenchmarkRuns()).suites ?? {}
+  } catch {
+    return {}
   }
 }
 
