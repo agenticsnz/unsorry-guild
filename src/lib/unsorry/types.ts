@@ -186,9 +186,26 @@ export interface BenchmarkGoal {
   run_snippet: string
 }
 
+/** Run summary for a suite (registered-targets.json → suites[].stats). All optional
+ *  / nullable: a freshly imported suite has no runs yet. */
+export interface BenchmarkSuiteStats {
+  total_runs: number
+  successful_runs: number
+  failed_runs: number
+  success_rate: number
+  best_solve_s: number | null
+  worst_solve_s: number | null
+  median_solve_s: number | null
+  contributors: number
+}
+
 /** One registered benchmark suite in docs/metrics/registered-targets.json → suites[]. */
 export interface BenchmarkSuite {
   id: string
+  /** The suite sentinel goal id — run the WHOLE suite with `run.sh --goal <top>`. */
+  top?: string
+  /** Copy-paste line to run the whole suite. */
+  run_snippet?: string
   domain: string
   supplier: string
   mathlib_pin: string
@@ -198,6 +215,7 @@ export interface BenchmarkSuite {
   glue: number
   proved: number
   pass_at: Record<string, number>
+  stats?: BenchmarkSuiteStats
   goals: BenchmarkGoal[]
 }
 
@@ -206,6 +224,27 @@ export interface BenchmarkSuite {
 export interface RegisteredTargets {
   schema_version?: number
   suites: BenchmarkSuite[]
+}
+
+/** One benchmark run in docs/metrics/benchmark-runs.json → suites[<id>][]. */
+export interface BenchmarkRun {
+  run_id: string
+  goal: string
+  contributor: string
+  model: string
+  /** ISO-8601 UTC end time. */
+  ended: string
+  solve_s: number
+  outcome: string
+  passed: boolean
+  /** "kernel" for a proved (Gate A) run; "—" otherwise. */
+  verification: string
+}
+
+/** docs/metrics/benchmark-runs.json — per-run telemetry keyed by suite id. */
+export interface BenchmarkRuns {
+  schema_version?: number
+  suites: Record<string, BenchmarkRun[]>
 }
 
 /** goal → credited solver, parsed from library/index/*.aisp. */
