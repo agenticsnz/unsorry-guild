@@ -10,11 +10,18 @@ import { parseAispFields } from './aisp'
 /** One verified proof — library/index/*.aisp. The `solver` is the *explicit*
  *  `solver≜` credit; it is absent on older proofs whose attribution is inferred
  *  from git add-author history, so it is optional. The proof is verified either
- *  way — `goal` (a record in the index ⇒ proved) is what's load-bearing. */
+ *  way — `goal` (a record in the index ⇒ proved) is what's load-bearing.
+ *
+ *  `provider`/`model` are the engine that discharged this goal (e.g. `python` /
+ *  `sympy`). They join to the model registry via the `${provider} / ${model}`
+ *  key (mirrors generate.py), powering the per-contributor "favourite models"
+ *  breakdown. Both are optional — a handful of older records omit them. */
 export interface SnapshotProof {
   goal: string
   solver?: string
   name?: string
+  provider?: string
+  model?: string
 }
 
 /**
@@ -51,7 +58,9 @@ export function parseProof(text: string): SnapshotProof | null {
   const f = parseAispFields(text)
   if (!f.goal) return null
   const solver = f.solver && f.solver !== '∅' ? f.solver : undefined
-  return { goal: f.goal, solver, name: f.name }
+  const provider = f.provider && f.provider !== '∅' ? f.provider : undefined
+  const model = f.model && f.model !== '∅' ? f.model : undefined
+  return { goal: f.goal, solver, name: f.name, provider, model }
 }
 
 /** `⟦Ω:Goal⟧{id,status,difficulty}` — the original target record. */

@@ -8,21 +8,35 @@ const here = dirname(fileURLToPath(import.meta.url))
 const fixture = (n: string) => readFileSync(join(here, '../../mocks/aisp', n), 'utf8')
 
 describe('parseProof (library/index/*.aisp)', () => {
-  it('extracts goal, solver and name from a real record', () => {
+  it('extracts goal, solver, name and the engine (provider/model) from a real record', () => {
     expect(parseProof(fixture('library-index.sample.aisp'))).toEqual({
       goal: 'gpow-sum-two-pow-nineteen',
       solver: 'ohdearquant',
       name: 'gpow_sum_two_pow_nineteen',
+      provider: 'python',
+      model: 'sympy',
     })
   })
 
   it('captures a proof with no explicit solver (inferred attribution)', () => {
     const rec = '⟦Ω:Lemma⟧{sha≜abc; goal≜g-inferred; name≜g_inferred}'
-    expect(parseProof(rec)).toEqual({ goal: 'g-inferred', solver: undefined, name: 'g_inferred' })
+    expect(parseProof(rec)).toEqual({
+      goal: 'g-inferred',
+      solver: undefined,
+      name: 'g_inferred',
+      provider: undefined,
+      model: undefined,
+    })
   })
 
   it('treats the ∅ none-sentinel solver as no solver', () => {
     expect(parseProof('⟦Ω:Lemma⟧{goal≜g; name≜g}\n⟦Π⟧{solver≜∅}')?.solver).toBeUndefined()
+  })
+
+  it('treats a ∅ provider/model sentinel as no engine', () => {
+    const p = parseProof('⟦Ω:Lemma⟧{goal≜g; name≜g}\n⟦Π⟧{provider≜∅; model≜∅}')
+    expect(p?.provider).toBeUndefined()
+    expect(p?.model).toBeUndefined()
   })
 
   it('returns null when there is no goal', () => {

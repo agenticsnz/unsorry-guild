@@ -3,6 +3,7 @@ import {
   deriveGoalSolverMap,
   deriveShowcaseSolverMap,
   deriveGoalMetaMap,
+  deriveContributorModels,
 } from '@/lib/unsorry/derive'
 import type { UnsorrySnapshot } from '@/lib/unsorry/snapshot-parse'
 
@@ -58,5 +59,43 @@ describe('deriveGoalMetaMap', () => {
     expect(m.get('g1')).toEqual({ difficulty: 4, status: 'proved' })
     expect(m.get('g0')).toEqual({ difficulty: 5, status: 'archived' })
     expect(m.size).toBe(3)
+  })
+})
+
+describe('deriveContributorModels', () => {
+  const MODELS: UnsorrySnapshot = {
+    proofs: [
+      { goal: 'a', solver: 'alice', provider: 'python', model: 'sympy' },
+      { goal: 'b', solver: 'alice', provider: 'python', model: 'sympy' },
+      { goal: 'c', solver: 'alice', provider: 'openai', model: 'gpt' },
+      { goal: 'd', solver: 'bob', provider: 'python', model: 'sympy' }, // other solver
+      { goal: 'e', solver: 'alice', provider: 'lean' }, // model absent → 'unknown'
+      { goal: 'f', solver: 'alice' }, // no engine at all → skipped
+    ],
+    archivedProofs: [
+      { goal: 'g', solver: 'alice', provider: 'anthropic', model: 'opus' }, // archived counts
+      { goal: 'a', solver: 'alice', provider: 'openai', model: 'gpt' }, // active 'a' wins
+    ],
+    goals: [],
+  }
+
+  it('ranks a contributor’s engines by proof count, deduping per goal (active wins)', () => {
+    const rows = deriveContributorModels(MODELS, 'alice')
+    expect(rows).toEqual([
+      { providerModel: 'python / sympy', proofs: 2 }, // a (active), b
+      { providerModel: 'anthropic / opus', proofs: 1 }, // archived g
+      { providerModel: 'lean / unknown', proofs: 1 }, // model absent
+      { providerModel: 'openai / gpt', proofs: 1 }, // c only — 'a' counted as python/sympy
+    ])
+    // engine-less proof 'f' and bob's proof are excluded
+    expect(rows.reduce((s, r) => s + r.proofs, 0)).toBe(5)
+  })
+
+  it('matches the handle case-insensitively', () => {
+    expect(deriveContributorModels(MODELS, 'ALICE')).toHaveLength(4)
+  })
+
+  it('returns [] for a contributor with no proofs', () => {
+    expect(deriveContributorModels(MODELS, 'nobody')).toEqual([])
   })
 })
