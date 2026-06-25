@@ -4,6 +4,7 @@ import {
   fetchBenchmarkRuns,
   fetchGlobalLeaderboard,
   fetchGoalEffort,
+  fetchGoalSource,
   fetchLeaderboardUi,
   fetchRegisteredTargets,
 } from './fetchers'
@@ -70,6 +71,15 @@ export async function getBenchmarkRuns(): Promise<Record<string, BenchmarkRun[]>
     return (await fetchBenchmarkRuns()).suites ?? {}
   } catch {
     return {}
+  }
+}
+
+/** A benchmark goal's Lean source. Total: '' on error. */
+export async function getGoalSource(goalId: string): Promise<string> {
+  try {
+    return await fetchGoalSource(goalId)
+  } catch {
+    return ''
   }
 }
 

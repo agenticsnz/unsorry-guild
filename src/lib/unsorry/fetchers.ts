@@ -1,6 +1,7 @@
 import {
   metricsUrl,
   rawMetricsUrl,
+  rawRepoUrl,
   queueUrl,
   rawQueueUrl,
   REVALIDATE_SECONDS,
@@ -66,6 +67,18 @@ export async function fetchBenchmarkRuns(): Promise<BenchmarkRuns> {
     rawMetricsUrl('benchmark-runs.json'),
     metricsUrl('benchmark-runs.json'),
   )
+}
+
+/** Fetch raw repo text (raw-git only — Pages serves docs/ only). */
+async function fetchText(url: string, revalidate: number = REVALIDATE_SECONDS): Promise<string> {
+  const res = await fetch(url, { next: { revalidate } })
+  if (!res.ok) throw new UnsorryFetchError(`Unable to fetch ${url}`)
+  return res.text()
+}
+
+/** A benchmark goal's Lean source (`goals/<id>.lean`) — exactly what the swarm proves. */
+export async function fetchGoalSource(goalId: string): Promise<string> {
+  return fetchText(rawRepoUrl(`goals/${goalId}.lean`))
 }
 
 export async function fetchGlobalLeaderboard(): Promise<UnsorryLeaderboardRecord[]> {
