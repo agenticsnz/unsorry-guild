@@ -59,6 +59,23 @@ describe('buildShowcase', () => {
   it('respects topN', () => {
     expect(buildShowcase(goalSolver, goalMeta, { minDifficulty: 4, topN: 1 })).toHaveLength(1)
   })
+
+  it('includes a hard proof with no explicit solver (the inferred difficulty-5 case)', () => {
+    // Regression: the lone difficulty-5 proof has no `solver≜` field, so it must
+    // still rank at the top with an empty solver rather than being dropped.
+    const solverless = new Map<string, GoalSolver>([
+      ['g5', { goal: 'g5', solver: '', name: 'realization_determines_counts' }],
+    ])
+    const meta = new Map([['g5', { difficulty: 5, status: 'archived' }]])
+    const items = buildShowcase(solverless, meta, { minDifficulty: 4 })
+    expect(items).toHaveLength(1)
+    expect(items[0]).toMatchObject({
+      goal: 'g5',
+      difficulty: 5,
+      solver: '',
+      name: 'realization_determines_counts',
+    })
+  })
 })
 
 describe('buildProofDetail', () => {

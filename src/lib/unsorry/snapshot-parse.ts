@@ -7,10 +7,13 @@ import { parseAispFields } from './aisp'
  * score comes from canonical `leaderboard-ui.json` (see standings.ts).
  */
 
-/** One verified proof — library/index/*.aisp. */
+/** One verified proof — library/index/*.aisp. The `solver` is the *explicit*
+ *  `solver≜` credit; it is absent on older proofs whose attribution is inferred
+ *  from git add-author history, so it is optional. The proof is verified either
+ *  way — `goal` (a record in the index ⇒ proved) is what's load-bearing. */
 export interface SnapshotProof {
   goal: string
-  solver: string
+  solver?: string
   name?: string
 }
 
@@ -40,11 +43,15 @@ export interface UnsorrySnapshot {
   goals: SnapshotGoal[]
 }
 
-/** `⟦Ω:Lemma⟧{goal,name}` + `⟦Π:Provenance⟧{solver,…}`. */
+/** `⟦Ω:Lemma⟧{goal,name}` + optional `⟦Π:Provenance⟧{solver,…}`. Requires only
+ *  `goal` (a record here ⇒ proved); `solver≜∅` or an absent solver → undefined,
+ *  so older inferred-attribution proofs are still captured (e.g. for the
+ *  Showcase, which ranks the hardest proved goals regardless of explicit credit). */
 export function parseProof(text: string): SnapshotProof | null {
   const f = parseAispFields(text)
-  if (!f.goal || !f.solver) return null
-  return { goal: f.goal, solver: f.solver, name: f.name }
+  if (!f.goal) return null
+  const solver = f.solver && f.solver !== '∅' ? f.solver : undefined
+  return { goal: f.goal, solver, name: f.name }
 }
 
 /** `⟦Ω:Goal⟧{id,status,difficulty}` — the original target record. */

@@ -53,14 +53,21 @@ export default async function ProofDetailPage({
           <Badge variant="outline">difficulty {detail.difficulty}</Badge>
         </div>
         <p className="text-sm text-foreground/70">
-          Proved by{' '}
-          <Link
-            href={`/math/contributors/${detail.solver}`}
-            className="font-medium text-foreground hover:underline"
-          >
-            @{detail.solver}
-          </Link>
-          . Kernel-verified at Gate A; no human in the correctness path.
+          {detail.solver ? (
+            <>
+              Proved by{' '}
+              <Link
+                href={`/math/contributors/${detail.solver}`}
+                className="font-medium text-foreground hover:underline"
+              >
+                @{detail.solver}
+              </Link>
+              .{' '}
+            </>
+          ) : (
+            <>Attribution inferred from git history (no explicit solver credit).{' '}</>
+          )}
+          Kernel-verified at Gate A; no human in the correctness path.
         </p>
       </header>
 

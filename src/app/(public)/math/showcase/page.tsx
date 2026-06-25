@@ -39,7 +39,13 @@ export default async function ShowcasePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm text-foreground/70">
-                  Proved by <span className="font-medium text-foreground">@{item.solver}</span>
+                  {item.solver ? (
+                    <>
+                      Proved by <span className="font-medium text-foreground">@{item.solver}</span>
+                    </>
+                  ) : (
+                    <span className="italic">Attribution inferred</span>
+                  )}
                 </CardContent>
               </Card>
             </Link>

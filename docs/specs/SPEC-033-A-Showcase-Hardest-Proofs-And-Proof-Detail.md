@@ -23,8 +23,9 @@ UnsorrySnapshot {
 
 ### Derivations (`derive.ts`)
 
-- `deriveGoalSolverMap(snap)` — **unchanged**, active proofs only (proof graph, podiums, target boards keep their behaviour).
-- `deriveShowcaseSolverMap(snap)` — active + archived merged (active wins on the rare shared goal).
+- `parseProof` requires only `goal`; `solver` is optional (`∅`/absent → undefined), so older inferred-attribution proofs are captured.
+- `deriveGoalSolverMap(snap)` — active proofs **with an explicit solver** only (proof graph, podiums, target boards keep their behaviour; solverless skipped exactly as before, when such records returned `null`).
+- `deriveShowcaseSolverMap(snap)` — active + archived merged, **including solverless proofs** (`solver: ''`); active wins on the rare shared goal.
 - `deriveGoalMetaMap(snap)` — `goal → { difficulty, status }` for every goal.
 
 ### Facade (`standings.ts`)

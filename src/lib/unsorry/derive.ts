@@ -13,24 +13,27 @@ import type { GoalSolver } from './types'
 export function deriveGoalSolverMap(s: UnsorrySnapshot): Map<string, GoalSolver> {
   const map = new Map<string, GoalSolver>()
   for (const p of s.proofs) {
+    // Only proofs with an EXPLICIT solver credit — preserves the existing proof
+    // graph / podium / board behaviour, which attribute to a named solver.
+    if (!p.solver) continue
     map.set(p.goal, { goal: p.goal, solver: p.solver, name: p.name })
   }
   return map
 }
 
 /**
- * goal → credited solver across BOTH active and archived proofs, for the
- * Showcase. The hardest proved goals are mostly archived, so the active-only
- * `deriveGoalSolverMap` (kept as-is for the proof graph / boards) can't see them.
- * Active attribution wins on the rare goal present in both.
+ * goal → proof (credited solver where known) across BOTH active and archived
+ * proofs, for the Showcase. Differs from `deriveGoalSolverMap` in two ways the
+ * Showcase needs and the proof graph must NOT have:
+ *   1. includes archived proofs — the hardest proved goals are mostly archived;
+ *   2. includes proofs with no explicit `solver≜` (inferred git attribution) —
+ *      otherwise the hardest such proofs (e.g. the lone difficulty-5) vanish.
+ * `solver` is `''` when there is no explicit credit. Active wins on conflict.
  */
 export function deriveShowcaseSolverMap(s: UnsorrySnapshot): Map<string, GoalSolver> {
   const map = new Map<string, GoalSolver>()
-  for (const p of s.archivedProofs) {
-    map.set(p.goal, { goal: p.goal, solver: p.solver, name: p.name })
-  }
-  for (const p of s.proofs) {
-    map.set(p.goal, { goal: p.goal, solver: p.solver, name: p.name })
+  for (const p of [...s.archivedProofs, ...s.proofs]) {
+    map.set(p.goal, { goal: p.goal, solver: p.solver ?? '', name: p.name })
   }
   return map
 }
