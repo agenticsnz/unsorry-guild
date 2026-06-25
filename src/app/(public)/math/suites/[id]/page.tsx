@@ -1,10 +1,12 @@
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { CopyRun } from '@/components/math/copy-run'
 import { BenchmarkRunsTable } from '@/components/math/benchmark-runs-table'
 import { getBenchmarkRuns, getRegisteredTargets } from '@/lib/unsorry/standings'
+import type { BenchmarkRun } from '@/lib/unsorry/types'
 
 // Recompute-on-read; render per request (ADR-024 — keep GitHub calls out of build).
 export const dynamic = 'force-dynamic'
@@ -42,6 +44,14 @@ export default async function SuiteDetailPage({
   const runs = runsBySuite[id] ?? []
   const total = suite.credited + suite.glue
   const stats = suite.stats
+
+  // per-goal run rollup for the row stats (#3)
+  const goalRuns = new Map<string, BenchmarkRun[]>()
+  for (const r of runs) {
+    const arr = goalRuns.get(r.goal)
+    if (arr) arr.push(r)
+    else goalRuns.set(r.goal, [r])
+  }
 
   return (
     <div className="space-y-8">
@@ -89,21 +99,42 @@ export default async function SuiteDetailPage({
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Benchmarks ({total})</h2>
         <ul className="divide-y divide-border">
-          {suite.goals.map((goal) => (
-            <li key={goal.id} className="flex flex-wrap items-center gap-2 py-1.5 text-sm">
-              <code className="font-mono">{goal.id}</code>
-              <Badge variant={goal.status === 'proved' ? 'default' : 'outline'}>
-                {goal.status}
-              </Badge>
-              <span className="text-xs text-foreground/60">d{goal.difficulty}</span>
-              {goal.credit === 'glue' && (
-                <span className="text-xs text-foreground/50">glue</span>
-              )}
-              <span className="ml-auto">
-                <CopyRun snippet={goal.run_snippet} />
-              </span>
-            </li>
-          ))}
+          {suite.goals.map((goal) => {
+            const gr = goalRuns.get(goal.id) ?? []
+            const passed = gr.filter((r) => r.passed)
+            const best = passed.length ? Math.min(...passed.map((r) => r.solve_s)) : null
+            const bestRun = best != null ? passed.find((r) => r.solve_s === best) : undefined
+            return (
+              <li key={goal.id} className="flex flex-wrap items-center gap-2 py-1.5 text-sm">
+                <Link
+                  href={`/math/suites/${id}/${goal.id}`}
+                  className="font-mono hover:underline"
+                >
+                  {goal.id}
+                </Link>
+                <Badge variant={goal.status === 'proved' ? 'default' : 'outline'}>
+                  {goal.status}
+                </Badge>
+                <span className="text-xs text-foreground/60">d{goal.difficulty}</span>
+                {goal.credit === 'glue' && (
+                  <span className="text-xs text-foreground/50">glue</span>
+                )}
+                {gr.length > 0 && (
+                  <span className="text-xs text-foreground/50">
+                    {gr.length} run{gr.length > 1 ? 's' : ''}
+                  </span>
+                )}
+                {bestRun && (
+                  <span className="text-xs text-foreground/50">
+                    ✓ {bestRun.contributor} · {formatDuration(best)}
+                  </span>
+                )}
+                <span className="ml-auto">
+                  <CopyRun snippet={goal.run_snippet} />
+                </span>
+              </li>
+            )
+          })}
         </ul>
       </section>
 
