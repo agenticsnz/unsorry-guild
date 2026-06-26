@@ -1,4 +1,6 @@
 import { fetchModelRegistry } from './fetchers'
+import { loadSnapshot } from './snapshot'
+import { deriveContributorModels, type ContributorModelUsage } from './derive'
 import { getLeaderboardExtras } from './standings'
 import type {
   ModelRegistry,
@@ -60,4 +62,37 @@ export async function getModelProfile(slug: string): Promise<{
   const namedBy =
     reg.models.find((e) => e.provider_model === entry.provenance.assigned_with) ?? null
   return { entry, stat, namedBy }
+}
+
+/** A contributor's model-usage row joined with its Pokémon identity (if named). */
+export interface ContributorModelRow extends ContributorModelUsage {
+  registry?: ModelRegistryEntry
+}
+
+/** A contributor's "favourite models": the engines behind their verified proofs,
+ *  joined to the Pokémon registry for sprites, plus the proof total they sum to. */
+export interface ContributorModels {
+  rows: ContributorModelRow[]
+  /** Total attributed proofs across all rows — the share denominator. */
+  total: number
+}
+
+/**
+ * The engines a contributor's verified proofs were discharged by, ranked by proof
+ * count and joined to the model→Pokémon registry. Total: degrades to an empty
+ * breakdown (no snapshot ⇒ no per-proof provenance) rather than throwing, so the
+ * profile renders even without a `GITHUB_TOKEN`.
+ */
+export async function getContributorModels(handle: string): Promise<ContributorModels> {
+  try {
+    const snap = await loadSnapshot()
+    if (!snap) return { rows: [], total: 0 }
+    const usage = deriveContributorModels(snap, handle)
+    const registry = await getModelRegistryMap()
+    const rows = usage.map((u) => ({ ...u, registry: registry.get(u.providerModel) }))
+    const total = rows.reduce((sum, r) => sum + r.proofs, 0)
+    return { rows, total }
+  } catch {
+    return { rows: [], total: 0 }
+  }
 }

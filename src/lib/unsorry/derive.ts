@@ -1,4 +1,4 @@
-import type { UnsorrySnapshot } from './snapshot-parse'
+import type { SnapshotProof, UnsorrySnapshot } from './snapshot-parse'
 import type { GoalSolver } from './types'
 
 /**
@@ -55,4 +55,47 @@ export function deriveGoalMetaMap(s: UnsorrySnapshot): Map<string, GoalMeta> {
     map.set(g.goal, { difficulty: g.difficulty, status: g.status })
   }
   return map
+}
+
+/** One engine a contributor's verified proofs were discharged by. */
+export interface ContributorModelUsage {
+  /** `${provider} / ${model}` — the join key to the model registry. */
+  providerModel: string
+  /** Distinct proved goals this contributor earned with this engine. */
+  proofs: number
+}
+
+/**
+ * The engines behind ONE contributor's verified proofs — their "favourite
+ * models", ranked by how many of their proofs each discharged. Built from the
+ * proof records' `solver` + `provider`/`model` provenance across BOTH active and
+ * archived proofs (a contributor's score credits archived proofs too), deduped
+ * per goal so a re-proved goal is counted once (active provenance wins).
+ *
+ * The `${provider} / ${model || 'unknown'}` key mirrors generate.py's model
+ * distribution exactly, so each row joins cleanly to the model→Pokémon registry.
+ * Proofs whose record carries no `provider` (a handful of legacy records) are
+ * skipped — they cannot be attributed to an engine.
+ */
+export function deriveContributorModels(
+  s: UnsorrySnapshot,
+  handle: string,
+): ContributorModelUsage[] {
+  const h = handle.toLowerCase()
+  // Dedupe per goal, active provenance winning over an archived re-proof.
+  const byGoal = new Map<string, SnapshotProof>()
+  for (const p of [...s.archivedProofs, ...s.proofs]) {
+    if ((p.solver ?? '').toLowerCase() === h) byGoal.set(p.goal, p)
+  }
+
+  const counts = new Map<string, number>()
+  for (const p of byGoal.values()) {
+    if (!p.provider) continue
+    const key = `${p.provider} / ${p.model || 'unknown'}`
+    counts.set(key, (counts.get(key) ?? 0) + 1)
+  }
+
+  return [...counts.entries()]
+    .map(([providerModel, proofs]) => ({ providerModel, proofs }))
+    .sort((a, b) => b.proofs - a.proofs || a.providerModel.localeCompare(b.providerModel))
 }

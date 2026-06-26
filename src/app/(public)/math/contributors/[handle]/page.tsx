@@ -1,7 +1,9 @@
 import { getContributor } from '@/lib/profiles/contributor'
+import { getContributorModels } from '@/lib/unsorry/model-registry'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Stat } from '@/components/ui/stat'
 import { ScoreBreakdown } from '@/components/leaderboard/score-breakdown'
+import { FavouriteModels } from '@/components/profile/favourite-models'
 import { TargetBadges } from '@/components/profile/target-badges'
 
 export const dynamic = 'force-dynamic'
@@ -14,6 +16,8 @@ export default async function ContributorPage({
   const { handle } = await params
   const profile = await getContributor(handle)
   const g = profile.global
+  // Engines behind this contributor's proofs (keyed on their resolved handle).
+  const models = g ? await getContributorModels(g.github) : null
 
   return (
     <div className="space-y-8">
@@ -54,6 +58,17 @@ export default async function ContributorPage({
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">Score breakdown</h2>
           <ScoreBreakdown entry={g} />
+        </section>
+      )}
+
+      {g && models && models.rows.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Favourite models</h2>
+          <p className="text-sm text-foreground/60">
+            The engines behind {profile.displayName}&rsquo;s verified proofs — what actually
+            discharged the goals that earn the score above.
+          </p>
+          <FavouriteModels models={models} />
         </section>
       )}
 
