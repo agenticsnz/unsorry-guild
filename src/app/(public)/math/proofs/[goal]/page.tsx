@@ -85,8 +85,18 @@ export default async function ProofDetailPage({
             rel="noopener noreferrer"
             className="text-sm text-brand hover:underline"
           >
-            View goal record on GitHub →
+            AISP goal record →
           </a>
+          {source && (
+            <a
+              href={repoBlobUrl(`goals/${goalId}.lean`)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-brand hover:underline"
+            >
+              Lean statement (goals/{goalId}.lean) →
+            </a>
+          )}
         </div>
       </section>
 
