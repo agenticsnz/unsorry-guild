@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   proofsOverTimeCombo,
+  fillTimelineGaps,
   leaderboardBarSeries,
   sourcingBarSeries,
   modelBarSeries,
@@ -44,6 +45,45 @@ describe('proofsOverTimeCombo', () => {
 
   it('handles an empty series', () => {
     expect(proofsOverTimeCombo([])).toEqual({ labels: [], proofs: [], cumulative: [] })
+  })
+})
+
+describe('fillTimelineGaps', () => {
+  it('inserts zero-proof hourly buckets across a gap, holding cumulative flat', () => {
+    const series: TimelinePoint[] = [
+      { t: '2026-06-26T15:00:00Z', proofs: 20, cumulative_proofs: 4620 },
+      { t: '2026-06-26T18:00:00Z', proofs: 32, cumulative_proofs: 4652 },
+    ]
+    expect(fillTimelineGaps(series)).toEqual([
+      { t: '2026-06-26T15:00:00Z', proofs: 20, cumulative_proofs: 4620 },
+      { t: '2026-06-26T16:00:00Z', proofs: 0, cumulative_proofs: 4620 },
+      { t: '2026-06-26T17:00:00Z', proofs: 0, cumulative_proofs: 4620 },
+      { t: '2026-06-26T18:00:00Z', proofs: 32, cumulative_proofs: 4652 },
+    ])
+  })
+
+  it('inserts zero-proof daily buckets on the solve basis', () => {
+    const series: TimelinePoint[] = [
+      { t: '2026-06-26', proofs: 5, cumulative_proofs: 100 },
+      { t: '2026-06-29', proofs: 8, cumulative_proofs: 108 },
+    ]
+    expect(fillTimelineGaps(series).map((p) => [p.t, p.proofs])).toEqual([
+      ['2026-06-26', 5],
+      ['2026-06-27', 0],
+      ['2026-06-28', 0],
+      ['2026-06-29', 8],
+    ])
+  })
+
+  it('is a no-op for contiguous buckets and for <2 points', () => {
+    const contiguous: TimelinePoint[] = [
+      { t: '2026-06-26T15:00:00Z', proofs: 1, cumulative_proofs: 1 },
+      { t: '2026-06-26T16:00:00Z', proofs: 2, cumulative_proofs: 3 },
+    ]
+    expect(fillTimelineGaps(contiguous)).toEqual(contiguous)
+    expect(fillTimelineGaps([])).toEqual([])
+    const one: TimelinePoint[] = [{ t: '2026-06-26', proofs: 1, cumulative_proofs: 1 }]
+    expect(fillTimelineGaps(one)).toEqual(one)
   })
 })
 
