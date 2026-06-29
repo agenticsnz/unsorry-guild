@@ -20,7 +20,8 @@ export default async function BenchmarkGoalPage({
   const goal = suite?.goals.find((g) => g.id === goalId)
   if (!suite || !goal) notFound()
 
-  const [source, runsBySuite] = await Promise.all([getGoalSource(goalId), getBenchmarkRuns()])
+  const [goalSource, runsBySuite] = await Promise.all([getGoalSource(goalId), getBenchmarkRuns()])
+  const { source, path: sourcePath } = goalSource
   const runs = (runsBySuite[id] ?? []).filter((r) => r.goal === goalId)
 
   return (
@@ -51,7 +52,7 @@ export default async function BenchmarkGoalPage({
           The Lean statement the swarm must prove — kernel-verified at Gate A. The trailing{' '}
           <code>sorry</code> is the open obligation a proof replaces.
         </p>
-        <LeanStatement goalId={goalId} source={source} />
+        <LeanStatement goalId={goalId} source={source} path={sourcePath ?? undefined} />
       </section>
 
       <section className="space-y-3">

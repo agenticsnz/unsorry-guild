@@ -81,14 +81,23 @@ export async function getBenchmarkRuns(): Promise<Record<string, BenchmarkRun[]>
 }
 
 /** A benchmark goal's Lean source. Total: '' on error. */
-export async function getGoalSource(goalId: string): Promise<string> {
+/** A goal's resolved Lean statement and the repo path it was found at (so links
+ *  point to the real file — `goals/<id>.lean` for active goals, the archive copy
+ *  for retired ones). `path` is null when no statement is available. */
+export interface GoalSource {
+  source: string
+  path: string | null
+}
+
+export async function getGoalSource(goalId: string): Promise<GoalSource> {
   // Active goal: goals/<id>.lean. Many Showcase goals are archived, though — their
   // statement moves to packages/<pkg>/goals/<id>.lean while only the .aisp record
   // stays in active goals/. Fall back to the archive (package resolved from the
-  // snapshot) so archived proofs still show their statement. (#realization-…)
+  // snapshot) so archived proofs still show their statement AND link to the real
+  // file. (#realization-determines-counts)
   try {
     const active = await fetchGoalSource(goalId)
-    if (active.trim()) return active
+    if (active.trim()) return { source: active, path: `goals/${goalId}.lean` }
   } catch {
     // 404 / network — fall through to the archive lookup
   }
@@ -97,12 +106,14 @@ export async function getGoalSource(goalId: string): Promise<string> {
     const pkg = snap?.archivePackageByGoal[goalId]
     if (pkg) {
       const archived = await fetchArchivedGoalSource(pkg, goalId)
-      if (archived.trim()) return archived
+      if (archived.trim()) {
+        return { source: archived, path: `packages/${pkg}/goals/${goalId}.lean` }
+      }
     }
   } catch {
     // ignore — fall through to empty (LeanStatement shows the unavailable note)
   }
-  return ''
+  return { source: '', path: null }
 }
 
 export async function getGoalSolverMap(): Promise<Map<string, GoalSolver>> {
