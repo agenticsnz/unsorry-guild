@@ -1,0 +1,1 @@
+Fixed the proofs-over-time cumulative line to render as a **step** (`stepped: 'after'`) instead of a tensioned curve. A cumulative count is a step function, so a no-proof stretch now reads as *flat-then-jump* ("no growth, then resumed") rather than a smooth curve implying steady growth across periods where nothing was proved. Mirrors the unsorry-side SVG fix (ADR-111 follow-up).
