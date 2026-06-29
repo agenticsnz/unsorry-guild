@@ -17,7 +17,7 @@ export default async function ContributorPage({
   const profile = await getContributor(handle)
   const g = profile.global
   // Engines behind this contributor's proofs (keyed on their resolved handle).
-  const models = g ? await getContributorModels(g.github) : null
+  const models = g?.github ? await getContributorModels(g.github) : null
 
   return (
     <div className="space-y-8">

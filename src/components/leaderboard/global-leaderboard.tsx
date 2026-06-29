@@ -39,21 +39,35 @@ export function GlobalLeaderboard({ entries }: { entries: GuildLeaderboardEntry[
         </TableRow>
       </TableHeader>
       <TableBody>
-        {entries.map((e) => (
-          <TableRow key={e.github}>
-            <TableCell className="font-medium">{rankLabel(e.rank)}</TableCell>
-            <TableCell>
-              <Link
-                href={`/math/contributors/${e.github}`}
-                className="flex items-center gap-3 hover:underline"
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={e.avatarUrl} alt={e.displayName} />
-                  <AvatarFallback>{e.github.slice(0, 2).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <span className="font-medium">{e.displayName}</span>
-              </Link>
-            </TableCell>
+        {entries.map((e) => {
+          // A handle-less contributor (github: null — provenance optional upstream)
+          // has no profile to link to: render the same row, unlinked, with initials
+          // from the display name. Never dereference a null handle. (#43)
+          const initials = (e.github ?? e.displayName).slice(0, 2).toUpperCase()
+          const who = (
+            <>
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={e.avatarUrl} alt={e.displayName} />
+                <AvatarFallback>{initials}</AvatarFallback>
+              </Avatar>
+              <span className="font-medium">{e.displayName}</span>
+            </>
+          )
+          return (
+            <TableRow key={e.github ?? e.displayName}>
+              <TableCell className="font-medium">{rankLabel(e.rank)}</TableCell>
+              <TableCell>
+                {e.github ? (
+                  <Link
+                    href={`/math/contributors/${e.github}`}
+                    className="flex items-center gap-3 hover:underline"
+                  >
+                    {who}
+                  </Link>
+                ) : (
+                  <span className="flex items-center gap-3">{who}</span>
+                )}
+              </TableCell>
             <TableCell className="text-right tabular-nums">{e.score.toLocaleString()}</TableCell>
             <TableCell className="text-right tabular-nums hidden sm:table-cell">
               {e.difficultyPoints.toLocaleString()}
@@ -64,8 +78,9 @@ export function GlobalLeaderboard({ entries }: { entries: GuildLeaderboardEntry[
             <TableCell className="text-right tabular-nums hidden sm:table-cell">
               {e.dispatchProofs > 0 ? e.dispatchProofs.toLocaleString() : '—'}
             </TableCell>
-          </TableRow>
-        ))}
+            </TableRow>
+          )
+        })}
       </TableBody>
     </Table>
   )

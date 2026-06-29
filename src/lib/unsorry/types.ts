@@ -10,7 +10,10 @@ export interface UnsorryBadges {
 /** One row of docs/metrics/leaderboard-ui.json → contributors[]. */
 export interface UnsorryLeaderboardRecord {
   rank: number
-  github: string
+  // Nullable: provenance (and thus a solver handle) is optional by design on the
+  // unsorry side, so a contributor inferred from a handle-less git author can have
+  // no GitHub handle (e.g. a bot/placeholder identity). The board must tolerate it.
+  github: string | null
   solver?: string
   display_name?: string
   profile_url?: string
@@ -256,7 +259,9 @@ export interface GoalSolver {
 
 /** Guild-normalised leaderboard row (camelCase) consumed by the UI. */
 export interface GuildLeaderboardEntry {
-  github: string
+  /** Nullable — a handle-less contributor (no provenance/alias upstream) still
+   *  appears with a score; rendered without a profile link. See #43. */
+  github: string | null
   displayName: string
   avatarUrl: string
   profileUrl: string

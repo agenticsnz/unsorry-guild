@@ -27,7 +27,9 @@ export interface ContributorProfile {
  */
 export async function getContributor(handle: string): Promise<ContributorProfile> {
   const rows = await getGlobalLeaderboard()
-  const global = rows.find((r) => r.github.toLowerCase() === handle.toLowerCase()) ?? null
+  // Null-safe: a handle-less row (github: null) in the board must not crash the
+  // profile lookup — it simply never matches a requested handle. (#43)
+  const global = rows.find((r) => r.github?.toLowerCase() === handle.toLowerCase()) ?? null
 
   const github = global?.github ?? handle
   const displayName = global?.displayName ?? `@${handle}`
