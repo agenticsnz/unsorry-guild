@@ -1,1 +1,0 @@
-Contributor profiles now show a **Favourite models** table below the score breakdown — the engines (provider/model) behind that contributor's verified proofs, each with its Pokémon sprite, proof count, and share, linking to the model page.

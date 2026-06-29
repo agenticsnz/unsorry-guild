@@ -17,6 +17,26 @@ the engineering protocols this project follows.
 `npm run changelog:preview`; a release folds them in here with
 `npm run changelog:release <version> <date>`. -->
 
+## [2.3.0] - 2026-06-29
+
+### Added
+
+- The Goals page (`/math/goals`) now lists **benchmark suites** — curated, kernel-verified targets (PutnamBench and friends) the swarm proves — read from unsorry's new `docs/metrics/registered-targets.json` (ADR-092). Each goal shows its difficulty, proved/open status, and a one-click **Copy run** button for `./swarm/run.sh --goal <id>`; suites are scored as verified pass@k and kept separate from the contributor leaderboard.
+- Contributor profiles now show a **Favourite models** table below the score breakdown — the engines (provider/model) behind that contributor's verified proofs, each with its Pokémon sprite, proof count, and share, linking to the model page.
+- The Leaderboard page now shows a **freshness indicator** ("Updated 3 h ago") next to the title, read from the `generated_at` of unsorry's `leaderboard-ui.json`. When the artifact is older than an hour it turns amber with a "may be lagging upstream" note, so a stalled upstream refresh (agenticsnz/unsorry#6317 — the regen step now outpaces the merge cadence) is visible instead of the board silently serving hours-old standings.
+- The proof-detail page now links to the goal's **Lean statement** (`goals/<id>.lean`) on GitHub alongside the AISP goal record, shown when a Lean source is published for that goal.
+- The proofs-over-time chart now **shows no-proof gaps** instead of collapsing them. The by-merge (hourly) and by-solve (daily) views zero-fill missing buckets so a stretch with no proofs — e.g. the 2026-06-26→06-29 drought — renders as a visible empty span rather than two adjacent bars with a jumping date label. A **"Hide empty hours/days"** toggle (default **off**, so gaps are visible) collapses back to the compact active-periods-only view. Cumulative holds flat across the filled buckets.
+- The leaderboard now shows a **Dispatch** column (proof PRs landed for other contributors), contributor profiles gain a **Score breakdown** that reconstructs the rank from its difficulty, proof, and dispatch terms, and a new **How scores are calculated** page (`/math/scoring`) documents the formula — so a standing driven by dispatch credit no longer looks unexplained (ADR-032).
+
+### Changed
+
+- The Math **Showcase** now features the genuinely hardest proofs and its cards open a **proof-detail page**. It previously ranked difficulty from the telemetry-only `goal_effort` slice — almost all difficulty-1 template proofs — so the board padded with trivia while the 500+ hard proved proofs (mostly archived, no run telemetry) stayed invisible. It now ranks the whole proved corpus (active + archived) by each goal's recorded difficulty, read from the snapshot's goal records, with an elite difficulty-4 floor. Each card links to a new `/math/proofs/[goal]` page showing the original target (with a GitHub link to the goal record), the credited solver, difficulty/status, and run telemetry when available. See [ADR-033](docs/adrs/ADR-033-Showcase-Hardest-Proofs-And-Proof-Detail.md).
+
+### Fixed
+
+- Fixed a `/math/leaderboard` **500** (`Cannot read properties of null (reading 'slice')`) when a contributor in `leaderboard-ui.json` has a null GitHub handle. Provenance — and therefore a solver handle — is optional by design on the unsorry side, so a contributor inferred from a handle-less git author (e.g. a bot/placeholder identity) can legitimately have `github: null`. The board now treats `github` as nullable end-to-end: the mapper gives handle-less rows a display-name fallback and no GitHub-derived avatar/profile URL with a null-safe tie-break (handled contributors rank ahead at equal score); `global-leaderboard.tsx` renders such a row unlinked with display-name initials instead of dereferencing the handle; and the contributor-profile lookup + top-contributor chart hrefs are null-guarded. The durable fix is independent of the upstream data correction (agenticsnz/unsorry#6975/#6976). (#43)
+- Fixed the proofs-over-time cumulative line to render as a **step** (`stepped: 'after'`) instead of a tensioned curve. A cumulative count is a step function, so a no-proof stretch now reads as *flat-then-jump* ("no growth, then resumed") rather than a smooth curve implying steady growth across periods where nothing was proved. Mirrors the unsorry-side SVG fix (ADR-111 follow-up).
+
 ## [2.2.1] - 2026-06-23
 
 ### Fixed
