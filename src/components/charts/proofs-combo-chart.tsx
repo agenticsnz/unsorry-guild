@@ -31,7 +31,10 @@ export function ProofsComboChart({
         backgroundColor: BRAND_FILL,
         fill: true,
         borderWidth: 2,
-        tension: 0.3,
+        // Cumulative is a step function: hold flat between buckets, jump when proofs
+        // land. Step (not a tensioned curve) so a no-proof gap reads as flat-then-
+        // jump rather than smooth growth where nothing happened (#43 / unsorry ADR-111).
+        stepped: 'after' as const,
         pointRadius: 2,
         pointHoverRadius: 5,
         pointBackgroundColor: BRAND,
