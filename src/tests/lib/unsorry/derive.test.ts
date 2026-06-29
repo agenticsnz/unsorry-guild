@@ -23,9 +23,15 @@ const SNAP: UnsorrySnapshot = {
     { goal: 'g2', difficulty: 1, status: 'proved' },
     { goal: 'g0', difficulty: 5, status: 'archived' },
   ],
+  archivePackageByGoal: {},
 }
 
-const EMPTY: UnsorrySnapshot = { proofs: [], archivedProofs: [], goals: [] }
+const EMPTY: UnsorrySnapshot = {
+  proofs: [],
+  archivedProofs: [],
+  goals: [],
+  archivePackageByGoal: {},
+}
 
 describe('deriveGoalSolverMap', () => {
   it('maps ACTIVE proofs WITH an explicit solver (archive + solverless excluded)', () => {
@@ -77,6 +83,7 @@ describe('deriveContributorModels', () => {
       { goal: 'a', solver: 'alice', provider: 'openai', model: 'gpt' }, // active 'a' wins
     ],
     goals: [],
+    archivePackageByGoal: {},
   }
 
   it('ranks a contributor’s engines by proof count, deduping per goal (active wins)', () => {

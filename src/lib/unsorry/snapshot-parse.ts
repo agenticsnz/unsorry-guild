@@ -48,6 +48,14 @@ export interface UnsorrySnapshot {
    */
   archivedProofs: SnapshotProof[]
   goals: SnapshotGoal[]
+  /**
+   * goal id → archive package (`unsorry-archive-<n>`) for archived proofs, so the
+   * Showcase proof-detail page can resolve a goal's Lean statement from
+   * `packages/<pkg>/goals/<id>.lean` once it has been retired out of active
+   * `goals/` (where only its `.aisp` record remains). Active goals are absent here
+   * and keep using `goals/<id>.lean`.
+   */
+  archivePackageByGoal: Record<string, string>
 }
 
 /** `⟦Ω:Lemma⟧{goal,name}` + optional `⟦Π:Provenance⟧{solver,…}`. Requires only
@@ -61,6 +69,14 @@ export function parseProof(text: string): SnapshotProof | null {
   const provider = f.provider && f.provider !== '∅' ? f.provider : undefined
   const model = f.model && f.model !== '∅' ? f.model : undefined
   return { goal: f.goal, solver, name: f.name, provider, model }
+}
+
+const ARCHIVE_PKG_RE = /^packages\/(unsorry-archive-[^/]+)\//
+
+/** The archive package (`unsorry-archive-<n>`) a snapshot-relative path lives in,
+ *  or null when it is not under an archive package. Pure. */
+export function archivePackageOf(relPath: string): string | null {
+  return ARCHIVE_PKG_RE.exec(relPath)?.[1] ?? null
 }
 
 /** `⟦Ω:Goal⟧{id,status,difficulty}` — the original target record. */
