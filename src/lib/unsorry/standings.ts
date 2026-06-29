@@ -6,6 +6,7 @@ import {
   type GoalMeta,
 } from './derive'
 import {
+  fetchArchivedGoalSource,
   fetchBenchmarkRuns,
   fetchGlobalLeaderboard,
   fetchGoalEffort,
@@ -81,11 +82,27 @@ export async function getBenchmarkRuns(): Promise<Record<string, BenchmarkRun[]>
 
 /** A benchmark goal's Lean source. Total: '' on error. */
 export async function getGoalSource(goalId: string): Promise<string> {
+  // Active goal: goals/<id>.lean. Many Showcase goals are archived, though — their
+  // statement moves to packages/<pkg>/goals/<id>.lean while only the .aisp record
+  // stays in active goals/. Fall back to the archive (package resolved from the
+  // snapshot) so archived proofs still show their statement. (#realization-…)
   try {
-    return await fetchGoalSource(goalId)
+    const active = await fetchGoalSource(goalId)
+    if (active.trim()) return active
   } catch {
-    return ''
+    // 404 / network — fall through to the archive lookup
   }
+  try {
+    const snap = await loadSnapshot()
+    const pkg = snap?.archivePackageByGoal[goalId]
+    if (pkg) {
+      const archived = await fetchArchivedGoalSource(pkg, goalId)
+      if (archived.trim()) return archived
+    }
+  } catch {
+    // ignore — fall through to empty (LeanStatement shows the unavailable note)
+  }
+  return ''
 }
 
 export async function getGoalSolverMap(): Promise<Map<string, GoalSolver>> {

@@ -76,9 +76,16 @@ async function fetchText(url: string, revalidate: number = REVALIDATE_SECONDS): 
   return res.text()
 }
 
-/** A benchmark goal's Lean source (`goals/<id>.lean`) — exactly what the swarm proves. */
+/** A goal's Lean source (`goals/<id>.lean`) — exactly what the swarm proves. */
 export async function fetchGoalSource(goalId: string): Promise<string> {
   return fetchText(rawRepoUrl(`goals/${goalId}.lean`))
+}
+
+/** A retired goal's Lean source from its archive package
+ *  (`packages/<pkg>/goals/<id>.lean`), for goals archived out of active `goals/`
+ *  where only the `.aisp` record remains. */
+export async function fetchArchivedGoalSource(pkg: string, goalId: string): Promise<string> {
+  return fetchText(rawRepoUrl(`packages/${pkg}/goals/${goalId}.lean`))
 }
 
 export async function fetchGlobalLeaderboard(): Promise<UnsorryLeaderboardRecord[]> {

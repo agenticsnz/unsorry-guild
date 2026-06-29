@@ -2,10 +2,26 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { parseGoal, parseProof } from '@/lib/unsorry/snapshot-parse'
+import { archivePackageOf, parseGoal, parseProof } from '@/lib/unsorry/snapshot-parse'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const fixture = (n: string) => readFileSync(join(here, '../../mocks/aisp', n), 'utf8')
+
+describe('archivePackageOf', () => {
+  it('extracts the archive package from an archived path', () => {
+    expect(
+      archivePackageOf('packages/unsorry-archive-0008/library/index/7112a44.aisp'),
+    ).toBe('unsorry-archive-0008')
+    expect(archivePackageOf('packages/unsorry-archive-0008/goals/realization-determines-counts.lean')).toBe(
+      'unsorry-archive-0008',
+    )
+  })
+
+  it('returns null for active (non-archive) paths', () => {
+    expect(archivePackageOf('library/index/abc.aisp')).toBeNull()
+    expect(archivePackageOf('goals/foo.lean')).toBeNull()
+  })
+})
 
 describe('parseProof (library/index/*.aisp)', () => {
   it('extracts goal, solver, name and the engine (provider/model) from a real record', () => {

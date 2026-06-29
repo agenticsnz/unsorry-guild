@@ -1,7 +1,7 @@
 import { extract } from 'tar-stream'
 import { createGunzip } from 'node:zlib'
 import { Readable } from 'node:stream'
-import { parseGoal, parseProof } from './snapshot-parse'
+import { archivePackageOf, parseGoal, parseProof } from './snapshot-parse'
 import type { UnsorrySnapshot } from './snapshot-parse'
 
 /**
@@ -43,7 +43,12 @@ async function fetchSnapshot(token: string): Promise<UnsorrySnapshot | null> {
   }
 
   const gzip = Buffer.from(await res.arrayBuffer())
-  const snap: UnsorrySnapshot = { proofs: [], archivedProofs: [], goals: [] }
+  const snap: UnsorrySnapshot = {
+    proofs: [],
+    archivedProofs: [],
+    goals: [],
+    archivePackageByGoal: {},
+  }
   const ext = extract()
   // Archived proofs live at packages/unsorry-archive-<n>/library/index/*.aisp.
   const ARCHIVED_PROOF_RE = /^packages\/unsorry-archive-[^/]+\/library\/index\/[^/]+\.aisp$/
@@ -71,7 +76,17 @@ async function fetchSnapshot(token: string): Promise<UnsorrySnapshot | null> {
         if (goal) snap.goals.push(goal)
       } else {
         const proof = parseProof(text)
-        if (proof) (isArchivedProof ? snap.archivedProofs : snap.proofs).push(proof)
+        if (proof) {
+          ;(isArchivedProof ? snap.archivedProofs : snap.proofs).push(proof)
+          if (isArchivedProof) {
+            const pkg = archivePackageOf(rel)
+            // First archive wins; an active goals/<id>.lean (if any) still takes
+            // precedence at resolve time.
+            if (pkg && !(proof.goal in snap.archivePackageByGoal)) {
+              snap.archivePackageByGoal[proof.goal] = pkg
+            }
+          }
+        }
       }
       next()
     })
