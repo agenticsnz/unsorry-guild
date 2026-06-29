@@ -17,6 +17,12 @@ the engineering protocols this project follows.
 `npm run changelog:preview`; a release folds them in here with
 `npm run changelog:release <version> <date>`. -->
 
+## [2.3.1] - 2026-06-29
+
+### Fixed
+
+- Fixed the proof-detail page (`/math/proofs/<goal>`) showing **"Statement source unavailable"** for archived goals. The Showcase ranks the whole proved corpus, most of which is **archived** — and an archived goal's Lean statement moves to `packages/<pkg>/goals/<id>.lean` while only its `.aisp` record stays in active `goals/`, so the old `goals/<id>.lean`-only lookup found nothing. The snapshot now records each archived goal's package, and `getGoalSource` falls back to `packages/<pkg>/goals/<id>.lean` when the active source is absent — so archived proofs (e.g. `realization-determines-counts`) show their statement again.
+
 ## [2.3.0] - 2026-06-29
 
 ### Added
