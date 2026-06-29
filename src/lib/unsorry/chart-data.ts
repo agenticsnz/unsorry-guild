@@ -26,6 +26,36 @@ function pointLabel(t: string): string {
   return t.slice(0, 10)
 }
 
+/** Densify a sparse timeline to one bucket per period — hourly on the merge basis
+ *  (`…THH:MM:SSZ`), daily on solve (`YYYY-MM-DD`) — inserting zero-proof buckets
+ *  across gaps so a no-proof stretch is *visible* as empty bars instead of being
+ *  collapsed to adjacent ones (e.g. the 2026-06-26→06-29 drought). Cumulative holds
+ *  flat across inserted buckets (no proofs landed). A safety cap bounds pathological
+ *  ranges. Pure. */
+export function fillTimelineGaps(series: TimelinePoint[]): TimelinePoint[] {
+  if (series.length < 2) return series
+  const hourly = series[0].t.includes('T')
+  const stepMs = hourly ? 3_600_000 : 86_400_000
+  const parse = (t: string) => Date.parse(hourly ? t : `${t}T00:00:00Z`)
+  const fmt = hourly
+    ? (ms: number) => `${new Date(ms).toISOString().slice(0, 19)}Z`
+    : (ms: number) => new Date(ms).toISOString().slice(0, 10)
+  const MAX_FILL = 5000 // backstop against a runaway range; real spans are << this
+  const out: TimelinePoint[] = []
+  for (let i = 0; i < series.length; i++) {
+    out.push(series[i])
+    if (i === series.length - 1) break
+    const held = series[i].cumulative_proofs
+    const next = parse(series[i + 1].t)
+    let cur = parse(series[i].t) + stepMs
+    while (cur < next && out.length < series.length + MAX_FILL) {
+      out.push({ t: fmt(cur), proofs: 0, cumulative_proofs: held })
+      cur += stepMs
+    }
+  }
+  return out
+}
+
 export function proofsOverTimeCombo(series: TimelinePoint[]): ComboSeries {
   // One bar per upstream bucket (hourly on the merge basis, daily on solve), with
   // hour-aware labels (ADR-030, superseding the daily aggregation of ADR-029).
