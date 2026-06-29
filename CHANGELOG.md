@@ -17,6 +17,12 @@ the engineering protocols this project follows.
 `npm run changelog:preview`; a release folds them in here with
 `npm run changelog:release <version> <date>`. -->
 
+## [2.3.2] - 2026-06-29
+
+### Fixed
+
+- Fixed the proof-detail page's **"Lean statement" and "AISP goal record" links 404ing for archived goals** — they pointed at `goals/<id>.lean` / `.aisp` on `main`, but an archived goal's files live in its `packages/<pkg>/` package. `getGoalSource` now returns the resolved repo path alongside the source, and both links (and the code-panel filename) use it, so they open the real file. Follow-up to the archived-statement fix.
+
 ## [2.3.1] - 2026-06-29
 
 ### Fixed
