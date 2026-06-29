@@ -45,7 +45,7 @@ export function leaderboardBarSeries(
   return {
     labels: top.map((e) => e.displayName),
     values: top.map((e) => e.score),
-    hrefs: top.map((e) => `/math/contributors/${e.github}`),
+    hrefs: top.map((e) => (e.github ? `/math/contributors/${e.github}` : '')),
   }
 }
 

@@ -10,9 +10,11 @@ import type { GuildLeaderboardEntry, UnsorryLeaderboardRecord } from './types'
 export function toGuildLeaderboard(records: UnsorryLeaderboardRecord[]): GuildLeaderboardEntry[] {
   const mapped = records.map((r) => ({
     github: r.github,
-    displayName: r.display_name ?? `@${r.github}`,
-    avatarUrl: r.avatar_url ?? `https://github.com/${r.github}.png?size=96`,
-    profileUrl: r.profile_url ?? `https://github.com/${r.github}`,
+    // A handle-less contributor (github: null) gets a display_name fallback and no
+    // GitHub-derived avatar/profile URL — never an interpolated `…/null`. (#43)
+    displayName: r.display_name ?? (r.github ? `@${r.github}` : 'Anonymous contributor'),
+    avatarUrl: r.avatar_url ?? (r.github ? `https://github.com/${r.github}.png?size=96` : ''),
+    profileUrl: r.profile_url ?? (r.github ? `https://github.com/${r.github}` : ''),
     score: r.score,
     difficultyPoints: r.difficulty_points,
     creditedProofs: r.credited_proofs,
@@ -26,6 +28,13 @@ export function toGuildLeaderboard(records: UnsorryLeaderboardRecord[]): GuildLe
       success_rate_percent: Math.round((r.run_success_rate ?? 0) * 100),
     },
   }))
-  mapped.sort((a, b) => b.score - a.score || a.github.localeCompare(b.github))
+  // Null-safe tie-break: at equal score, handled contributors rank ahead of
+  // handle-less ones, then alphabetically by handle. Never deref a null handle.
+  mapped.sort(
+    (a, b) =>
+      b.score - a.score ||
+      Number(b.github != null) - Number(a.github != null) ||
+      (a.github ?? '').localeCompare(b.github ?? ''),
+  )
   return assignRanks(mapped, (e) => e.score)
 }
