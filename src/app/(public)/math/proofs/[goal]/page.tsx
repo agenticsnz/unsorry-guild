@@ -29,9 +29,15 @@ export default async function ProofDetailPage({
   const detail = buildProofDetail(goalId, solverMap, goalMeta, goalEffort)
   if (!detail) notFound()
 
-  // Best-effort Lean statement (only benchmark goals publish goals/<id>.lean);
-  // LeanStatement renders an "unavailable" note when the source is empty.
-  const source = await getGoalSource(goalId)
+  // The Lean statement + the repo path it was found at. Archived goals resolve to
+  // their archive package, so the links below point to the real file rather than a
+  // 404 at goals/<id>.lean. LeanStatement renders an "unavailable" note when empty.
+  const { source, path: sourcePath } = await getGoalSource(goalId)
+  // Both records sit beside each other; derive the .aisp link from the resolved
+  // .lean path so an archived goal links into its package, not active goals/.
+  const aispPath = sourcePath
+    ? sourcePath.replace(/\.lean$/, '.aisp')
+    : `goals/${goalId}.aisp`
 
   const statusVariant =
     detail.status === 'proved' ? 'default' : detail.status === 'archived' ? 'secondary' : 'outline'
@@ -80,21 +86,21 @@ export default async function ProofDetailPage({
         <div className="flex flex-wrap items-center gap-3">
           <code className="font-mono text-sm">{goalId}</code>
           <a
-            href={repoBlobUrl(`goals/${goalId}.aisp`)}
+            href={repoBlobUrl(aispPath)}
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-brand hover:underline"
           >
             AISP goal record →
           </a>
-          {source && (
+          {source && sourcePath && (
             <a
-              href={repoBlobUrl(`goals/${goalId}.lean`)}
+              href={repoBlobUrl(sourcePath)}
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-brand hover:underline"
             >
-              Lean statement (goals/{goalId}.lean) →
+              Lean statement →
             </a>
           )}
         </div>
@@ -122,7 +128,7 @@ export default async function ProofDetailPage({
         <p className="text-sm text-foreground/60">
           The Lean statement the swarm proved, kernel-verified at Gate A.
         </p>
-        <LeanStatement goalId={goalId} source={source} />
+        <LeanStatement goalId={goalId} source={source} path={sourcePath ?? undefined} />
       </section>
     </div>
   )
