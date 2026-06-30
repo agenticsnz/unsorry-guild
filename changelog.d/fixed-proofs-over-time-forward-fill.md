@@ -1,0 +1,1 @@
+The **Proofs over time** chart no longer stalls at the last proof. When no new proofs have landed, the empty-bar tail now extends forward to the current period (hourly on the merge basis, daily on solve), so a no-new-proofs stretch reads as empty bars up to *now* instead of the axis ending at the most recent proof.

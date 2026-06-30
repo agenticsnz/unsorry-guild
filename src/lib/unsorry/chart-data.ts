@@ -30,10 +30,16 @@ function pointLabel(t: string): string {
  *  (`…THH:MM:SSZ`), daily on solve (`YYYY-MM-DD`) — inserting zero-proof buckets
  *  across gaps so a no-proof stretch is *visible* as empty bars instead of being
  *  collapsed to adjacent ones (e.g. the 2026-06-26→06-29 drought). Cumulative holds
- *  flat across inserted buckets (no proofs landed). A safety cap bounds pathological
- *  ranges. Pure. */
-export function fillTimelineGaps(series: TimelinePoint[]): TimelinePoint[] {
-  if (series.length < 2) return series
+ *  flat across inserted buckets (no proofs landed).
+ *
+ *  When `now` (an epoch-ms timestamp) is supplied, the series is also *forward-filled*:
+ *  zero-proof buckets are appended from the last proof up to the current period, so a
+ *  no-new-proofs stretch reads as empty bars through to now rather than the chart
+ *  stalling at the last proof. The current still-filling bucket is included.
+ *
+ *  A safety cap bounds pathological ranges (including a runaway `now`). Pure. */
+export function fillTimelineGaps(series: TimelinePoint[], now?: number): TimelinePoint[] {
+  if (series.length === 0 || (series.length < 2 && now === undefined)) return series
   const hourly = series[0].t.includes('T')
   const stepMs = hourly ? 3_600_000 : 86_400_000
   const parse = (t: string) => Date.parse(hourly ? t : `${t}T00:00:00Z`)
@@ -49,6 +55,16 @@ export function fillTimelineGaps(series: TimelinePoint[]): TimelinePoint[] {
     const next = parse(series[i + 1].t)
     let cur = parse(series[i].t) + stepMs
     while (cur < next && out.length < series.length + MAX_FILL) {
+      out.push({ t: fmt(cur), proofs: 0, cumulative_proofs: held })
+      cur += stepMs
+    }
+  }
+  if (now !== undefined) {
+    const last = series[series.length - 1]
+    const held = last.cumulative_proofs
+    const nowBucket = Math.floor(now / stepMs) * stepMs // floor to the current period
+    let cur = parse(last.t) + stepMs
+    while (cur <= nowBucket && out.length < series.length + MAX_FILL) {
       out.push({ t: fmt(cur), proofs: 0, cumulative_proofs: held })
       cur += stepMs
     }

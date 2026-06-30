@@ -85,6 +85,65 @@ describe('fillTimelineGaps', () => {
     const one: TimelinePoint[] = [{ t: '2026-06-26', proofs: 1, cumulative_proofs: 1 }]
     expect(fillTimelineGaps(one)).toEqual(one)
   })
+
+  it('forward-fills zero-proof hourly buckets from the last proof up to the current hour', () => {
+    // Last proof landed 10:00; "now" is 13:30. The chart should read as empty bars
+    // through the current (still-filling) 13:00 hour, not stall at 10:00.
+    const series: TimelinePoint[] = [
+      { t: '2026-06-29T09:00:00Z', proofs: 5, cumulative_proofs: 100 },
+      { t: '2026-06-29T10:00:00Z', proofs: 2, cumulative_proofs: 102 },
+    ]
+    const now = Date.parse('2026-06-29T13:30:00Z')
+    expect(fillTimelineGaps(series, now)).toEqual([
+      { t: '2026-06-29T09:00:00Z', proofs: 5, cumulative_proofs: 100 },
+      { t: '2026-06-29T10:00:00Z', proofs: 2, cumulative_proofs: 102 },
+      { t: '2026-06-29T11:00:00Z', proofs: 0, cumulative_proofs: 102 },
+      { t: '2026-06-29T12:00:00Z', proofs: 0, cumulative_proofs: 102 },
+      { t: '2026-06-29T13:00:00Z', proofs: 0, cumulative_proofs: 102 },
+    ])
+  })
+
+  it('forward-fills zero-proof daily buckets up to today on the solve basis', () => {
+    const series: TimelinePoint[] = [
+      { t: '2026-06-27', proofs: 8, cumulative_proofs: 108 },
+    ]
+    const now = Date.parse('2026-06-30T19:00:00Z')
+    expect(fillTimelineGaps(series, now).map((p) => [p.t, p.proofs, p.cumulative_proofs])).toEqual([
+      ['2026-06-27', 8, 108],
+      ['2026-06-28', 0, 108],
+      ['2026-06-29', 0, 108],
+      ['2026-06-30', 0, 108],
+    ])
+  })
+
+  it('forward-fills a single-point series up to now', () => {
+    const one: TimelinePoint[] = [{ t: '2026-06-29T10:00:00Z', proofs: 3, cumulative_proofs: 3 }]
+    expect(fillTimelineGaps(one, Date.parse('2026-06-29T12:10:00Z'))).toEqual([
+      { t: '2026-06-29T10:00:00Z', proofs: 3, cumulative_proofs: 3 },
+      { t: '2026-06-29T11:00:00Z', proofs: 0, cumulative_proofs: 3 },
+      { t: '2026-06-29T12:00:00Z', proofs: 0, cumulative_proofs: 3 },
+    ])
+  })
+
+  it('does not forward-fill when now is within the last bucket or in the past', () => {
+    const series: TimelinePoint[] = [
+      { t: '2026-06-29T09:00:00Z', proofs: 5, cumulative_proofs: 100 },
+      { t: '2026-06-29T10:00:00Z', proofs: 2, cumulative_proofs: 102 },
+    ]
+    // now is in the same hour as the last point → nothing to add.
+    expect(fillTimelineGaps(series, Date.parse('2026-06-29T10:45:00Z'))).toEqual(series)
+    // now in the past → still nothing to add (never walks backwards).
+    expect(fillTimelineGaps(series, Date.parse('2026-06-29T08:00:00Z'))).toEqual(series)
+  })
+
+  it('caps the forward-fill against a runaway now', () => {
+    const series: TimelinePoint[] = [
+      { t: '2026-01-01T00:00:00Z', proofs: 1, cumulative_proofs: 1 },
+    ]
+    const out = fillTimelineGaps(series, Date.parse('2100-01-01T00:00:00Z'))
+    expect(out.length).toBe(1 + 5000) // original point + MAX_FILL backstop
+    expect(out.every((p, i) => (i === 0 ? p.proofs === 1 : p.proofs === 0))).toBe(true)
+  })
 })
 
 describe('leaderboardBarSeries', () => {
