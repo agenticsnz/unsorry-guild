@@ -28,6 +28,19 @@ export const FALLBACK_PRIZES: PrizeConfig[] = [
   },
 ]
 
+/** The latest season for a prize (from `prize_seasons`), or null when it has
+ *  none / Supabase is not configured. Lives here (server-free) so client
+ *  components can use the pure `isSeasonOpen` without pulling in the SSR client. */
+export interface SeasonState {
+  openedAt: string | null
+  closedAt: string | null
+}
+
+/** A season is "open" (awardable) iff it exists and has not been closed. Pure. */
+export function isSeasonOpen(season: SeasonState | null | undefined): boolean {
+  return !!season && !season.closedAt
+}
+
 export function listFallbackPrizes(domainId: string): PrizeConfig[] {
   return FALLBACK_PRIZES.filter((p) => p.domainId === domainId)
 }

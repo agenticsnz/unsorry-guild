@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getPrizes } from '@/lib/prizes/prizes'
+import { getPrizes, getLatestSeasons, isSupabaseConfigured } from '@/lib/prizes/prizes'
 import {
   getGoalEffort,
   getRegisteredTargets,
@@ -32,11 +32,14 @@ export default async function GmGoalsPage() {
     getGoalSolverMap(),
   ])
 
+  const seasons = await getLatestSeasons(prizes.map((p) => p.id))
+  const writable = isSupabaseConfigured()
   const candidates = buildGoalCandidates(goalEffort, suites).slice(0, CANDIDATE_CAP)
   const goals = prizes.map((prize) => ({
     prize,
     progress: computeTargetProgress(prize.headlineGoalId, goalEffort),
     podium: computeTargetLeaderboard(prize.headlineGoalId, goalEffort, solverMap).slice(0, 3),
+    season: seasons.get(prize.id) ?? null,
   }))
 
   return (
@@ -51,6 +54,15 @@ export default async function GmGoalsPage() {
           authored upstream, never here.
         </p>
       </div>
+
+      {!writable && (
+        <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-300">
+          <strong>Read-only:</strong> Supabase isn&rsquo;t configured for this deployment, so creating,
+          editing, and season/award actions won&rsquo;t persist. The Goals shown are the in-repo
+          fallback. Set <code>NEXT_PUBLIC_SUPABASE_URL</code> / <code>…_ANON_KEY</code> /{' '}
+          <code>SUPABASE_SERVICE_ROLE_KEY</code> to enable the admin overlay.
+        </div>
+      )}
 
       <Card>
         <CardHeader>
@@ -68,7 +80,7 @@ export default async function GmGoalsPage() {
         {goals.length === 0 ? (
           <p className="text-sm text-foreground/70">No goals yet — create one above.</p>
         ) : (
-          goals.map(({ prize, progress, podium }) => (
+          goals.map(({ prize, progress, podium, season }) => (
             <Card key={prize.id}>
               <CardContent className="space-y-4 pt-6">
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -110,7 +122,7 @@ export default async function GmGoalsPage() {
                   )}
                 </div>
 
-                <GoalRowActions prize={prize} />
+                <GoalRowActions prize={prize} season={season} />
               </CardContent>
             </Card>
           ))
