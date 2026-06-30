@@ -281,7 +281,7 @@ export function EmailPreferencesForm({ userId }: EmailPreferencesFormProps) {
           <PreferenceToggle
             id="objective_approved_email"
             label="Objective Approved"
-            description="Receive notification when your objective is approved by a GM"
+            description="Receive notification when your objective is approved by an admin"
             checked={formState.objective_approved_email ?? true}
             onCheckedChange={(checked) => updateField('objective_approved_email', checked)}
             disabled={allTogglesDisabled}

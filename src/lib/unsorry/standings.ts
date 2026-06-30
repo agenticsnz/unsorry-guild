@@ -3,7 +3,9 @@ import {
   deriveGoalSolverMap,
   deriveShowcaseSolverMap,
   deriveGoalMetaMap,
+  deriveRecentProofs,
   type GoalMeta,
+  type RecentProof,
 } from './derive'
 import {
   fetchArchivedGoalSource,
@@ -156,6 +158,20 @@ export async function getGoalMetaMap(): Promise<Map<string, GoalMeta>> {
     return new Map(effort.map((e) => [e.goal, { difficulty: e.difficulty, status: e.status }]))
   } catch {
     return new Map()
+  }
+}
+
+/**
+ * The most recently proved goals (day resolution), for the admin overview's
+ * activity pulse. Empty when the snapshot is unavailable or no record carries a
+ * day-stamp — the overview then shows only the timeline velocity line.
+ */
+export async function getRecentProofs(limit = 8): Promise<RecentProof[]> {
+  try {
+    const snap = await loadSnapshot()
+    return snap ? deriveRecentProofs(snap, limit) : []
+  } catch {
+    return []
   }
 }
 

@@ -115,7 +115,7 @@ export function EvidenceStatus({
       {/* Feedback */}
       {feedback && (
         <div className="pt-2 border-t">
-          <p className="text-xs font-medium text-muted-foreground mb-1">GM Feedback:</p>
+          <p className="text-xs font-medium text-muted-foreground mb-1">Admin feedback:</p>
           <p className="text-sm">{feedback}</p>
         </div>
       )}

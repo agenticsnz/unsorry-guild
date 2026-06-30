@@ -4,6 +4,7 @@ import {
   deriveShowcaseSolverMap,
   deriveGoalMetaMap,
   deriveContributorModels,
+  deriveRecentProofs,
 } from '@/lib/unsorry/derive'
 import type { UnsorrySnapshot } from '@/lib/unsorry/snapshot-parse'
 
@@ -104,5 +105,43 @@ describe('deriveContributorModels', () => {
 
   it('returns [] for a contributor with no proofs', () => {
     expect(deriveContributorModels(MODELS, 'nobody')).toEqual([])
+  })
+})
+
+describe('deriveRecentProofs', () => {
+  const RECENT: UnsorrySnapshot = {
+    proofs: [
+      { goal: 'g-b', name: 'b', solver: 'alice', provedOn: '2026-06-20' },
+      { goal: 'g-a', name: 'a', solver: 'bob', provedOn: '2026-06-22' },
+      { goal: 'g-c', name: 'c', provedOn: '2026-06-20' }, // same date as g-b → goal asc
+      { goal: 'g-undated', name: 'u' }, // no day-stamp → excluded
+    ],
+    archivedProofs: [{ goal: 'g-arch', provedOn: '2026-06-30' }], // archived ignored
+    goals: [],
+    archivePackageByGoal: {},
+  }
+
+  it('orders by date desc then goal asc, excludes undated and archived', () => {
+    expect(deriveRecentProofs(RECENT, 8).map((p) => p.goal)).toEqual(['g-a', 'g-b', 'g-c'])
+  })
+
+  it('respects the limit', () => {
+    expect(deriveRecentProofs(RECENT, 1).map((p) => p.goal)).toEqual(['g-a'])
+  })
+
+  it('carries through the row fields', () => {
+    expect(deriveRecentProofs(RECENT, 1)[0]).toEqual({
+      goal: 'g-a',
+      name: 'a',
+      solver: 'bob',
+      provider: undefined,
+      model: undefined,
+      provedOn: '2026-06-22',
+    })
+  })
+
+  it('returns [] when no proof carries a day-stamp', () => {
+    expect(deriveRecentProofs(EMPTY, 8)).toEqual([])
+    expect(deriveRecentProofs({ ...EMPTY, proofs: [{ goal: 'x' }] }, 8)).toEqual([])
   })
 })

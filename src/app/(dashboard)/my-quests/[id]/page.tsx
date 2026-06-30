@@ -308,7 +308,7 @@ export default function QuestProgressPage() {
           {/* Show final feedback if present */}
           {(userQuest as { final_feedback?: string }).final_feedback && (
             <div className="mt-4 p-4 rounded-lg bg-muted">
-              <h4 className="font-medium mb-1">GM Feedback</h4>
+              <h4 className="font-medium mb-1">Admin feedback</h4>
               <p className="text-sm text-muted-foreground">
                 {(userQuest as { final_feedback?: string }).final_feedback}
               </p>

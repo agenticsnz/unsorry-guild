@@ -123,7 +123,7 @@ export function Header() {
               href="/gm"
               className="text-sm font-medium px-3 py-1 bg-primary/10 text-primary rounded hover:bg-primary/20"
             >
-              GM
+              Admin
             </Link>
           )}
           {user && (
@@ -172,7 +172,7 @@ export function Header() {
                   <>
                     <DropdownMenuItem asChild>
                       <Link href="/gm" className="cursor-pointer">
-                        GM Dashboard
+                        Admin
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />

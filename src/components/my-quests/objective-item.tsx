@@ -234,7 +234,7 @@ export function ObjectiveItem({
           {/* Feedback from GM */}
           {userObjective.feedback && (
             <div className="mt-3 p-2 rounded bg-muted/50 text-sm">
-              <span className="font-medium">GM Feedback:</span>{' '}
+              <span className="font-medium">Admin feedback:</span>{' '}
               {userObjective.feedback}
             </div>
           )}
