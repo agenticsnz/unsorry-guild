@@ -38,6 +38,40 @@ export function deriveShowcaseSolverMap(s: UnsorrySnapshot): Map<string, GoalSol
   return map
 }
 
+/** One recently-proved goal for the admin overview's activity feed. */
+export interface RecentProof {
+  goal: string
+  name?: string
+  solver?: string
+  provider?: string
+  model?: string
+  /** Day-stamp `YYYY-MM-DD` (record header date). Present for every returned row. */
+  provedOn: string
+}
+
+/**
+ * The most recently proved goals (active verified proofs only), newest first, for
+ * the admin overview's "recent proof activity" pulse. Ordered by `provedOn` (day
+ * resolution — the finest the records carry) desc, ties broken by `goal` asc for a
+ * stable list. Records with no parseable day-stamp are excluded — a recency feed
+ * needs a date — so an all-undated corpus yields `[]` (the overview then falls
+ * back to the timeline velocity line). Pure + unit-tested.
+ */
+export function deriveRecentProofs(s: UnsorrySnapshot, limit: number): RecentProof[] {
+  return s.proofs
+    .filter((p): p is SnapshotProof & { provedOn: string } => !!p.provedOn)
+    .map((p) => ({
+      goal: p.goal,
+      name: p.name,
+      solver: p.solver,
+      provider: p.provider,
+      model: p.model,
+      provedOn: p.provedOn,
+    }))
+    .sort((a, b) => (a.provedOn < b.provedOn ? 1 : a.provedOn > b.provedOn ? -1 : a.goal.localeCompare(b.goal)))
+    .slice(0, Math.max(0, limit))
+}
+
 export interface GoalMeta {
   difficulty: number
   status: string

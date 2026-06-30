@@ -24,14 +24,19 @@ describe('archivePackageOf', () => {
 })
 
 describe('parseProof (library/index/*.aisp)', () => {
-  it('extracts goal, solver, name and the engine (provider/model) from a real record', () => {
+  it('extracts goal, solver, name, engine and the header day-stamp from a real record', () => {
     expect(parseProof(fixture('library-index.sample.aisp'))).toEqual({
       goal: 'gpow-sum-two-pow-nineteen',
       solver: 'ohdearquant',
       name: 'gpow_sum_two_pow_nineteen',
       provider: 'python',
       model: 'sympy',
+      provedOn: '2026-06-19',
     })
+  })
+
+  it('leaves provedOn undefined when the record has no header day-stamp', () => {
+    expect(parseProof('⟦Ω:Lemma⟧{goal≜g; name≜g}')?.provedOn).toBeUndefined()
   })
 
   it('captures a proof with no explicit solver (inferred attribution)', () => {

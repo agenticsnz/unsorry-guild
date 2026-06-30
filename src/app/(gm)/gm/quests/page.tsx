@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { GMQuestList } from '@/components/gm/gm-quest-list'
 
 export const metadata: Metadata = {
-  title: 'Quest Management | GM Dashboard',
+  title: 'Quest Management | Admin',
   description: 'Create, edit, and manage quests for your guild',
 }
 

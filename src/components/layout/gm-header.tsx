@@ -62,7 +62,7 @@ export function GMHeader() {
           {/* Logo and Guild Name */}
           <div className="flex items-center gap-3 text-xl">
             <Link href="/gm">
-              <span className="font-bold">Guild Hall</span>
+              <span className="font-bold">Admin</span>
             </Link>
             {guildName && (
               <>
@@ -101,7 +101,7 @@ export function GMHeader() {
               </>
             )}
             <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded">
-              GM
+              Admin
             </span>
           </div>
 
@@ -130,7 +130,7 @@ export function GMHeader() {
             href="/dashboard"
             className="text-sm text-muted-foreground hover:text-foreground"
           >
-            Exit GM
+            Exit admin
           </Link>
           {user && <NotificationBell />}
           {user && (
@@ -155,7 +155,7 @@ export function GMHeader() {
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard" className="cursor-pointer flex items-center gap-2">
                     <Home className="h-4 w-4" />
-                    Exit GM
+                    Exit admin
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
@@ -182,7 +182,7 @@ export function GMHeader() {
                 ) : (
                   <Menu className="h-5 w-5" />
                 )}
-                <span className="sr-only">GM menu</span>
+                <span className="sr-only">Admin menu</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">

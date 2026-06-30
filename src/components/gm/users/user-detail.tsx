@@ -18,7 +18,7 @@ function getRoleBadge(role: string | null): { label: string; variant: 'default' 
     case 'admin':
       return { label: 'Admin', variant: 'default' }
     case 'gm':
-      return { label: 'Game Master', variant: 'secondary' }
+      return { label: 'Admin', variant: 'secondary' }
     default:
       return { label: 'Member', variant: 'outline' }
   }

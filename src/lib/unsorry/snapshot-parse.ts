@@ -15,14 +15,23 @@ import { parseAispFields } from './aisp'
  *  `provider`/`model` are the engine that discharged this goal (e.g. `python` /
  *  `sympy`). They join to the model registry via the `${provider} / ${model}`
  *  key (mirrors generate.py), powering the per-contributor "favourite models"
- *  breakdown. Both are optional — a handful of older records omit them. */
+ *  breakdown. Both are optional — a handful of older records omit them.
+ *
+ *  `provedOn` is the record's day-stamp (`@YYYY-MM-DD` in the header line) — the
+ *  only timestamp a record carries (the provenance block has no finer one), so
+ *  recency is day-resolution. Optional: records with no parseable header date
+ *  (e.g. hand-authored fixtures) omit it. */
 export interface SnapshotProof {
   goal: string
   solver?: string
   name?: string
   provider?: string
   model?: string
+  provedOn?: string
 }
+
+/** The `@YYYY-MM-DD` day-stamp in a record's header line (`𝔸<v>.lemma.<sha>@DATE`). */
+const HEADER_DATE_RE = /@(\d{4}-\d{2}-\d{2})\b/
 
 /**
  * One goal record — goals/*.aisp. Carries the per-goal `difficulty` (and status)
@@ -68,7 +77,9 @@ export function parseProof(text: string): SnapshotProof | null {
   const solver = f.solver && f.solver !== '∅' ? f.solver : undefined
   const provider = f.provider && f.provider !== '∅' ? f.provider : undefined
   const model = f.model && f.model !== '∅' ? f.model : undefined
-  return { goal: f.goal, solver, name: f.name, provider, model }
+  // The day-stamp lives in the header line, not a fenced field — scan it directly.
+  const provedOn = HEADER_DATE_RE.exec(text.split('\n', 1)[0] ?? '')?.[1]
+  return { goal: f.goal, solver, name: f.name, provider, model, provedOn }
 }
 
 const ARCHIVE_PKG_RE = /^packages\/(unsorry-archive-[^/]+)\//

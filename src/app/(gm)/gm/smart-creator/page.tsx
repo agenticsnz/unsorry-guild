@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Smart Quest Creator | GM Dashboard',
+  title: 'Smart Quest Creator | Admin',
   description: 'AI-powered quest generation coming soon',
 }
 
@@ -92,7 +92,7 @@ export default function SmartCreatorPage() {
           <div className="space-y-4">
             <div className="flex gap-3">
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                <span className="text-xs font-medium">GM</span>
+                <span className="text-xs font-medium">AI</span>
               </div>
               <div className="flex-1 bg-muted rounded-lg p-3 text-sm">
                 Create a quest about learning React hooks for beginner developers, should take about a week

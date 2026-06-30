@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { QuestForm } from '@/components/gm/quest-form'
 
 export const metadata: Metadata = {
-  title: 'Create Quest | GM Dashboard',
+  title: 'Create Quest | Admin',
   description: 'Create a new quest for your guild members',
 }
 
