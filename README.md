@@ -21,9 +21,9 @@ It is a fork of [cgbarlow/guild-hall](https://github.com/cgbarlow/guild-hall), r
 | **Contributor profiles** | `/math/contributors/[handle]` | global standing + git-derived goal badges |
 | **Model pages** | `/math/models/[slug]` | each model's Pokémon identity, research profile (open/closed source, publisher, country, parameters, licence, canonical link) and proof performance, from the upstream `model-registry.json` ([ADR-027](docs/adrs/ADR-027-Model-Pages-And-Pokemon.md)) |
 | **Showcase** | `/math/showcase` | native difficulty-ranked proof cards |
-| **Proof graph** | `/math/proof-graph` | native interactive force-directed contributors↔goals graph |
+| **Proof graph** | `/math/proof-graph` | native interactive proof-territory map (proofs positioned by mathlib territory, coloured by redundancy class) |
 | **Queue** | `/math/queue` | live proving queue (per-goal work, models, state) from `queue.json` |
-| **Admin console** | `/gm/prizes` | create goals, open seasons, confirm podiums (Supabase overlay) |
+| **Admin console** | `/gm` · `/gm/prizes` | Goals-centric overview, plus create / edit / delete / track goals, run seasons, confirm podiums (Supabase overlay) |
 
 A **goal target** is a headline goal id plus its decomposition subtree (suffix convention
 `<headline>-sN`). Contributors are ranked by difficulty-weighted discharge of that subtree

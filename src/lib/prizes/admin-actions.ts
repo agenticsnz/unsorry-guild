@@ -6,6 +6,7 @@ import { fetchGoalEffort } from '@/lib/unsorry/fetchers'
 import { buildGoalSolverMap } from '@/lib/unsorry/attribution'
 import { computeTargetLeaderboard } from '@/lib/unsorry/target-leaderboard'
 import { computeTargetProgress } from '@/lib/unsorry/subtree'
+import { parseGoalForm } from '@/lib/schemas/goal.schema'
 import { derivePodiumAwards } from './awards'
 
 /**
@@ -20,23 +21,59 @@ function table(supabase: ServerClient, name: string) {
   return (supabase.from as (t: string) => ReturnType<ServerClient['from']>)(name)
 }
 
+function revalidateGoals() {
+  revalidatePath('/gm/prizes')
+  revalidatePath('/math/goals')
+  revalidatePath('/gm')
+}
+
 export async function createPrizeAction(formData: FormData) {
-  const headlineGoalId = String(formData.get('headlineGoalId') ?? '').trim()
-  const title = String(formData.get('title') ?? '').trim()
-  if (!headlineGoalId || !title) return
+  const parsed = parseGoalForm(formData)
+  if (!parsed.ok) return
+  const { headlineGoalId, title, description, badgeEmoji } = parsed.data
 
   const supabase = await createClient()
   await table(supabase, 'prizes').insert({
     domain_id: 'math',
     headline_goal_id: headlineGoalId,
     title,
-    description: String(formData.get('description') ?? '').trim() || null,
-    badge_emoji: String(formData.get('badgeEmoji') ?? '').trim() || '🏅',
+    description: description ?? null,
+    badge_emoji: badgeEmoji || '🏅',
     status: 'active',
   } as Record<string, unknown>)
 
-  revalidatePath('/gm/prizes')
-  revalidatePath('/math/goals')
+  revalidateGoals()
+}
+
+export async function updatePrizeAction(formData: FormData) {
+  const id = String(formData.get('id') ?? '')
+  const parsed = parseGoalForm(formData)
+  if (!id || !parsed.ok) return
+  const { headlineGoalId, title, description, badgeEmoji } = parsed.data
+
+  const supabase = await createClient()
+  await table(supabase, 'prizes')
+    .update({
+      headline_goal_id: headlineGoalId,
+      title,
+      description: description ?? null,
+      badge_emoji: badgeEmoji || '🏅',
+    } as Record<string, unknown>)
+    .eq('id', id)
+
+  revalidateGoals()
+}
+
+export async function deletePrizeAction(formData: FormData) {
+  const id = String(formData.get('id') ?? '')
+  if (!id) return
+
+  // prize_seasons / prize_awards FK with ON DELETE CASCADE (migrations 202/203),
+  // so removing the prize removes its seasons and frozen awards too.
+  const supabase = await createClient()
+  await table(supabase, 'prizes').delete().eq('id', id)
+
+  revalidateGoals()
 }
 
 export async function openSeasonAction(formData: FormData) {
