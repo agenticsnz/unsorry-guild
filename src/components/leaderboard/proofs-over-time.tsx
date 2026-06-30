@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { fillTimelineGaps, proofsOverTimeCombo } from '@/lib/unsorry/chart-data'
 import { ProofsComboChart } from '@/components/charts/proofs-combo-chart'
@@ -14,8 +14,13 @@ export function ProofsOverTime({ timelines }: { timelines: Timelines }) {
   // (e.g. an outage) is visible rather than collapsed to adjacent bars. Toggle ON
   // to collapse to active periods only.
   const [hideEmpty, setHideEmpty] = useState(false)
+  // `now` is set after mount so the empty-bar tail extends to the present without
+  // the chart stalling at the last proof. Left undefined on the server / first
+  // client render so the SSR markup matches and hydration stays clean.
+  const [now, setNow] = useState<number | undefined>(undefined)
+  useEffect(() => setNow(Date.now()), [])
   const rawSeries = (mode === 'solve' ? timelines.solve : timelines.merge) ?? []
-  const series = hideEmpty ? rawSeries : fillTimelineGaps(rawSeries)
+  const series = hideEmpty ? rawSeries : fillTimelineGaps(rawSeries, now)
   const { labels, proofs, cumulative } = proofsOverTimeCombo(series)
   const total = series.length ? series[series.length - 1].cumulative_proofs : 0
   const span = series.length
