@@ -17,6 +17,12 @@ the engineering protocols this project follows.
 `npm run changelog:preview`; a release folds them in here with
 `npm run changelog:release <version> <date>`. -->
 
+## [2.6.1] - 2026-06-30
+
+### Fixed
+
+- Fixed the admin Goals **season lifecycle** appearing to do nothing. "Close & award" only acts on an **open** season, but a freshly-curated Goal has none, so the action silently returned. The Goals admin now reads each Goal's latest season and shows the correct button — **Open season** when none is open, **Close & award** only once a season is open — with a caption ("No season yet…", "Season open since…", "Last season closed…"). It also shows a **read-only** warning when Supabase isn't configured for the deployment, since the Goals then come from the in-repo fallback and no admin write would persist.
+
 ## [2.6.0] - 2026-06-30
 
 ### Changed
