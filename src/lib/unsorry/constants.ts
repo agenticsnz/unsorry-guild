@@ -29,6 +29,10 @@ export const rawMetricsUrl = (file: string) => `${UNSORRY_RAW_BASE_URL}/metrics/
 export const queueUrl = () => `${UNSORRY_BASE_URL}/queue.json`
 export const rawQueueUrl = () => `${UNSORRY_RAW_BASE_URL}/queue.json`
 
+/** The proof-territory map data (agenticsnz/unsorry `docs/territory.json`). */
+export const territoryUrl = () => `${UNSORRY_BASE_URL}/territory.json`
+export const rawTerritoryUrl = () => `${UNSORRY_RAW_BASE_URL}/territory.json`
+
 /** Raw blob URL for any path in the unsorry repo (e.g. library/index/<sha>.aisp). */
 export const rawRepoUrl = (path: string) =>
   `https://raw.githubusercontent.com/${UNSORRY_REPO}/main/${path}`

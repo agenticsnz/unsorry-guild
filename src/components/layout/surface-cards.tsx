@@ -21,7 +21,7 @@ export const SURFACES = [
   {
     href: '/math/proof-graph',
     title: 'Proof graph',
-    blurb: 'Proofs and contributors, visualised.',
+    blurb: 'The proof corpus mapped over its mathlib territory.',
   },
   {
     href: '/math/queue',

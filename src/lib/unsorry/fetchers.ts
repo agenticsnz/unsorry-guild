@@ -4,9 +4,12 @@ import {
   rawRepoUrl,
   queueUrl,
   rawQueueUrl,
+  territoryUrl,
+  rawTerritoryUrl,
   REVALIDATE_SECONDS,
   MODEL_REGISTRY_REVALIDATE_SECONDS,
 } from './constants'
+import type { TerritoryData } from './territory'
 import type {
   BenchmarkRuns,
   CommunityStats,
@@ -128,4 +131,10 @@ export async function fetchQueue<T = unknown>(): Promise<T> {
 
 export async function fetchQueueData(): Promise<QueueData> {
   return fetchJson<QueueData>(rawQueueUrl(), queueUrl())
+}
+
+/** The proof-territory map (SVD layout of the credited proofs over mathlib
+ *  territory; #7078/#7079). Raw-git first, Pages as the fallback. */
+export async function fetchTerritoryData(): Promise<TerritoryData> {
+  return fetchJson<TerritoryData>(rawTerritoryUrl(), territoryUrl())
 }

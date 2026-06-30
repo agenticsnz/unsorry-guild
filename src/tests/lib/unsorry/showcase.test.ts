@@ -1,13 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { buildProofGraph } from '@/lib/unsorry/graph'
 import { buildShowcase, buildProofDetail } from '@/lib/unsorry/showcase'
 import type { GoalEffort, GoalSolver } from '@/lib/unsorry/types'
 
-const goalEffort: GoalEffort[] = [
-  { goal: 'g1', status: 'proved', difficulty: 3 },
-  { goal: 'g2', status: 'archived', difficulty: 1 },
-  { goal: 'g3', status: 'open', difficulty: 5 },
-]
 const solver = (goal: string, s: string, name?: string): [string, GoalSolver] => [
   goal,
   { goal, solver: s, name },
@@ -17,19 +11,6 @@ const goalSolver = new Map<string, GoalSolver>([
   solver('g2', 'bob', 'lemma_two'),
   solver('g3', 'carol', 'lemma_three'), // open → excluded
 ])
-
-describe('buildProofGraph', () => {
-  it('links proved+attributed goals to their solver and excludes open goals', () => {
-    const { nodes, links } = buildProofGraph(goalEffort, goalSolver)
-    expect(links).toHaveLength(2) // g1→alice, g2→bob (g3 open excluded)
-    const ids = nodes.map((n) => n.id)
-    expect(ids).toContain('c:alice')
-    expect(ids).toContain('g:g1')
-    expect(ids).not.toContain('g:g3')
-    expect(nodes.find((n) => n.id === 'g:g1')?.label).toBe('lemma_one')
-    expect(nodes.find((n) => n.id === 'c:alice')?.kind).toBe('contributor')
-  })
-})
 
 describe('buildShowcase', () => {
   const goalMeta = new Map([
