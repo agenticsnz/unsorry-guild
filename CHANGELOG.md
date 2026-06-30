@@ -17,6 +17,12 @@ the engineering protocols this project follows.
 `npm run changelog:preview`; a release folds them in here with
 `npm run changelog:release <version> <date>`. -->
 
+## [2.5.0] - 2026-06-30
+
+### Changed
+
+- The admin console is now branded **"Admin"** (was "GM" / "Guild Hall") and its overview is rebuilt around the swarm instead of the old quest platform: **Goals status** (each curated Goal's live headline progress over its subtree), **Recent proof activity** (the most-recently-proved goals plus a 24 h / 7 d proof-velocity line), and **Quick actions**. The rename is presentation-only — the `/gm` route and `gm` role are unchanged (ADR-035, mirroring the ADR-022 public Prizes→Goals rename). Recent-proof recency comes from a new day-stamp (`provedOn`) captured from each `library/index/*.aisp` header; with no snapshot or no dated records it falls back to the velocity line.
+
 ## [2.4.0] - 2026-06-30
 
 ### Added
