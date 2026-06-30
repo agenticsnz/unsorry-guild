@@ -45,13 +45,22 @@ export function describeFreshness(generatedAt?: string, now: Date = new Date()):
   return { label: relativeAge(diffMs), iso: generatedAt, isStale: diffMs >= STALE_AFTER_MS }
 }
 
-export function FreshnessIndicator({ generatedAt, now }: { generatedAt?: string; now?: Date }) {
+export function FreshnessIndicator({
+  generatedAt,
+  now,
+  noun = 'Leaderboard',
+}: {
+  generatedAt?: string
+  now?: Date
+  /** What the timestamp describes, for the hover title — e.g. "Queue". */
+  noun?: string
+}) {
   const freshness = describeFreshness(generatedAt, now)
   if (!freshness) return null
   const { label, iso, isStale } = freshness
   return (
     <span
-      title={`Leaderboard data generated ${iso}`}
+      title={`${noun} data generated ${iso}`}
       className={`inline-flex items-center gap-1.5 text-xs ${
         isStale ? 'text-amber-600 dark:text-amber-500' : 'text-foreground/60'
       }`}
