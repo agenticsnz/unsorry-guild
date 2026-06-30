@@ -17,6 +17,16 @@ the engineering protocols this project follows.
 `npm run changelog:preview`; a release folds them in here with
 `npm run changelog:release <version> <date>`. -->
 
+## [2.4.0] - 2026-06-30
+
+### Added
+
+- The Queue page now shows a **freshness indicator** ("Updated 3 min ago", amber + "may be lagging upstream" past an hour) next to the title, read from `queue.json`'s new `generated_at`. The queued-proofs board upstream is cron-refreshed and GitHub throttles that cron under load, so it could silently show a pre-drain count for hours (a solver appearing stuck at 141 waiting while their solves were already merged) — this surfaces the staleness instead of presenting an old board as live. Reuses the leaderboard's freshness component (now with an overridable noun).
+
+### Changed
+
+- The **Proof graph** page now renders the new **proof-territory map** (agenticsnz/unsorry#7078/#7079): every credited proof is positioned by an SVD of the mathlib typeclass machinery it touches, so 2-D distance ≈ shared territory — genuine high-machinery proofs separate out while redundant restatement farms collapse together. Colour is the redundancy class (genuine / restatement / shallow), size is machinery, and hovering a proof reveals its real dependency edges into the typeclass landmarks; a toggle hides the restatement farms. This replaces the old contributor↔goal force graph (and drops the `react-force-graph-2d` dependency), reading the push-on-merge `territory.json` raw-git-first with the Pages URL as fallback.
+
 ## [2.3.2] - 2026-06-29
 
 ### Fixed
