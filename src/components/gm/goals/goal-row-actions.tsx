@@ -27,31 +27,47 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { GOAL_CANDIDATES_LIST_ID } from './goal-candidates-datalist'
+import { isSeasonOpen, type SeasonState } from '@/lib/prizes/config'
 import type { Prize } from '@/lib/prizes/prizes'
 
+const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString() : '')
+
 /** Per-Goal admin controls: edit (dialog), delete (confirm), and the season
- *  lifecycle (open / close & award). All call the gated server actions. */
-export function GoalRowActions({ prize }: { prize: Prize }) {
+ *  lifecycle. The open-vs-close button is driven by the latest season so the
+ *  flow is explicit — "Close & award" only acts on an OPEN season (otherwise the
+ *  server action silently no-ops), so it is only shown when one is open. */
+export function GoalRowActions({ prize, season }: { prize: Prize; season: SeasonState | null }) {
   const [editOpen, setEditOpen] = useState(false)
+  const open = isSeasonOpen(season)
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      {/* Open season */}
-      <form action={openSeasonAction}>
-        <input type="hidden" name="prizeId" value={prize.id} />
-        <Button type="submit" variant="outline" size="sm">
-          Open season
-        </Button>
-      </form>
-
-      {/* Close & award */}
-      <form action={closeAndAwardAction}>
-        <input type="hidden" name="prizeId" value={prize.id} />
-        <input type="hidden" name="headlineGoalId" value={prize.headlineGoalId} />
-        <Button type="submit" size="sm">
-          Close &amp; award
-        </Button>
-      </form>
+    <div className="space-y-2">
+      <p className="text-xs text-foreground/55">
+        {open
+          ? `Season open since ${fmt(season!.openedAt)} — close it to award the podium.`
+          : season
+            ? `Last season closed ${fmt(season.closedAt)}. Open a new one to award again.`
+            : 'No season yet — open one before you can close & award.'}
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        {open ? (
+          /* Close & award — only when a season is open (else the action no-ops) */
+          <form action={closeAndAwardAction}>
+            <input type="hidden" name="prizeId" value={prize.id} />
+            <input type="hidden" name="headlineGoalId" value={prize.headlineGoalId} />
+            <Button type="submit" size="sm">
+              Close &amp; award
+            </Button>
+          </form>
+        ) : (
+          /* Open season */
+          <form action={openSeasonAction}>
+            <input type="hidden" name="prizeId" value={prize.id} />
+            <Button type="submit" variant="outline" size="sm">
+              Open season
+            </Button>
+          </form>
+        )}
 
       {/* Edit */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
@@ -137,6 +153,7 @@ export function GoalRowActions({ prize }: { prize: Prize }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </div>
     </div>
   )
 }
