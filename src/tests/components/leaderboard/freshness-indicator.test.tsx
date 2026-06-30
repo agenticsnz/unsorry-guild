@@ -58,4 +58,11 @@ describe('FreshnessIndicator', () => {
     expect(screen.getByText(/Updated 3 h ago/)).toBeInTheDocument()
     expect(screen.getByText(/lagging upstream/)).toBeInTheDocument()
   })
+
+  it('uses the noun in the hover title (default Leaderboard; overridable)', () => {
+    const { rerender } = render(<FreshnessIndicator generatedAt={ago(60_000)} now={NOW} />)
+    expect(screen.getByTitle(/^Leaderboard data generated/)).toBeInTheDocument()
+    rerender(<FreshnessIndicator generatedAt={ago(60_000)} now={NOW} noun="Queue" />)
+    expect(screen.getByTitle(/^Queue data generated/)).toBeInTheDocument()
+  })
 })

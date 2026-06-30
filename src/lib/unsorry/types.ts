@@ -331,6 +331,9 @@ export interface QueueSummary {
 
 export interface QueueData {
   schema_version?: number
+  /** When unsorry last regenerated the board (latest board-source commit). Drives
+   *  the freshness indicator so a stalled board reads as stale, not a quiet queue. */
+  generated_at?: string
   summary: QueueSummary
   solvers: QueueSolver[]
 }
