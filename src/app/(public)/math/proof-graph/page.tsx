@@ -1,28 +1,35 @@
-import { getGoalEffort, getGoalSolverMap } from '@/lib/unsorry/standings'
-import { buildProofGraph } from '@/lib/unsorry/graph'
-import { ProofGraphCanvas } from '@/components/graph/proof-graph-canvas'
+import { fetchTerritoryData } from '@/lib/unsorry/fetchers'
+import { ProofTerritoryCanvas } from '@/components/graph/proof-territory-canvas'
+import type { TerritoryData } from '@/lib/unsorry/territory'
 
 export const metadata = { title: 'Proof graph · Math · unsorry-guild' }
 export const dynamic = 'force-dynamic'
 
 export default async function ProofGraphPage() {
-  const [goalEffort, solverMap] = await Promise.all([getGoalEffort(), getGoalSolverMap()])
-  const graph = buildProofGraph(goalEffort, solverMap)
+  let territory: TerritoryData | null = null
+  try {
+    territory = await fetchTerritoryData()
+  } catch {
+    territory = null
+  }
 
   return (
     <div className="space-y-4">
       <div className="space-y-1">
         <h1 className="text-3xl font-bold">Proof graph</h1>
         <p className="text-sm text-foreground/70">
-          Every verified proof links a goal to the contributor who discharged it. Drag nodes, scroll
-          to zoom, hover for names. <span className="text-brand">Orange</span> = contributors,{' '}
-          grey = goals.
+          Every credited proof, positioned by its{' '}
+          <span className="text-brand">mathlib territory</span> — an SVD of the typeclass machinery it
+          touches, so distance ≈ shared territory. Colour is redundancy class, size is machinery;
+          hover a proof to see its real dependency edges. Drag to pan, scroll to zoom.
         </p>
       </div>
-      {graph.links.length > 0 ? (
-        <ProofGraphCanvas graph={graph} />
+      {territory && territory.proofs.length > 0 ? (
+        <ProofTerritoryCanvas data={territory} />
       ) : (
-        <p className="text-sm text-foreground/70">No proof attribution available right now.</p>
+        <p className="text-sm text-foreground/70">
+          The proof-territory map isn&rsquo;t available right now.
+        </p>
       )}
     </div>
   )
