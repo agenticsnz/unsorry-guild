@@ -1,4 +1,5 @@
 import { parseAispFields } from './aisp'
+import type { Decomposition } from './types'
 
 /**
  * Pure parser for unsorry's verified-proof index records (library/index/*.aisp),
@@ -65,6 +66,12 @@ export interface UnsorrySnapshot {
    * and keep using `goals/<id>.lean`.
    */
   archivePackageByGoal: Record<string, string>
+  /**
+   * Authoritative parent→subs decomposition records — `decompositions/*.aisp`
+   * (unsorry ADR-009). One record per decomposed parent; the goal views join each
+   * sub's status/attribution from `proofs`/`goals` by goal id.
+   */
+  decompositions: Decomposition[]
 }
 
 /** `⟦Ω:Lemma⟧{goal,name}` + optional `⟦Π:Provenance⟧{solver,…}`. Requires only
@@ -88,6 +95,58 @@ const ARCHIVE_PKG_RE = /^packages\/(unsorry-archive-[^/]+)\//
  *  or null when it is not under an archive package. Pure. */
 export function archivePackageOf(relPath: string): string | null {
   return ARCHIVE_PKG_RE.exec(relPath)?.[1] ?? null
+}
+
+/** A `key≜value` scalar in a decomposition record, stopped at the first field/block
+ *  delimiter. Used for `parent`/`agent` — single tokens, not the `⟨…⟩` sub tuples. */
+function decompScalar(text: string, key: 'parent' | 'agent'): string | undefined {
+  const m = new RegExp(`${key}≜\\s*([^;,}\\s⟦⟧]+)`).exec(text)
+  return m?.[1]
+}
+
+/** The `⟦Σ:Subs⟧{ … }` block body, or '' when absent. Sub tuples use `⟨…⟩`, never
+ *  braces, so the block ends at the first `}` (single- or multi-line records). */
+const SUBS_BLOCK_RE = /⟦Σ:Subs⟧\{([^}]*)\}/
+/** Each helper sub's goal id, from its `⟨id≜<id>,…⟩` tuple. */
+const SUB_ID_RE = /id≜\s*([^,⟩\s]+)/g
+
+/**
+ * `⟦Ω:Decomp⟧{parent≜…; agent≜…}` + `⟦Σ:Subs⟧{sub₁≜⟨id≜…⟩ …}` — the authoritative
+ * parent→subs record (`decompositions/*.aisp`, unsorry ADR-009). The subs are read
+ * from the `⟨id≜…⟩` tuples IN ORDER; the `<parent>-sN` id suffix is never consulted
+ * (curated and suite-pinned subs have no such suffix). Returns null unless the record
+ * has a parent and at least one sub.
+ */
+export function parseDecomposition(text: string): Decomposition | null {
+  const parent = decompScalar(text, 'parent')
+  if (!parent) return null
+
+  const body = SUBS_BLOCK_RE.exec(text)?.[1] ?? ''
+  const subs: string[] = []
+  SUB_ID_RE.lastIndex = 0
+  let m: RegExpExecArray | null
+  while ((m = SUB_ID_RE.exec(body)) !== null) subs.push(m[1])
+  if (subs.length === 0) return null
+
+  const agent = decompScalar(text, 'agent')
+  return agent ? { parent, subs, agent } : { parent, subs }
+}
+
+/** Parent goal id → its decomposition, for O(1) lookup from a goal view (first
+ *  record wins on the rare duplicate). */
+export function decompositionMap(decompositions: Decomposition[]): Map<string, Decomposition> {
+  const map = new Map<string, Decomposition>()
+  for (const d of decompositions) if (!map.has(d.parent)) map.set(d.parent, d)
+  return map
+}
+
+/** The decomposition a goal is the parent of, or undefined when it is not a
+ *  decomposition parent (the common case — the section then renders nothing). */
+export function decompositionFor(
+  decompositions: Decomposition[],
+  parentId: string,
+): Decomposition | undefined {
+  return decompositions.find((d) => d.parent === parentId)
 }
 
 /** `⟦Ω:Goal⟧{id,status,difficulty}` — the original target record. */

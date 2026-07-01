@@ -21,6 +21,7 @@ import { buildGoalSolverMap } from './attribution'
 import type {
   BenchmarkRun,
   BenchmarkSuite,
+  Decomposition,
   GoalEffort,
   GoalSolver,
   GuildLeaderboardEntry,
@@ -170,6 +171,20 @@ export async function getRecentProofs(limit = 8): Promise<RecentProof[]> {
   try {
     const snap = await loadSnapshot()
     return snap ? deriveRecentProofs(snap, limit) : []
+  } catch {
+    return []
+  }
+}
+
+/**
+ * The authoritative parent→subs decomposition records (ADR-037, unsorry ADR-009),
+ * read from the cached git snapshot. Total: [] when the snapshot is unavailable
+ * (no GITHUB_TOKEN) or on any error — the goal views then simply render no
+ * decomposition section.
+ */
+export async function getDecompositions(): Promise<Decomposition[]> {
+  try {
+    return (await loadSnapshot())?.decompositions ?? []
   } catch {
     return []
   }

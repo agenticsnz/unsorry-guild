@@ -250,6 +250,23 @@ export interface BenchmarkRuns {
   suites: Record<string, BenchmarkRun[]>
 }
 
+/**
+ * One authoritative parent→subs decomposition record (`decompositions/*.aisp`,
+ * unsorry ADR-009). The swarm emits this when it splits a goal it cannot prove in
+ * one shot into helper sub-lemmas that are proved separately and composed back
+ * into the parent. `subs` is the ordered list of helper goal ids taken verbatim
+ * from the record's `⟦Σ:Subs⟧` block — it is the source of the parent→subs edge
+ * (NOT the `<parent>-sN` id suffix, which misses curated and suite-pinned subs).
+ */
+export interface Decomposition {
+  /** parent goal id */
+  parent: string
+  /** ordered helper sub-lemma goal ids (authoritative, from the record) */
+  subs: string[]
+  /** decomposing agent, when present on the record */
+  agent?: string
+}
+
 /** goal → credited solver, parsed from library/index/*.aisp. */
 export interface GoalSolver {
   goal: string

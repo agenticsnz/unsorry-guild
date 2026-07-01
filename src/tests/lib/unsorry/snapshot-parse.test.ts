@@ -2,7 +2,15 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { archivePackageOf, parseGoal, parseProof } from '@/lib/unsorry/snapshot-parse'
+import {
+  archivePackageOf,
+  parseGoal,
+  parseProof,
+  parseDecomposition,
+  decompositionMap,
+  decompositionFor,
+} from '@/lib/unsorry/snapshot-parse'
+import type { Decomposition } from '@/lib/unsorry/types'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const fixture = (n: string) => readFileSync(join(here, '../../mocks/aisp', n), 'utf8')
@@ -80,5 +88,75 @@ describe('parseGoal (goals/*.aisp)', () => {
 
   it('returns null when there is no goal id', () => {
     expect(parseGoal('garbage')).toBeNull()
+  })
+})
+
+describe('parseDecomposition (decompositions/*.aisp)', () => {
+  it('extracts parent, agent and the ordered subs from a real record', () => {
+    expect(parseDecomposition(fixture('decomposition.sample.aisp'))).toEqual({
+      parent: 'sq-add-sq-eq-three-mul-sq',
+      agent: 'oma-2-c50d',
+      subs: [
+        'sq-add-sq-eq-three-mul-sq-s1',
+        'three-not-sum-of-two-squares',
+        'sq-add-sq-eq-three-mul-sq-s3',
+      ],
+    })
+  })
+
+  it('extracts sub ids from the ⟨id≜…⟩ values, independent of the -sN suffix', () => {
+    // The middle sub is a curated name with no `-sN` suffix; it must still be
+    // captured (the source is the authoritative record, not the id scheme).
+    const subs = parseDecomposition(fixture('decomposition.sample.aisp'))?.subs
+    expect(subs).toContain('three-not-sum-of-two-squares')
+    expect(subs?.every((s) => /-s\d+$/.test(s))).toBe(false)
+  })
+
+  it('parses a single-line record and preserves sub order', () => {
+    const rec =
+      '⟦Ω:Decomp⟧{parent≜putnam-v1-suite;agent≜trishullab}\n' +
+      '⟦Σ:Subs⟧{sub₁≜⟨id≜putnam-1962-a1,sha≜aa⟩;sub₂≜⟨id≜putnam-1962-a2,sha≜bb⟩}'
+    expect(parseDecomposition(rec)).toEqual({
+      parent: 'putnam-v1-suite',
+      agent: 'trishullab',
+      subs: ['putnam-1962-a1', 'putnam-1962-a2'],
+    })
+  })
+
+  it('leaves agent undefined when the record omits it', () => {
+    const rec = '⟦Ω:Decomp⟧{parent≜p}\n⟦Σ:Subs⟧{sub₁≜⟨id≜c1,sha≜aa⟩}'
+    expect(parseDecomposition(rec)).toEqual({ parent: 'p', subs: ['c1'] })
+  })
+
+  it('returns null when there is no parent', () => {
+    expect(parseDecomposition('⟦Σ:Subs⟧{sub₁≜⟨id≜c1⟩}')).toBeNull()
+  })
+
+  it('returns null when there are no subs', () => {
+    expect(parseDecomposition('⟦Ω:Decomp⟧{parent≜p}')).toBeNull()
+  })
+})
+
+describe('decompositionMap / decompositionFor', () => {
+  const decompositions: Decomposition[] = [
+    { parent: 'p1', subs: ['p1-s1', 'curated-a'], agent: 'agent-x' },
+    { parent: 'p2', subs: ['p2-s1'] },
+  ]
+
+  it('builds an O(1) parent→decomposition lookup', () => {
+    const map = decompositionMap(decompositions)
+    expect(map.get('p1')?.subs).toEqual(['p1-s1', 'curated-a'])
+    expect(map.get('p2')?.subs).toEqual(['p2-s1'])
+    expect(map.get('nope')).toBeUndefined()
+  })
+
+  it('decompositionFor returns the decomposition for a parent and undefined otherwise', () => {
+    expect(decompositionFor(decompositions, 'p1')?.subs).toEqual(['p1-s1', 'curated-a'])
+    expect(decompositionFor(decompositions, 'p1-s1')).toBeUndefined()
+    expect(decompositionFor([], 'p1')).toBeUndefined()
+  })
+
+  it('an empty (goals-only) snapshot yields an empty decomposition map', () => {
+    expect(decompositionMap([]).size).toBe(0)
   })
 })
