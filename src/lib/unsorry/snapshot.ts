@@ -1,7 +1,7 @@
 import { extract } from 'tar-stream'
 import { createGunzip } from 'node:zlib'
 import { Readable } from 'node:stream'
-import { archivePackageOf, parseGoal, parseProof } from './snapshot-parse'
+import { archivePackageOf, parseDecomposition, parseGoal, parseProof } from './snapshot-parse'
 import type { UnsorrySnapshot } from './snapshot-parse'
 
 /**
@@ -48,6 +48,7 @@ async function fetchSnapshot(token: string): Promise<UnsorrySnapshot | null> {
     archivedProofs: [],
     goals: [],
     archivePackageByGoal: {},
+    decompositions: [],
   }
   const ext = extract()
   // Archived proofs live at packages/unsorry-archive-<n>/library/index/*.aisp.
@@ -62,7 +63,11 @@ async function fetchSnapshot(token: string): Promise<UnsorrySnapshot | null> {
     const isProof = isAisp && rel.startsWith('library/index/')
     const isArchivedProof = isAisp && ARCHIVED_PROOF_RE.test(rel)
     const isGoal = isAisp && rel.startsWith('goals/')
-    if (!isProof && !isArchivedProof && !isGoal) {
+    // Authoritative parent→subs decomposition records (ADR-037). Top-level
+    // `decompositions/` only — the active set, matching the goals/ + library/index
+    // convention; read-only (ADR-015).
+    const isDecomp = isAisp && rel.startsWith('decompositions/')
+    if (!isProof && !isArchivedProof && !isGoal && !isDecomp) {
       stream.on('end', next)
       stream.resume()
       return
@@ -71,7 +76,10 @@ async function fetchSnapshot(token: string): Promise<UnsorrySnapshot | null> {
     stream.on('data', (c: Buffer) => chunks.push(c))
     stream.on('end', () => {
       const text = Buffer.concat(chunks).toString('utf8')
-      if (isGoal) {
+      if (isDecomp) {
+        const decomposition = parseDecomposition(text)
+        if (decomposition) snap.decompositions.push(decomposition)
+      } else if (isGoal) {
         const goal = parseGoal(text)
         if (goal) snap.goals.push(goal)
       } else {

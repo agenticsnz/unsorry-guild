@@ -1,0 +1,13 @@
+𝔸5.1.decomp.sq-add-sq-eq-three-mul-sq.oma-2-c50d@2026-06-14
+γ≔unsorry.decomposition
+⟦Ω:Decomp⟧{parent≜sq-add-sq-eq-three-mul-sq; agent≜oma-2-c50d}
+⟦Σ:Subs⟧{
+  sub₁≜⟨id≜sq-add-sq-eq-three-mul-sq-s1,sha≜b78c7ffa0da72d4338127243b6eb92d7245265b8a334b49ee4a2f64008f6f7ba⟩
+  sub₂≜⟨id≜three-not-sum-of-two-squares,sha≜414528f6cc23950064c715bee1e22317c0b2ba711df3b7163993019ffdc12d4d⟩
+  sub₃≜⟨id≜sq-add-sq-eq-three-mul-sq-s3,sha≜586eebb098d418c72f5a823c205e7548bbd7da4c4f2e759401d150e96eeca88d⟩
+}
+⟦Γ:Edges⟧{
+  Post(sub₁)⊆Pre(parent); Post(sub₂)⊆Pre(parent); Post(sub₃)⊆Pre(parent)
+}
+⟦Λ:Requeue⟧{∀s∈subs:goal(s)≫status≔open}
+⟦Ε⟧⟨δ≜0.60;τ≜◊⁺⟩

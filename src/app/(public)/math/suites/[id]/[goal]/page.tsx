@@ -5,7 +5,17 @@ import { Badge } from '@/components/ui/badge'
 import { CopyRun } from '@/components/math/copy-run'
 import { LeanStatement } from '@/components/math/lean-statement'
 import { BenchmarkRunsTable } from '@/components/math/benchmark-runs-table'
-import { getBenchmarkRuns, getGoalSource, getRegisteredTargets } from '@/lib/unsorry/standings'
+import { GoalDecomposition } from '@/components/math/goal-decomposition'
+import {
+  getBenchmarkRuns,
+  getDecompositions,
+  getGoalMetaMap,
+  getGoalSource,
+  getRegisteredTargets,
+  getShowcaseSolverMap,
+} from '@/lib/unsorry/standings'
+import { decompositionFor } from '@/lib/unsorry/snapshot-parse'
+import { resolveDecomposition } from '@/lib/unsorry/decomposition'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,6 +33,20 @@ export default async function BenchmarkGoalPage({
   const [goalSource, runsBySuite] = await Promise.all([getGoalSource(goalId), getBenchmarkRuns()])
   const { source, path: sourcePath } = goalSource
   const runs = (runsBySuite[id] ?? []).filter((r) => r.goal === goalId)
+
+  // ADR-037: if this benchmark goal is a decomposition parent, resolve its helper
+  // sub-lemmas + composed proof (goal-id keyed, so it works whether a sub's proof
+  // lives in the repo library or the suite pin). Absent → no section.
+  const decomposition = await (async () => {
+    try {
+      const record = decompositionFor(await getDecompositions(), goalId)
+      if (!record) return null
+      const [goalMeta, solverMap] = await Promise.all([getGoalMetaMap(), getShowcaseSolverMap()])
+      return resolveDecomposition(record, goalMeta, solverMap)
+    } catch {
+      return null
+    }
+  })()
 
   return (
     <div className="space-y-8">
@@ -54,6 +78,8 @@ export default async function BenchmarkGoalPage({
         </p>
         <LeanStatement goalId={goalId} source={source} path={sourcePath ?? undefined} />
       </section>
+
+      <GoalDecomposition decomposition={decomposition} />
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Runs ({runs.length})</h2>

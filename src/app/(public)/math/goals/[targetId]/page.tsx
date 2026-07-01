@@ -1,11 +1,20 @@
 import { notFound } from 'next/navigation'
 import { getPrize } from '@/lib/prizes/prizes'
-import { getGoalEffort, getGoalSolverMap } from '@/lib/unsorry/standings'
+import {
+  getDecompositions,
+  getGoalEffort,
+  getGoalMetaMap,
+  getGoalSolverMap,
+  getShowcaseSolverMap,
+} from '@/lib/unsorry/standings'
 import { computeTargetProgress } from '@/lib/unsorry/subtree'
 import { computeTargetLeaderboard } from '@/lib/unsorry/target-leaderboard'
+import { decompositionFor } from '@/lib/unsorry/snapshot-parse'
+import { resolveDecomposition } from '@/lib/unsorry/decomposition'
 import { TargetProgressView } from '@/components/prizes/target-progress'
 import { TargetLeaderboardTable } from '@/components/prizes/target-leaderboard-table'
 import { Podium } from '@/components/prizes/podium'
+import { GoalDecomposition } from '@/components/math/goal-decomposition'
 import type { GoalEffort, TargetLeaderboardEntry, TargetProgress } from '@/lib/unsorry/types'
 
 // Recompute-on-read; render per request (the loading.tsx skeleton covers the
@@ -33,6 +42,20 @@ export default async function PrizeDetailPage({
   }
   const progress: TargetProgress = computeTargetProgress(prize.headlineGoalId, goalEffort)
 
+  // ADR-037: if the headline goal is a decomposition parent, resolve its helper
+  // sub-lemmas + composed proof from the ingested records. Empty/absent → no section.
+  const decomposition = await (async () => {
+    try {
+      const decompositions = await getDecompositions()
+      const record = decompositionFor(decompositions, prize.headlineGoalId)
+      if (!record) return null
+      const [goalMeta, solverMap] = await Promise.all([getGoalMetaMap(), getShowcaseSolverMap()])
+      return resolveDecomposition(record, goalMeta, solverMap)
+    } catch {
+      return null
+    }
+  })()
+
   return (
     <div className="space-y-8">
       <div className="space-y-2">
@@ -56,6 +79,8 @@ export default async function PrizeDetailPage({
           <Podium entries={board} closed={progress.isClosed} />
         </section>
       )}
+
+      <GoalDecomposition decomposition={decomposition} />
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Leaderboard</h2>

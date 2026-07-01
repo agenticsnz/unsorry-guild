@@ -25,6 +25,7 @@ const SNAP: UnsorrySnapshot = {
     { goal: 'g0', difficulty: 5, status: 'archived' },
   ],
   archivePackageByGoal: {},
+  decompositions: [],
 }
 
 const EMPTY: UnsorrySnapshot = {
@@ -32,6 +33,7 @@ const EMPTY: UnsorrySnapshot = {
   archivedProofs: [],
   goals: [],
   archivePackageByGoal: {},
+  decompositions: [],
 }
 
 describe('deriveGoalSolverMap', () => {
@@ -85,6 +87,7 @@ describe('deriveContributorModels', () => {
     ],
     goals: [],
     archivePackageByGoal: {},
+    decompositions: [],
   }
 
   it('ranks a contributor’s engines by proof count, deduping per goal (active wins)', () => {
@@ -119,6 +122,7 @@ describe('deriveRecentProofs', () => {
     archivedProofs: [{ goal: 'g-arch', provedOn: '2026-06-30' }], // archived ignored
     goals: [],
     archivePackageByGoal: {},
+    decompositions: [],
   }
 
   it('orders by date desc then goal asc, excludes undated and archived', () => {
